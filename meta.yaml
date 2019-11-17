@@ -31,7 +31,6 @@ build:
 
 requirements:
   host:
-    - python
     - pyinstaller
     - conda ={{ version }}
     - conda-package-handling >=1.6
