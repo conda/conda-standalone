@@ -1,4 +1,4 @@
-{% set version = "4.8.0" %}
+{% set version = "4.8.2" %}
 {% set menuinst_version = "1.4.16" %}
 {% set constructor_version = "3.0.1" %}
 
