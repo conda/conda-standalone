@@ -1,5 +1,7 @@
 COPY conda_src\conda\core\path_actions.py "%SP_DIR%\conda\core\path_actions.py"
 COPY conda_src\conda\utils.py "%SP_DIR%\conda\utils.py"
+COPY conda_src\conda\core\portability.py "%SP_DIR%\conda\core\portability.py"
+COPY conda_src\conda\gateways\disk\update.py "%SP_DIR%\conda\gateways\disk\update.py"
 
 :: we need these for noarch packages with entry points to work on windows
 COPY conda_src\conda\shell\cli-%ARCH%.exe entry_point_base.exe
