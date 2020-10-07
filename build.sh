@@ -1,6 +1,8 @@
 # patched conda files
-cp conda_src/conda/core/path_actions.py $SP_DIR/conda/core/path_actions.py
-cp conda_src/conda/utils.py $SP_DIR/conda/utils.py
+# new files in patches need to be added here
+for fname in "core/path_actions.py" "utils.py" "core/portability.py" "gateways/disk/update.py"; do
+  cp conda_src/conda/${fname} $SP_DIR/conda/${fname}
+done
 
 # # patched menuinst files - windows only, so ignore these
 # cp menuinst_src/menuinst/__init__.py ${SP_DIR}/menuinst/__init__.py
