@@ -1,4 +1,4 @@
-{% set version = "4.8.5" %}
+{% set version = "4.9.2" %}
 {% set menuinst_version = "1.4.16" %}
 {% set constructor_version = "3.1.0" %}
 
@@ -9,12 +9,11 @@ package:
 source:
   - path: ./
   - url: https://github.com/conda/conda/archive/{{ version }}.tar.gz
-    sha256: d8dacb3696ba6b61337f2b354f0138dd2c9212d78a0dd98dea8e1fae01b4bf0e
+    sha256: d7f946e5c770e45da8961323ca96399bf1a881eb68bbaecc7cb1e249f5c86d54
     folder: conda_src
     patches:
       - conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
-      - conda_patches/gh10260.patch
 
   - url: https://github.com/ContinuumIO/menuinst/archive/{{ menuinst_version }}.tar.gz
     sha256: c9ad6e225c2831656bac35b71ac1c8c3f82f08ba8da9718dfb3708485bbccc44
@@ -28,7 +27,7 @@ source:
     folder: constructor  # [win]
 
 build:
-  number: 2
+  number: 0
 
 requirements:
   host:
