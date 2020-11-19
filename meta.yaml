@@ -1,6 +1,7 @@
 {% set version = "4.9.2" %}
 {% set menuinst_version = "1.4.16" %}
 {% set constructor_version = "3.1.0" %}
+{% set python_version = "3.7.8" %}
 
 package:
   name: conda-standalone
@@ -27,11 +28,12 @@ source:
     folder: constructor  # [win]
 
 build:
-  number: 0
+  number: 1
 
 requirements:
   host:
     - pyinstaller
+    - python ={{ python_version }}
     - conda ={{ version }}
     - conda-package-handling >=1.6
 
