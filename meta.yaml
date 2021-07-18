@@ -1,4 +1,4 @@
-{% set version = "4.9.2" %}
+{% set version = "4.10.3" %}
 {% set menuinst_version = "1.4.16" %}
 {% set constructor_version = "3.1.0" %}
 {% set python_version = "3.7.8" %}
@@ -10,14 +10,14 @@ package:
 source:
   - path: ./
   - url: https://github.com/conda/conda/archive/{{ version }}.tar.gz
-    sha256: d7f946e5c770e45da8961323ca96399bf1a881eb68bbaecc7cb1e249f5c86d54
+    sha256: 9e83bb20a6b9adc0bd7abccaa4738a71dc04e19a42dc51ad543539c15b2c941a
     folder: conda_src
     patches:
       - conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
 
   - url: https://github.com/ContinuumIO/menuinst/archive/{{ menuinst_version }}.tar.gz
-    sha256: c9ad6e225c2831656bac35b71ac1c8c3f82f08ba8da9718dfb3708485bbccc44
+    sha256: cedca2f949f1b6f64e3cfbc2347c552f59f83f28cee9c6d5d0101a4dc61b39ca
     folder: menuinst_src
     patches:
       - menuinst_patches/0001-Do-not-assume-menuinst-wants-to-operate-on-sys.prefi.patch
@@ -28,7 +28,7 @@ source:
     folder: constructor  # [win]
 
 build:
-  number: 2
+  number: 0
   ignore_run_exports:
     - '*'
 
@@ -41,17 +41,17 @@ requirements:
 
 test:
   commands:
-    - "${PREFIX}/standalone_conda/conda.exe -V"  # [unix]
-    - "${PREFIX}/standalone_conda/conda.exe create -y -p ./env_test zlib tqdm"  # [unix]
-    - "%PREFIX%\\standalone_conda\\conda.exe -V"  # [win]
-    - "%PREFIX%\\standalone_conda\\conda.exe create -y -p env_test zlib tqdm"  # [win]
+    - ${PREFIX}/standalone_conda/conda.exe -V    # [unix]
+    - ${PREFIX}/standalone_conda/conda.exe create -y -p ./env_test zlib tqdm    # [unix]
+    - '%PREFIX%\standalone_conda\conda.exe -V'    # [win]
+    - '%PREFIX%\standalone_conda\conda.exe create -y -p env_test zlib tqdm'    # [win]
 
 about:
   home: https://github.com/AnacondaRecipes/conda-standalone-feedstock
   license: BSD-3-Clause
   license_family: BSD
   license_file: LICENSE
-  summary: 'Entry point and dependency collection for PyInstaller-based standalone conda.'
+  summary: Entry point and dependency collection for PyInstaller-based standalone conda.
 
 extra:
   recipe-maintainers:
