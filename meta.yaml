@@ -21,7 +21,7 @@ source:
     folder: menuinst_src
     patches:
       - menuinst_patches/0001-Do-not-assume-menuinst-wants-to-operate-on-sys.prefi.patch
-      - menuinst_patches/0002-Allow-menuinst-to-operate-on-non-base-prefix.patch
+      - menuinst_patches/0001-Allow-menuinst-to-operate-on-non-base-prefix.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
     sha256: 13926446679d1e01c6700c3315916536fe57b461fca0e06fbe32eab9e1ba3657  # [win]
