@@ -1,6 +1,6 @@
 {% set version = "4.10.3" %}
 {% set menuinst_version = "1.4.17" %}
-{% set constructor_version = "3.1.0" %}
+{% set constructor_version = "3.2.1" %}
 {% set python_version = "3.7.8" %}
 
 package:
@@ -24,7 +24,7 @@ source:
       - menuinst_patches/0001-Allow-menuinst-to-operate-on-non-base-prefix.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: 13926446679d1e01c6700c3315916536fe57b461fca0e06fbe32eab9e1ba3657  # [win]
+    sha256: 666e3be5e6165107d7198d2753e7af6941e7f82d3bef6fc0cc98ec03310c2e01  # [win]
     folder: constructor  # [win]
 
 build:
