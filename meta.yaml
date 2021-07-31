@@ -1,5 +1,5 @@
 {% set version = "4.10.3" %}
-{% set menuinst_version = "1.4.16" %}
+{% set menuinst_version = "1.4.17" %}
 {% set constructor_version = "3.1.0" %}
 {% set python_version = "3.7.8" %}
 
@@ -16,8 +16,8 @@ source:
       - conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
 
-  - url: https://github.com/ContinuumIO/menuinst/archive/{{ menuinst_version }}.tar.gz
-    sha256: cedca2f949f1b6f64e3cfbc2347c552f59f83f28cee9c6d5d0101a4dc61b39ca
+  - url: https://github.com/conda/menuinst/archive/{{ menuinst_version }}.tar.gz
+    sha256: 143bc78efbbe9e34698df3d40f20576ccd9b62a199ebfff83cc5515049f70090
     folder: menuinst_src
     patches:
       - menuinst_patches/0001-Do-not-assume-menuinst-wants-to-operate-on-sys.prefi.patch
