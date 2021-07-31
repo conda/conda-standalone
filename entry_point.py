@@ -84,7 +84,7 @@ if __name__ == '__main__':
            if args.make_menus is not None:
                module.mk_menus(remove=False, prefix=args.prefix, pkg_names=args.make_menus, root_prefix=args.prefix)
            else:
-               module.rm_menus()
+               module.rm_menus(prefix=args.prefix, root_prefix=args.prefix)
        sys.exit()
     else:
        from conda.cli import main
