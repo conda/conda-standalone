@@ -1,24 +1,49 @@
-From 794da8a8c3d4b255a993a8f29d4295515b48f5ea Mon Sep 17 00:00:00 2001
-From: Nehal J Wani <nehaljw.kkd1@gmail.com>
-Date: Tue, 13 Aug 2019 07:58:05 -0400
-Subject: [PATCH 1/2] Do not assume menuinst wants to operate on sys.prefix
+From 2082f8e06d80120104e67a93713c9f27b790ddb0 Mon Sep 17 00:00:00 2001
+From: Eric Prestat <eric.prestat@gmail.com>
+Date: Sun, 1 Aug 2021 11:13:01 +0100
+Subject: [PATCH 1/2] Do not assume menuinst wants to operate on sys.prefix and
+ don't use runAsAdmin when the user is not admin
 
 ---
- menuinst/__init__.py | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ menuinst/__init__.py | 34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
 diff --git a/menuinst/__init__.py b/menuinst/__init__.py
-index a21240a..1d14731 100644
+index a21240a..fe7de4c 100644
 --- a/menuinst/__init__.py
 +++ b/menuinst/__init__.py
-@@ -53,20 +53,20 @@ def install(path, remove=False, prefix=sys.prefix, recursing=False):
-     install Menu and shortcuts
+@@ -24,8 +24,8 @@ elif sys.platform == 'win32':
+     from .win_elevate import isUserAdmin, runAsAdmin
+ 
+ 
+-def _install(path, remove=False, prefix=sys.prefix, mode=None):
+-    if abspath(prefix) == abspath(sys.prefix):
++def _install(path, remove=False, prefix=sys.prefix, mode=None, root_prefix=sys.prefix):
++    if abspath(prefix) == abspath(root_prefix):
+         env_name = None
+     else:
+         env_name = basename(prefix)
+@@ -48,29 +48,31 @@ def _install(path, remove=False, prefix=sys.prefix, mode=None):
+             ShortCut(m, sc).create()
+ 
+ 
+-def install(path, remove=False, prefix=sys.prefix, recursing=False):
++def install(path, remove=False, prefix=sys.prefix, recursing=False, root_prefix=sys.prefix):
      """
-     # this sys.prefix is intentional.  We want to reflect the state of the root installation.
+-    install Menu and shortcuts
++    Install Menu and shortcuts
++    
++    # Specifying `root_prefix` is used with conda-standalone, because we can't use
++    # `sys.prefix`, therefore we need to specify it  
+     """
+-    # this sys.prefix is intentional.  We want to reflect the state of the root installation.
 -    if sys.platform == 'win32' and not exists(join(sys.prefix, '.nonadmin')):
-+    if sys.platform == 'win32' and not exists(join(prefix, '.nonadmin')):
-         if isUserAdmin():
-             _install(path, remove, prefix, mode='system')
+-        if isUserAdmin():
+-            _install(path, remove, prefix, mode='system')
++    # this root_prefix is intentional.  We want to reflect the state of the root installation.
++    if sys.platform == 'win32' and not exists(join(root_prefix, '.nonadmin')):
++        if not isUserAdmin():
++            _install(path, remove, prefix, mode='system', root_prefix=root_prefix)
          else:
              from pywintypes import error
 +            retcode = 1
@@ -29,16 +54,21 @@ index a21240a..1d14731 100644
 -                                              path, bool(remove), prefix, True)])
 -                else:
 -                    retcode = 1
-+                    if exists(join(prefix, 'python.exe')):
-+                        retcode = runAsAdmin([join(prefix, 'python.exe'), '-c',
-+                            "import menuinst; menuinst.install(%r, %r, %r, %r)" % (
-+                                path, bool(remove), prefix, True)])
++                    retcode = runAsAdmin([join(root_prefix, 'python'), '-c',
++                                          "import menuinst; menuinst.install(%r, %r, %r, %r, %r)" % (
++                                              path, bool(remove), prefix, True, root_prefix)])
              except error:
 -                retcode = 1
 +                pass
  
              if retcode != 0:
                  logging.warn("Insufficient permissions to write menu folder.  "
+                              "Falling back to user location")
+-                _install(path, remove, prefix, mode='user')
++                _install(path, remove, prefix, mode='user', root_prefix=root_prefix)
+     else:
+-        _install(path, remove, prefix, mode='user')
++        _install(path, remove, prefix, mode='user', root_prefix=root_prefix)
 -- 
-2.22.0
+2.32.0
 
