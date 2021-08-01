@@ -82,7 +82,7 @@ if __name__ == '__main__':
            module = importlib.util.module_from_spec(spec)
            spec.loader.exec_module(module)
            if args.make_menus is not None:
-               module.mk_menus(remove=False, prefix=args.prefix, pkg_names=args.make_menus)
+               module.mk_menus(remove=False, prefix=args.prefix, pkg_names=args.make_menus, root_prefix=args.prefix)
            else:
                module.rm_menus()
        sys.exit()

@@ -1,0 +1,36 @@
+From 7fc163e173bca4058553827cd9d0c8296debb273 Mon Sep 17 00:00:00 2001
+From: Eric Prestat <eric.prestat@gmail.com>
+Date: Sun, 1 Aug 2021 11:24:09 +0100
+Subject: [PATCH] Pass root_prefix to menuinst.install() to be used by
+ conda-standalone
+
+---
+ constructor/nsis/_nsis.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/constructor/nsis/_nsis.py b/constructor/nsis/_nsis.py
+index b5b7cbf..fa1d578 100644
+--- a/constructor/nsis/_nsis.py
++++ b/constructor/nsis/_nsis.py
+@@ -104,7 +104,7 @@ class NSISReg:
+             return None
+ 
+ 
+-def mk_menus(remove=False, prefix=None, pkg_names=[]):
++def mk_menus(remove=False, prefix=None, pkg_names=[], root_prefix=None):
+     try:
+         import menuinst
+     except (ImportError, OSError):
+@@ -121,7 +121,8 @@ def mk_menus(remove=False, prefix=None, pkg_names=[]):
+             continue
+         shortcut = join(menu_dir, fn)
+         try:
+-            menuinst.install(shortcut, remove, prefix=prefix)
++            menuinst.install(shortcut, remove, prefix=prefix,
++                             root_prefix=root_prefix)
+         except Exception as e:
+             out("Failed to process %s...\n" % shortcut)
+             err("Error: %s\n" % str(e))
+-- 
+2.30.2
+
