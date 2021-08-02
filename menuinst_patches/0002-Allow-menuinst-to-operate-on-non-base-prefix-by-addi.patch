@@ -1,13 +1,34 @@
-From 78803b5b84044d68f1edc13e2d17fce9a9c105ed Mon Sep 17 00:00:00 2001
+From 98e70bce02ef26f8c006f2ce88171ec7278c6e23 Mon Sep 17 00:00:00 2001
 From: Eric Prestat <eric.prestat@gmail.com>
 Date: Sun, 1 Aug 2021 11:17:27 +0100
 Subject: [PATCH 2/2] Allow menuinst to operate on non base prefix by adding
  the option to specify `root_prefix`
 
 ---
- menuinst/win32.py | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ menuinst/__init__.py |  4 ++--
+ menuinst/win32.py    | 18 +++++++++++-------
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
+diff --git a/menuinst/__init__.py b/menuinst/__init__.py
+index b748b5f..ccdd239 100644
+--- a/menuinst/__init__.py
++++ b/menuinst/__init__.py
+@@ -51,13 +51,13 @@ def _install(path, remove=False, prefix=sys.prefix, mode=None, root_prefix=sys.p
+ def install(path, remove=False, prefix=sys.prefix, recursing=False, root_prefix=sys.prefix):
+     """
+     Install Menu and shortcuts
+-    
++
+     # Specifying `root_prefix` is used with conda-standalone, because we can't use
+     # `sys.prefix`, therefore we need to specify it  
+     """
+     # this root_prefix is intentional.  We want to reflect the state of the root installation.
+     if sys.platform == 'win32' and not exists(join(root_prefix, '.nonadmin')):
+-        if not isUserAdmin():
++        if isUserAdmin():
+             _install(path, remove, prefix, mode='system', root_prefix=root_prefix)
+         else:
+             from pywintypes import error
 diff --git a/menuinst/win32.py b/menuinst/win32.py
 index 67f222a..de471b2 100644
 --- a/menuinst/win32.py

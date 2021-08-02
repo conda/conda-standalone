@@ -1,0 +1,78 @@
+From 19bb0710ce352b3d40605a481d478afc230aa1b8 Mon Sep 17 00:00:00 2001
+From: Eric Prestat <eric.prestat@gmail.com>
+Date: Mon, 2 Aug 2021 15:58:06 +0100
+Subject: [PATCH 2/2] Fix behaviour of creating shortcut menu: create menu
+ shortcut only when the packages is explicitly listed in the "menu_packages"
+ entry
+
+---
+ constructor/nsis/_nsis.py      | 13 +++++++++----
+ constructor/nsis/main.nsi.tmpl |  2 +-
+ 2 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/constructor/nsis/_nsis.py b/constructor/nsis/_nsis.py
+index fa1d578..9624d8d 100644
+--- a/constructor/nsis/_nsis.py
++++ b/constructor/nsis/_nsis.py
+@@ -104,20 +104,25 @@ class NSISReg:
+             return None
+ 
+ 
+-def mk_menus(remove=False, prefix=None, pkg_names=[], root_prefix=None):
++def mk_menus(remove=False, prefix=None, pkg_names=None, root_prefix=None):
+     try:
+         import menuinst
+     except (ImportError, OSError):
+         return
+     if prefix is None:
+         prefix = sys.prefix
++    if root_prefix is None:
++        root_prefix = sys.prefix
+     menu_dir = join(prefix, 'Menu')
+     if not os.path.isdir(menu_dir):
+         return
+     for fn in os.listdir(menu_dir):
+         if not fn.endswith('.json'):
+             continue
+-        if pkg_names and fn[:-5] not in pkg_names:
++        if pkg_names is not None and fn[:-5] not in pkg_names:
++            # skip when not in the list of menus to create
++            # when installing, the pkg_names list is specified, otherwise not
++            # and we don't skip to try to remove shortcuts
+             continue
+         shortcut = join(menu_dir, fn)
+         try:
+@@ -151,7 +156,7 @@ def get_conda_envs_from_python_api():
+ get_conda_envs = get_conda_envs_from_python_api
+ 
+ 
+-def rm_menus(prefix=None):
++def rm_menus(prefix=None, root_prefix=None):
+     try:
+         import menuinst
+         from conda.base.context import context
+@@ -176,7 +181,7 @@ def rm_menus(prefix=None):
+             # `envs_dirs` to avoid picking up environment from other
+             # distributions. Not perfect but better than no checking
+             if envs_dir in env:
+-                mk_menus(remove=True, prefix=env)
++                mk_menus(remove=True, prefix=env, root_prefix=root_prefix)
+ 
+ 
+ def run_post_install():
+diff --git a/constructor/nsis/main.nsi.tmpl b/constructor/nsis/main.nsi.tmpl
+index 315f4ab..86e1dad 100644
+--- a/constructor/nsis/main.nsi.tmpl
++++ b/constructor/nsis/main.nsi.tmpl
+@@ -881,7 +881,7 @@ Section "Install"
+ 
+     SetDetailsPrint TextOnly
+     DetailPrint "Setting up the base environment ..."
+-    nsExec::ExecToLog '"$INSTDIR\_conda.exe" install --offline -yp "$INSTDIR" --file "$INSTDIR\pkgs\env.txt"'
++    nsExec::ExecToLog '"$INSTDIR\_conda.exe" install --offline -yp "$INSTDIR" --file "$INSTDIR\pkgs\env.txt" --no-shortcuts'
+     Pop $0
+     SetDetailsPrint both
+ 
+-- 
+2.32.0
+

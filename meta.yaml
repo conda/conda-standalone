@@ -28,6 +28,7 @@ source:
     folder: constructor  # [win]
     patches:
       - constructor_patches/0001-Pass-root_prefix-to-menuinst.install-to-be-used-by-c.patch  # [win]
+      - constructor_patches/0002-Fix-behaviour-of-creating-shortcut-menu-create-menu-.patch  # [win]
 
 build:
   number: 1

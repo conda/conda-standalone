@@ -1,15 +1,15 @@
-From 2082f8e06d80120104e67a93713c9f27b790ddb0 Mon Sep 17 00:00:00 2001
+From 231fdbde238033320f53ea012569efd4e999adc5 Mon Sep 17 00:00:00 2001
 From: Eric Prestat <eric.prestat@gmail.com>
-Date: Sun, 1 Aug 2021 11:13:01 +0100
+Date: Mon, 2 Aug 2021 13:43:47 +0100
 Subject: [PATCH 1/2] Do not assume menuinst wants to operate on sys.prefix and
  don't use runAsAdmin when the user is not admin
 
 ---
- menuinst/__init__.py | 34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ menuinst/__init__.py | 36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
 diff --git a/menuinst/__init__.py b/menuinst/__init__.py
-index a21240a..fe7de4c 100644
+index a21240a..b748b5f 100644
 --- a/menuinst/__init__.py
 +++ b/menuinst/__init__.py
 @@ -24,8 +24,8 @@ elif sys.platform == 'win32':
@@ -23,6 +23,15 @@ index a21240a..fe7de4c 100644
          env_name = None
      else:
          env_name = basename(prefix)
+@@ -37,7 +37,7 @@ def _install(path, remove=False, prefix=sys.prefix, mode=None):
+         menu_name = 'Python-%d.%d' % sys.version_info[:2]
+ 
+     shortcuts = data['menu_items']
+-    m = Menu(menu_name, prefix=prefix, env_name=env_name, mode=mode)
++    m = Menu(menu_name, prefix=prefix, env_name=env_name, mode=mode, root_prefix=root_prefix)
+     if remove:
+         for sc in shortcuts:
+             ShortCut(m, sc).remove()
 @@ -48,29 +48,31 @@ def _install(path, remove=False, prefix=sys.prefix, mode=None):
              ShortCut(m, sc).create()
  

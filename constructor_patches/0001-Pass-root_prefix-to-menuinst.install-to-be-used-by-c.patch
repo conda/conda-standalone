@@ -1,7 +1,7 @@
 From 7fc163e173bca4058553827cd9d0c8296debb273 Mon Sep 17 00:00:00 2001
 From: Eric Prestat <eric.prestat@gmail.com>
 Date: Sun, 1 Aug 2021 11:24:09 +0100
-Subject: [PATCH] Pass root_prefix to menuinst.install() to be used by
+Subject: [PATCH 1/2] Pass root_prefix to menuinst.install() to be used by
  conda-standalone
 
 ---
@@ -32,5 +32,5 @@ index b5b7cbf..fa1d578 100644
              out("Failed to process %s...\n" % shortcut)
              err("Error: %s\n" % str(e))
 -- 
-2.30.2
+2.32.0
 
