@@ -1,5 +1,4 @@
 {% set version = "4.10.3" %}
-{% set menuinst_version = "1.4.17" %}
 {% set constructor_version = "3.2.1" %}
 {% set python_version = "3.7.8" %}
 
@@ -15,13 +14,6 @@ source:
     patches:
       - conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
-
-  - url: https://github.com/conda/menuinst/archive/{{ menuinst_version }}.tar.gz
-    sha256: 143bc78efbbe9e34698df3d40f20576ccd9b62a199ebfff83cc5515049f70090
-    folder: menuinst_src
-    patches:
-      - menuinst_patches/0001-Do-not-assume-menuinst-wants-to-operate-on-sys.prefi.patch
-      - menuinst_patches/0002-Allow-menuinst-to-operate-on-non-base-prefix-by-addi.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
     sha256: 666e3be5e6165107d7198d2753e7af6941e7f82d3bef6fc0cc98ec03310c2e01  # [win]
@@ -41,6 +33,7 @@ requirements:
     - python ={{ python_version }}
     - conda ={{ version }}
     - conda-package-handling >=1.6
+    - menuinst >=1.4.18  # [win]
 
 test:
   commands:
