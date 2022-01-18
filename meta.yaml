@@ -16,11 +16,11 @@ source:
       - conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: 667bc5e0c358b2bff532d8ad9559bda31f9e0cf1fabe1798e3b4f7381ea62a8e  # [win]
+    sha256: 57497a316a26631bb56c354a727980889015a1a79bf1a51131695ddbc51a0ca5  # [win]
     folder: constructor  # [win]
 
 build:
-  number: 1
+  number: 2
   ignore_run_exports:
     - '*'
 
