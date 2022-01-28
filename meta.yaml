@@ -1,6 +1,6 @@
-{% set version = "4.10.3" %}
+{% set version = "4.11.0" %}
 {% set constructor_version = "3.2.2" %}
-{% set python_version = "3.7.8" %}
+{% set python_version = "3.9.9" %}
 
 package:
   name: conda-standalone
@@ -9,7 +9,7 @@ package:
 source:
   - path: ./
   - url: https://github.com/conda/conda/archive/{{ version }}.tar.gz
-    sha256: 9e83bb20a6b9adc0bd7abccaa4738a71dc04e19a42dc51ad543539c15b2c941a
+    sha256: 1843355ccb93afb05f2a307e1fc37403fb9976da799236eebc3adee1c716c5fc
     folder: conda_src
     patches:
       - conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
@@ -20,7 +20,7 @@ source:
     folder: constructor  # [win]
 
 build:
-  number: 2
+  number: 0
   ignore_run_exports:
     - '*'
 
