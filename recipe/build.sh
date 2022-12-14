@@ -7,6 +7,13 @@ for fname in "core/path_actions.py" "utils.py"; do
   cp "conda_src/conda/${fname}" "$SP_DIR/conda/${fname}"
 done
 
+# make sure pyinstaller finds Apple's codesign first in PATH
+# some base installations have 'sigtool', which ships a
+# 'codesign' binary that might shadow Apple's codesign
+if [[ $target_platform == osx-* ]]; then
+  ln -s /usr/bin/codesign "$BUILD_PREFIX/bin/codesign"
+fi
+
 # -F is to create a single file
 # -s strips executables and libraries
 cd src/
