@@ -1,6 +1,7 @@
 # patched conda files
 # new files in patches need to be added here
 for fname in "core/path_actions.py" "utils.py"; do
+  mv "$SP_DIR/conda/${fname}" "$SP_DIR/conda/${fname}.bak"
   cp "conda_src/conda/${fname}" "$SP_DIR/conda/${fname}"
 done
 
