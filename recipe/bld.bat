@@ -8,6 +8,7 @@ COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe
 :: standalone and have only an env, not an installation, include it here.
 COPY constructor\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py"
 
+cd src
 pyinstaller conda.exe.spec
 MKDIR "%PREFIX%\standalone_conda"
 MOVE dist\conda.exe "%PREFIX%\standalone_conda\conda.exe"

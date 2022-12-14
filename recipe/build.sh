@@ -6,6 +6,7 @@ done
 
 # -F is to create a single file
 # -s strips executables and libraries
+cd src/
 pyinstaller conda.exe.spec
 mkdir -p "$PREFIX/standalone_conda"
 mv dist/conda.exe "$PREFIX/standalone_conda"
