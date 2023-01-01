@@ -2,7 +2,7 @@
 
 RENAME "%SP_DIR%\conda\core\path_actions.py" path_actions.py.bak || goto :error
 COPY conda_src\conda\core\path_actions.py "%SP_DIR%\conda\core\path_actions.py" || goto :error
-RENAME "%SP_DIR%\conda\utils.py" "%SP_DIR%\conda\utils.py.bak" || goto :error
+RENAME "%SP_DIR%\conda\utils.py" utils.py.bak || goto :error
 COPY conda_src\conda\utils.py "%SP_DIR%\conda\utils.py" || goto :error
 
 :: we need these for noarch packages with entry points to work on windows
