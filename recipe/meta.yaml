@@ -17,7 +17,7 @@ source:
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
     sha256: b000dde0ac8641c92f7342362173968505d4e85845be37655b5b9221cb65f3a8  # [win]
-    folder: constructor  # [win]
+    folder: constructor_src  # [win]
 
 build:
   number: 0

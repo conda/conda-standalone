@@ -16,8 +16,7 @@ fi
 
 # -F is to create a single file
 # -s strips executables and libraries
-cd src/
-pyinstaller --clean --log-level=DEBUG conda.exe.spec
+pyinstaller --clean --log-level=DEBUG src/conda.exe.spec
 mkdir -p "$PREFIX/standalone_conda"
 mv dist/conda.exe "$PREFIX/standalone_conda"
 # clean up .pyc files that pyinstaller creates

@@ -6,7 +6,7 @@ block_cipher = None
 
 datas = []
 if sys.platform == "win32":
-    datas = [(os.path.join(os.getcwd(), 'constructor', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
+    datas = [(os.path.join(os.getcwd(), 'constructor_src', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
              (os.path.join(os.getcwd(), 'entry_point_base.exe'), '.')]
 
 a = Analysis(['entry_point.py', 'imports.py'],

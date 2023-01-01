@@ -10,10 +10,9 @@ COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error
 
 :: This is ordinarily installed by the installer itself, but since we are building for a
 :: standalone and have only an env, not an installation, include it here.
-COPY constructor\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py" || goto :error
+COPY constructor_src\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py" || goto :error
 
-cd src
-pyinstaller --clean --log-level=DEBUG conda.exe.spec || goto :error
+pyinstaller --clean --log-level=DEBUG src\conda.exe.spec || goto :error
 MKDIR "%PREFIX%\standalone_conda" || goto :error
 MOVE dist\conda.exe "%PREFIX%\standalone_conda\conda.exe" || goto :error
 
