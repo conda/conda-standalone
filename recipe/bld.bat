@@ -13,7 +13,7 @@ COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error
 COPY constructor\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py" || goto :error
 
 cd src
-pyinstaller conda.exe.spec || goto :error
+pyinstaller --clean --log-level=DEBUG conda.exe.spec || goto :error
 MKDIR "%PREFIX%\standalone_conda" || goto :error
 MOVE dist\conda.exe "%PREFIX%\standalone_conda\conda.exe" || goto :error
 
