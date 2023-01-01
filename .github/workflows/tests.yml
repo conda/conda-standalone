@@ -27,12 +27,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.9"]
     steps:
       - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/provision-with-micromamba@main
         with:
-          conda-build-version: "*"
+          channels: conda-forge
+          extra-specs: |
+            python=${{ matrix.python-version }}
+            conda-build
+            conda-libmamba-solver
       - name: Build recipe
         env:
-          CONDA_SOLVER: classic
+          CONDA_SOLVER: libmamba
         run: conda build -c conda-forge --override-channels recipe
