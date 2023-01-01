@@ -12,8 +12,8 @@ source:
     sha256: f9256a7e71a9f35063b683f6c7823acf05c1f75468fc609954f1f5efae7c03ac
     folder: conda_src
     patches:
-      - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
-      - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
+      - src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
+      - src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
     sha256: b000dde0ac8641c92f7342362173968505d4e85845be37655b5b9221cb65f3a8  # [win]
