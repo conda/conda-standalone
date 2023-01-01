@@ -40,6 +40,7 @@ jobs:
             conda-build
             conda-libmamba-solver
       - name: Build recipe
+        shell: bash -el {0}
         env:
           CONDA_SOLVER: libmamba
         run: conda build recipe
