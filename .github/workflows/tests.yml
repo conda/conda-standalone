@@ -30,15 +30,17 @@ jobs:
         python-version: ["3.9"]
     steps:
       - uses: actions/checkout@v3
-      - uses: mamba-org/provision-with-micromamba@main
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          environment-name: build
-          environment-file: false
-          channels: conda-forge
-          extra-specs: |
-            python=${{ matrix.python-version }}
-            conda-build
-            conda-libmamba-solver
+          auto-activate-base: true
+          activate-environment: ""
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          use-mamba: true
+          conda-build-version: "*"
+      - name: Install conda-libmamba-solver
+        shell: bash -el {0}
+        run: conda install "conda>=22.11.1" conda-libmamba-solver
       - name: Build recipe
         shell: bash -el {0}
         env:
