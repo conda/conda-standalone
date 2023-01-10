@@ -44,7 +44,7 @@ test:
     - '%PREFIX%\standalone_conda\conda.exe create -y -p env_test zlib tqdm'    # [win]
 
 about:
-  home: https://github.com/AnacondaRecipes/conda-standalone-feedstock
+  home: https://github.com/conda/conda-standalone
   license: BSD-3-Clause
   license_family: BSD
   license_file: LICENSE
