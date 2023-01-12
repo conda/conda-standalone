@@ -1,6 +1,7 @@
 # conda-standalone
 
 [![Tests (GitHub Actions)](https://github.com/conda/conda-standalone/actions/workflows/tests.yml/badge.svg)](https://github.com/conda/conda-standalone/actions/workflows/tests.yml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/conda/conda-standalone/main.svg)](https://results.pre-commit.ci/latest/github/conda/conda-standalone/main)
 [![Anaconda-Server Badge](https://anaconda.org/main/conda-standalone/badges/version.svg)](https://anaconda.org/main/conda-standalone/files)
 
 A standalone `conda` executable built with PyInstaller.
