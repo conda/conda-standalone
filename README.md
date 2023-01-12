@@ -50,7 +50,7 @@ Its mainly used by the installers generated with `constructor`.
 
 ```bash
 $ conda.exe constructor --help
-usage: conda.exe [-h] --prefix PREFIX [--extract-conda-pkgs] [--extract-tarball] 
+usage: conda.exe [-h] --prefix PREFIX [--extract-conda-pkgs] [--extract-tarball]
                  [--make-menus [MENU_PKG ...]] [--rm-menus]
 
 constructor args
