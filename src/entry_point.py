@@ -94,5 +94,6 @@ if __name__ == "__main__":
                 module.rm_menus(prefix=args.prefix, root_prefix=args.prefix)
         sys.exit()
     else:
-       from conda.cli import main
-       sys.exit(main())
+        from conda.cli import main
+
+        sys.exit(main())

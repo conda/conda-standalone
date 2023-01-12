@@ -1,5 +1,5 @@
-# These help pyinstaller find all the stuff it needs.  Add your packages to generate more specific imports.
-
+# These help pyinstaller find all the stuff it needs.  Add your packages to generate more
+# specific imports.
 import glob
 import os
 import site
@@ -8,10 +8,16 @@ import sys
 packages = ['conda', 'conda-package-handling']
 if sys.platform == "win32":
     packages.append('menuinst')
-files = [f for package in packages
-         for f in glob.glob(
-                 os.path.join(os.getenv('SP_DIR', site.getsitepackages()[0]), package, "**/*.py"),
-                 recursive=True)]
+files = [
+    f
+    for package in packages
+    for f in glob.glob(
+        os.path.join(
+            os.getenv("SP_DIR", site.getsitepackages()[0]), package, "**/*.py"
+        ),
+        recursive=True,
+    )
+]
 
 import importlib.util
 
