@@ -1,0 +1,19 @@
+From: jaimergp
+Date: Wed Jun 21 18:53:36 CEST 2023
+Subject: Return 'unknown' instead of raising an exception when the calling module cannot be determined
+
+diff --git a/conda/deprecations.py b/conda/deprecations.py
+index 61154a1ee..9273cdde6 100644
+--- a/conda/deprecations.py
++++ b/conda/deprecations.py
+@@ -284,7 +284,9 @@ class DeprecationHandler:
+             module = inspect.getmodule(frame[0])
+             return (module, module.__name__)
+         except (IndexError, AttributeError):
+-            raise DeprecatedError("unable to determine the calling module") from None
++            # raise DeprecatedError("unable to determine the calling module") from None
++            import sys as unknown
++            return (unknown, "<unknown>")
+ 
+     def _generate_message(
+         self, deprecate_in: str, remove_in: str, prefix: str, addendum: str

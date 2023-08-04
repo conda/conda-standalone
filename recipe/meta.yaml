@@ -1,5 +1,5 @@
-{% set conda_version = "23.5.0" %}
-{% set constructor_version = "3.4.3" %}
+{% set conda_version = "23.7.2" %}
+{% set constructor_version = "3.4.5" %}
 {% set python_version = "3.9.15" %}
 
 package:
@@ -9,14 +9,15 @@ package:
 source:
   - path: ../
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 57155b96dd94ba95e421b4c36695dbf6972bcfb9b5e41ee0674bb796b8386f58
+    sha256: 4fd44862ef87c73e4641b0c40a0873e103a097d6fd4a992041cfa9177ce20ac8
     folder: conda_src
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
+      - ../src/conda_patches/0003-Return-unknown-module-in-deprecations.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: 4a1f5ae2ba74175cc5d0770d6d43147253091f8869fa20568a02d5ddb7963dee  # [win]
+    sha256: 425a7b6825a3dba21c21d9234ff1ceac8efea6ebc14e2b0e80d0880f502b3e01  # [win]
     folder: constructor_src  # [win]
 
 build:
@@ -30,7 +31,7 @@ requirements:
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=1.6
-    - menuinst >=1.4.18  # [win]
+    - menuinst >=1.4.18,<2.0a0  # [win]
   run_constrained:
     - constructor >={{ constructor_version }}
 
