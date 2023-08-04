@@ -4,10 +4,13 @@ import sys
 
 block_cipher = None
 
+extra_exe_kwargs = {}
 datas = []
 if sys.platform == "win32":
     datas = [(os.path.join(os.getcwd(), 'constructor_src', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
              (os.path.join(os.getcwd(), 'entry_point_base.exe'), '.')]
+elif sys.platform == "darwin":
+    extra_exe_kwargs["entitlements_file"] = "entitlements.plist"
 
 a = Analysis(['entry_point.py', 'imports.py'],
              pathex=['.'],
@@ -37,4 +40,5 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True )
+          console=True,
+          **extra_exe_kwargs)
