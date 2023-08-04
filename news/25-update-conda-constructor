@@ -1,10 +1,11 @@
 ### Enhancements
 
-* Update to use `conda` 23.7.2 and `constructor` 3.4.5. (#25)
+* Update recipe and patches to use `conda` 23.7.2 and `constructor` 3.4.5. (#25)
+* Sign macOS builds with entitlements so that they can be notarized. (#25)
 
 ### Bug fixes
 
-* <news item>
+* Adjust `imports.py` to include some previously missing modules. (#25)
 
 ### Deprecations
 
