@@ -2,7 +2,6 @@ import os
 import subprocess
 import sys
 
-
 CONDA_EXE = os.environ.get(
     "CONDA_STANDALONE",
     os.path.join(sys.prefix, "standalone_conda", "conda.exe")
