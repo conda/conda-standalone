@@ -15,7 +15,8 @@ def run_conda(*args, **kwargs):
 def test_new_environment(tmp_path):
     env = os.environ.copy()
     env["CONDA_SOLVER"] = "classic"
-    run_conda("create",
+    run_conda(
+        "create",
         "-p",
         tmp_path / "env",
         "-y",
