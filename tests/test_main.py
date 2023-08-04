@@ -13,6 +13,16 @@ def run_conda(*args, **kwargs):
 
 
 def test_new_environment(tmp_path):
-    p = run_conda("create", "-p", tmp_path / "env", "-y", "-c", "conda-forge", "libzlib")
-    p.check_returncode()
+    env = os.environ.copy()
+    env["CONDA_SOLVER"] = "classic"
+    run_conda("create",
+        "-p",
+        tmp_path / "env",
+        "-y",
+        "-c",
+        "conda-forge",
+        "libzlib",
+        env=env,
+        check=True,
+    )
     assert list((tmp_path / "env" / "conda-meta").glob("libzlib-*.json"))
