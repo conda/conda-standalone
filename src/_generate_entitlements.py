@@ -5,7 +5,6 @@ Script to generate the entitlements.plist file
 import os
 import plistlib
 
-
 plist = dict.fromkeys(
     (
         "com.apple.security.cs.allow-jit",

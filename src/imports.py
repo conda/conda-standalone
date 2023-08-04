@@ -1,7 +1,8 @@
-# These help pyinstaller find all the stuff it needs.  Add your packages to generate more specific imports.
+# These help pyinstaller find all the stuff it needs.
+# Add your packages to generate more specific imports.
 
-import importlib.util
 import glob
+import importlib.util
 import os
 import site
 
@@ -30,6 +31,7 @@ import conda._vendor.boltons.setutils
 import conda._vendor.boltons.timeutils
 import conda._vendor.cpuinfo.__init__
 import conda._vendor.cpuinfo.cpuinfo
+
 # import conda._vendor.distro
 import conda._vendor.frozendict.__init__
 import conda._vendor.toolz.__init__
@@ -39,6 +41,7 @@ import conda._vendor.toolz.itertoolz
 import conda._vendor.toolz.recipes
 import conda._vendor.toolz.utils
 import conda._vendor.tqdm.__init__
+
 # import conda._vendor.tqdm.__main__
 import conda._vendor.tqdm._main
 import conda._vendor.tqdm._monitor
@@ -193,6 +196,7 @@ import conda.testing.__init__
 import conda.testing.cases
 import conda.testing.fixtures
 import conda.testing.gateways.__init__
+
 try:
     import conda.testing.gateways.fixtures
 except Exception:
