@@ -41,7 +41,9 @@ jobs:
           run-post: false
       - name: Install conda-libmamba-solver
         shell: bash -el {0}
-        run: conda install "conda>=22.11.1" conda-libmamba-solver
+        run: |
+          conda install "conda>=22.11.1" conda-libmamba-solver
+          conda update --all --solver=libmamba
       - name: Build recipe
         shell: bash -el {0}
         env:
