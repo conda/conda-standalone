@@ -36,13 +36,12 @@ requirements:
     - constructor >={{ constructor_version }}
 
 test:
+  requires:
+    - pytest
+  source_files:
+    - tests
   commands:
-    - export CONDA_SOLVER="classic"  # [unix]
-    - ${PREFIX}/standalone_conda/conda.exe -V    # [unix]
-    - ${PREFIX}/standalone_conda/conda.exe create -y -p ./env_test zlib tqdm    # [unix]
-    - set "CONDA_SOLVER=classic"  # [win]
-    - '%PREFIX%\standalone_conda\conda.exe -V'    # [win]
-    - '%PREFIX%\standalone_conda\conda.exe create -y -p env_test zlib tqdm'    # [win]
+    - pytest -vv
 
 about:
   home: https://github.com/conda/conda-standalone
