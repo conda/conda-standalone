@@ -9,7 +9,6 @@ CONDA_EXE = os.environ.get(
 
 
 def run_conda(*args, **kwargs):
-    args = (CONDA_EXE, *args)
     return subprocess.run([CONDA_EXE, *args], **kwargs)
 
 
