@@ -2,6 +2,8 @@
 import os
 import sys
 
+# __file__ is not defined in the pyinstaller context,
+# so we will get it from sys.argv instead
 for arg in sys.argv:
     if arg.endswith("conda.exe.spec"):
         HERE = os.path.abspath(os.path.dirname(arg))
