@@ -21,7 +21,7 @@ MOVE dist\conda.exe "%PREFIX%\standalone_conda\conda.exe" || goto :error
 RD /s /q "%PREFIX%\lib" || goto :error
 
 :: Collect licenses
-python src\licenses.py ^
+%PYTHON% src\licenses.py ^
   --prefix "%BUILD_PREFIX%" ^
   --include-text ^
   --text-errors replace ^
