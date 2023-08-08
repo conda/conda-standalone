@@ -18,14 +18,14 @@ pyinstaller --clean --log-level=DEBUG src\conda.exe.spec || goto :error
 MKDIR "%PREFIX%\standalone_conda" || goto :error
 MOVE dist\conda.exe "%PREFIX%\standalone_conda\conda.exe" || goto :error
 
-RD /s /q "%PREFIX%\lib" || goto :error
-
 :: Collect licenses
 %PYTHON% src\licenses.py ^
   --prefix "%BUILD_PREFIX%" ^
   --include-text ^
   --text-errors replace ^
   --output "%SRC_DIR%\3rd-party-licenses.json" || goto :error
+
+RD /s /q "%PREFIX%\lib" || goto :error
 
 goto :EOF
 
