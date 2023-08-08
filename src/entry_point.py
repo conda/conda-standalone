@@ -188,7 +188,6 @@ def _conda_main():
 def main():
     # https://docs.python.org/3/library/multiprocessing.html#multiprocessing.freeze_support
     freeze_support()
-    _fix_sys_path()
     if len(sys.argv) > 1:
         if sys.argv[1] == "constructor":
             return _constructor_subcommand()
