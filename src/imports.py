@@ -6,8 +6,15 @@ import importlib.util
 import os
 import site
 
-packages = ['conda', 'conda_package_handling', 'menuinst', 'conda_env', 'conda_libmamba_solver', 'libmambapy']
-site_packages = os.getenv('SP_DIR', site.getsitepackages()[0])
+packages = [
+    "conda",
+    "conda_package_handling",
+    "menuinst",
+    "conda_env",
+    "conda_libmamba_solver",
+    "libmambapy",
+]
+site_packages = os.getenv("SP_DIR", site.getsitepackages()[0])
 files = [
     f
     for package in packages
@@ -20,7 +27,9 @@ for f in sorted(files):
         continue
     spec = importlib.util.spec_from_file_location(f, f)
     modules[f] = importlib.util.module_from_spec(spec)
-    print(os.path.relpath(f, site_packages).removesuffix('.py').replace(os.path.sep, '.'))
+    print(
+        os.path.relpath(f, site_packages).removesuffix(".py").replace(os.path.sep, ".")
+    )
 
 import conda.__init__
 import conda.__version__
