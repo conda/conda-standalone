@@ -50,12 +50,14 @@ def _constructor_parse_cli():
         required=True,
         help="path to the conda environment to operate on",
     )
-    p.add_argument(
-        "--root-prefix",
-        action="store",
-        help="path to root path of the conda installation; "
-        "defaults to --prefix if not provided",
-    )
+    # We can't add this option yet because micromamba doesn't support it
+    # Instead we check for the CONDA_ROOT_PREFIX env var; see below
+    # p.add_argument(
+    #     "--root-prefix",
+    #     action="store",
+    #     help="path to root path of the conda installation; "
+    #     "defaults to --prefix if not provided",
+    # )
     p.add_argument(
         "--extract-conda-pkgs",
         action="store_true",
@@ -84,10 +86,7 @@ def _constructor_parse_cli():
     args, args_unknown = p.parse_known_args()
 
     args.prefix = os.path.abspath(args.prefix)
-    if args.root_prefix is None:
-        args.root_prefix = args.prefix
-    else:
-        args.root_prefix = os.path.abspath(args.root_prefix)
+    args.root_prefix = os.path.abspath(os.environ.get("CONDA_ROOT_PREFIX", args.prefix))
 
     return args, args_unknown
 
