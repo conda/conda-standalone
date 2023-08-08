@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 This module is the entry point executed when you run `conda.exe` on the command line.
 
@@ -67,7 +69,7 @@ def _constructor_parse_cli():
     p.add_argument(
         "--make-menus",
         nargs="*",
-        metavar="MENU_PKG",
+        metavar="PKG_NAME",
         help="create menu items for the given packages; "
         "if none are given, create menu items for all packages "
         "in the environment specified by --prefix",
@@ -161,6 +163,8 @@ def _constructor_subcommand():
     elif args.extract_tarball:
         _constructor_extract_tarball()
 
+    # when called with --make-menus and no package names, the value is an empty list
+    # hence the explicit check for None
     elif (args.make_menus is not None) or args.rm_menus:
         if sys.platform != "win32":
             raise NotImplementedError(
