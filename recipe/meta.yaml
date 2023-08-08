@@ -46,7 +46,7 @@ test:
 about:
   home: https://github.com/conda/conda-standalone
   license: LicenseRef-CondaStandalone
-  license_file: 
+  license_file:
     - LICENSE
     - 3rd-party-licenses.json
   summary: Entry point and dependency collection for PyInstaller-based standalone conda.
