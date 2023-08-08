@@ -1,4 +1,6 @@
 {% set conda_version = "23.7.2" %}
+{% set conda_libmamba_solver_version = "23.7.0" %}
+{% set libmambapy_version = "1.4.1" %}
 {% set constructor_version = "3.4.5" %}
 {% set python_version = "3.9.15" %}
 
@@ -32,6 +34,8 @@ requirements:
     - conda ={{ conda_version }}
     - conda-package-handling >=1.6
     - menuinst >=1.4.18,<2.0a0  # [win]
+    - conda-libmamba-solver ={{ conda_libmamba_solver_version }}
+    - libmambapy ={{ libmambapy_version }}
   run_constrained:
     - constructor >={{ constructor_version }}
 

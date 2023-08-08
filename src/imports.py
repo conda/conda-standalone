@@ -6,7 +6,7 @@ import importlib.util
 import os
 import site
 
-packages = ['conda', 'conda_package_handling', 'menuinst', 'conda_env']
+packages = ['conda', 'conda_package_handling', 'menuinst', 'conda_env', 'conda_libmamba_solver', 'libmambapy']
 site_packages = os.getenv('SP_DIR', site.getsitepackages()[0])
 files = [
     f
@@ -232,6 +232,15 @@ import conda_env.specs.__init__
 import conda_env.specs.binstar
 import conda_env.specs.requirements
 import conda_env.specs.yaml_file
+import conda_libmamba_solver.__init__
+import conda_libmamba_solver.exceptions
+import conda_libmamba_solver.index
+import conda_libmamba_solver.mamba_utils
+import conda_libmamba_solver.models
+import conda_libmamba_solver.plugin
+import conda_libmamba_solver.solver
+import conda_libmamba_solver.state
+import conda_libmamba_solver.utils
 import conda_package_handling.__init__
 import conda_package_handling.api
 import conda_package_handling.cli
@@ -242,6 +251,9 @@ import conda_package_handling.streaming
 import conda_package_handling.tarball
 import conda_package_handling.utils
 import conda_package_handling.validate
+import libmambapy.__init__
+import libmambapy._version
+import libmambapy.bindings
 
 try:
     import conda_env.__main__
