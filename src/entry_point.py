@@ -177,6 +177,56 @@ def _constructor_subcommand():
         )
 
 
+def _python_subcommand():
+    """
+    Since conda-standalone is actually packaging a full Python interpreter,
+    we can leverage it by exposing an entry point that mimics its CLI.
+    This can become useful while debugging.
+    """
+    import argparse
+
+    p = argparse.ArgumentParser(description="Python interface emulation.")
+
+    version = "Python " + ".".join([str(x) for x in sys.version_info[:3]])
+    p.add_argument("-V", "--version", action="version", version=version)
+
+    group = p.add_mutually_exclusive_group()
+    group.add_argument("-c", "--command", action="store")
+    group.add_argument("-m", "--module", action="store")
+    group.add_argument("script", nargs="?", default=None)
+
+    del sys.argv[1]  # remove the 'python' argument
+    args, _ = p.parse_known_args()
+
+    if args.command:
+        exec(args.command)
+        return
+
+    import runpy
+
+    if args.module:
+        runpy.run_module(args.module)
+        return
+
+    if args.script:
+        runpy.run_path(args.script)
+        return
+
+    # Piped stuff
+    if not sys.stdin.isatty():
+        for line in sys.stdin:
+            exec(line)
+        return
+
+    from code import InteractiveConsole
+
+    # else, interactive REPL
+    class CondaStandaloneConsole(InteractiveConsole):
+        pass
+
+    return CondaStandaloneConsole().interact(exitmsg="")
+
+
 def _conda_main():
     from conda.cli import main
 
@@ -190,7 +240,8 @@ def main():
     if len(sys.argv) > 1:
         if sys.argv[1] == "constructor":
             return _constructor_subcommand()
-
+        elif sys.argv[1] == "python":
+            return _python_subcommand()
     return _conda_main()
 
 

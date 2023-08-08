@@ -30,3 +30,21 @@ def test_new_environment(tmp_path):
 
 def test_constructor():
     run_conda("constructor", "--help", check=True)
+
+
+def test_python():
+    p = run_conda("python", "-V", check=True, capture_output=True, text=True)
+    assert p.stdout.startswith("Python 3.")
+
+    p = run_conda("python", "-m", "this", check=True, capture_output=True, text=True)
+    assert "The Zen of Python, by Tim Peters" in p.stdout
+
+    p = run_conda(
+        "python",
+        "-c",
+        "import sys; print(sys.argv)",
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "python" not in p.stdout
