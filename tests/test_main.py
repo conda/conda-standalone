@@ -36,15 +36,25 @@ def test_python():
     p = run_conda("python", "-V", check=True, capture_output=True, text=True)
     assert p.stdout.startswith("Python 3.")
 
-    p = run_conda("python", "-m", "this", check=True, capture_output=True, text=True)
-    assert "The Zen of Python, by Tim Peters" in p.stdout
+    p = run_conda(
+        "python",
+        "-m",
+        "calendar",
+        "2023",
+        "12",
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "2023" in p.stdout
 
     p = run_conda(
         "python",
         "-c",
         "import sys; print(sys.argv)",
+        "extra-arg",
         check=True,
         capture_output=True,
         text=True,
     )
-    assert "python" not in p.stdout
+    assert eval(p.stdout) == ["-c", "extra-arg"]
