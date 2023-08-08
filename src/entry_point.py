@@ -3,7 +3,7 @@
 """
 This module is the entry point executed when you run `conda.exe` on the command line.
 
-It will end up calling the `conda` CLI, but it intercepts the call to do some 
+It will end up calling the `conda` CLI, but it intercepts the call to do some
 preliminary work and handling some special cases that arise when PyInstaller is involved.
 """
 import os
@@ -95,8 +95,8 @@ def _constructor_extract_conda_pkgs(prefix):
     from concurrent.futures import ProcessPoolExecutor
 
     import tqdm
-    from conda_package_handling import api
     from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
+    from conda_package_handling import api
 
     executor = ProcessPoolExecutor()
 
@@ -142,7 +142,7 @@ def _constructor_menuinst(prefix, pkg_names=None, root_prefix=None, remove=False
 
 
 def _constructor_subcommand():
-    """
+    r"""
     This is the entry point for the `conda constructor` subcommand. This subcommand
     only exists in conda-standalone for now. constructor uses it to:
 
