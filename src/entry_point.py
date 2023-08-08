@@ -91,7 +91,7 @@ def _constructor_parse_cli():
     return args, args_unknown
 
 
-def _constructor_extract_conda_pkgs():
+def _constructor_extract_conda_pkgs(prefix):
     from concurrent.futures import ProcessPoolExecutor
 
     import tqdm
@@ -100,7 +100,7 @@ def _constructor_extract_conda_pkgs():
 
     executor = ProcessPoolExecutor()
 
-    os.chdir("pkgs")
+    os.chdir(os.path.join(prefix, "pkgs"))
     flist = []
     for ext in CONDA_PACKAGE_EXTENSIONS:
         for pkg in os.listdir(os.getcwd()):
@@ -157,7 +157,7 @@ def _constructor_subcommand():
     os.chdir(args.prefix)
 
     if args.extract_conda_pkgs:
-        _constructor_extract_conda_pkgs()
+        _constructor_extract_conda_pkgs(args.prefix)
 
     elif args.extract_tarball:
         _constructor_extract_tarball()
