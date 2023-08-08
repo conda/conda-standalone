@@ -182,49 +182,63 @@ def _python_subcommand():
     Since conda-standalone is actually packaging a full Python interpreter,
     we can leverage it by exposing an entry point that mimics its CLI.
     This can become useful while debugging.
+
+    We don't use argparse because it might absorb some of the arguments.
+    We are only trying to mimic a subset of the Python CLI, so it can be done
+    by hand. Options we support are:
+
+    - -V/--version: print the version
+    - a path: run the file or directory/__main__.py
+    - -c: run the command
+    - -m: run the module
+    - no arguments: start an interactive session
+    - stdin: run the passed input as if it was '-c'
     """
-    import argparse
-
-    p = argparse.ArgumentParser(description="Python interface emulation.")
-
-    version = "Python " + ".".join([str(x) for x in sys.version_info[:3]])
-    p.add_argument("-V", "--version", action="version", version=version)
-
-    group = p.add_mutually_exclusive_group()
-    group.add_argument("-c", "--command", action="store")
-    group.add_argument("-m", "--module", action="store")
-    group.add_argument("script", nargs="?", default=None)
 
     del sys.argv[1]  # remove the 'python' argument
-    args, _ = p.parse_known_args()
+    first_arg = sys.argv[1] if len(sys.argv) > 1 else None
 
-    if args.command:
-        exec(args.command)
+    if first_arg is None:
+        if sys.stdin.isatty():  # interactive
+            from code import InteractiveConsole
+
+            class CondaStandaloneConsole(InteractiveConsole):
+                pass
+
+            return CondaStandaloneConsole().interact(exitmsg="")
+        else:  # piped stuff
+            for line in sys.stdin:
+                exec(line)
+            return
+
+    if first_arg in ("-V", "--version"):
+        print("Python " + ".".join([str(x) for x in sys.version_info[:3]]))
         return
 
     import runpy
 
-    if args.module:
-        runpy.run_module(args.module)
+    if os.path.exists(first_arg):
+        runpy.run_path(first_arg, run_name="__main__")
         return
 
-    if args.script:
-        runpy.run_path(args.script)
+    if len(sys.argv) > 2:
+        if first_arg == "-m":
+            del sys.argv[1]  # delete '-m'
+            mod_name = sys.argv[1]  # save the actual module name
+            del sys.argv[1]  # delete the module name
+            runpy.run_module(mod_name, alter_sys=True, run_name="__main__")
+            return
+        elif first_arg == "-c":
+            del sys.argv[0]  # remove the executable, but keep '-c' in sys.argv
+            cmd = sys.argv[1]  # save the actual command
+            del sys.argv[1]  # remove the passed command
+            exec(cmd)  # the extra arguments are still in sys.argv
+            return
+
+    print("Usage: conda.exe python [-V] [-c cmd | -m mod | file] [arg] ...")
+    if first_arg in ("-h", "--help"):
         return
-
-    # Piped stuff
-    if not sys.stdin.isatty():
-        for line in sys.stdin:
-            exec(line)
-        return
-
-    from code import InteractiveConsole
-
-    # else, interactive REPL
-    class CondaStandaloneConsole(InteractiveConsole):
-        pass
-
-    return CondaStandaloneConsole().interact(exitmsg="")
+    return 1
 
 
 def _conda_main():
