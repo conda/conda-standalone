@@ -256,6 +256,7 @@ def main():
             return _constructor_subcommand()
         elif sys.argv[1] == "python":
             return _python_subcommand()
+
     return _conda_main()
 
 
