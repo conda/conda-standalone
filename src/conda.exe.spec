@@ -2,12 +2,24 @@
 import os
 import sys
 
+# __file__ is not defined in the pyinstaller context,
+# so we will get it from sys.argv instead
+for arg in sys.argv:
+    if arg.endswith("conda.exe.spec"):
+        HERE = os.path.abspath(os.path.dirname(arg))
+        break
+else:
+    HERE = os.path.join(os.path.getcwd(), "src")
+
 block_cipher = None
 
+extra_exe_kwargs = {}
 datas = []
 if sys.platform == "win32":
     datas = [(os.path.join(os.getcwd(), 'constructor_src', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
              (os.path.join(os.getcwd(), 'entry_point_base.exe'), '.')]
+elif sys.platform == "darwin":
+    extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
 
 a = Analysis(['entry_point.py', 'imports.py'],
              pathex=['.'],
@@ -30,11 +42,12 @@ exe = EXE(pyz,
           a.datas,
           [],
           name='conda.exe',
-          icon="icon.ico",
+          icon=os.path.join(HERE, "icon.ico"),
           debug=False,
           bootloader_ignore_signals=False,
           strip=(sys.platform!="win32"),
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True )
+          console=True,
+          **extra_exe_kwargs)

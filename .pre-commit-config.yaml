@@ -9,6 +9,7 @@ repos:
       - id: mixed-line-ending
       - id: end-of-file-fixer
       - id: trailing-whitespace
+
       # ensure syntaxes are valid
       - id: check-toml
       - id: check-yaml
@@ -33,3 +34,4 @@ repos:
     rev: 6.1.0
     hooks:
       - id: flake8
+exclude: "^src/conda_patches/.*patch$"

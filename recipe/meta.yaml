@@ -1,5 +1,5 @@
-{% set conda_version = "22.11.1" %}
-{% set constructor_version = "3.3.1" %}
+{% set conda_version = "23.7.2" %}
+{% set constructor_version = "3.4.5" %}
 {% set python_version = "3.9.15" %}
 
 package:
@@ -9,14 +9,15 @@ package:
 source:
   - path: ../
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: f9256a7e71a9f35063b683f6c7823acf05c1f75468fc609954f1f5efae7c03ac
+    sha256: 4fd44862ef87c73e4641b0c40a0873e103a097d6fd4a992041cfa9177ce20ac8
     folder: conda_src
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
+      - ../src/conda_patches/0003-Return-unknown-module-in-deprecations.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: b000dde0ac8641c92f7342362173968505d4e85845be37655b5b9221cb65f3a8  # [win]
+    sha256: 425a7b6825a3dba21c21d9234ff1ceac8efea6ebc14e2b0e80d0880f502b3e01  # [win]
     folder: constructor_src  # [win]
 
 build:
@@ -30,18 +31,17 @@ requirements:
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=1.6
-    - menuinst >=1.4.18  # [win]
+    - menuinst >=1.4.18,<2.0a0  # [win]
   run_constrained:
     - constructor >={{ constructor_version }}
 
 test:
+  requires:
+    - pytest
+  source_files:
+    - tests
   commands:
-    - export CONDA_SOLVER="classic"  # [unix]
-    - ${PREFIX}/standalone_conda/conda.exe -V    # [unix]
-    - ${PREFIX}/standalone_conda/conda.exe create -y -p ./env_test zlib tqdm    # [unix]
-    - set "CONDA_SOLVER=classic"  # [win]
-    - '%PREFIX%\standalone_conda\conda.exe -V'    # [win]
-    - '%PREFIX%\standalone_conda\conda.exe create -y -p env_test zlib tqdm'    # [win]
+    - pytest -vv
 
 about:
   home: https://github.com/conda/conda-standalone
