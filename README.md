@@ -10,8 +10,9 @@ A standalone `conda` executable built with PyInstaller.
 
 `conda-standalone` is a self-contained `conda` installation produced with PyInstaller.
 
-> **Note**: This product is not intended for end-users!
-> Its main purpose is to assist [`constructor`](https://github.com/conda/constructor) install the bundled `conda` packages.
+> [!WARNING]
+> This product is not intended for end-users! Its main purpose is to assist
+> [`constructor`](https://github.com/conda/constructor) install the bundled `conda` packages.
 
 Main features:
 
@@ -35,33 +36,56 @@ You can also download the packages directly from anaconda.org and extract them m
 * [On `defaults`](https://anaconda.org/main/conda-standalone/files)
 * [On `conda-forge`](https://anaconda.org/conda-forge/conda-standalone/files)
 
-> Use [`conda-package-handling`](https://github.com/conda/conda-package-handling)'s `cph x` command to extract `.conda` archives if needed.
+> [!NOTE]
+> Use [`conda-package-handling`](https://github.com/conda/conda-package-handling)'s `cph x`
+> command to extract `.conda` archives if needed.
 
 ## Main differences
 
 - Slow startup. The binary needs to self extract into a temporary location and then run `conda` from there. On Windows, antivirus might delay everything even longer while the contents are analyzed.
-- No shell integration. It cannot activate or deactivate environments.
+- No shell integration. It cannot activate or deactivate environments. You can use `conda.exe run`, though.
 - No implicit `base` environment. Always operate on an existing or new environment with `--prefix` / `-p`.
-- And maybe more. Please submit an issue if you find something that could be improved!
+- And maybe more. Please [submit an issue][issue] if you find something that could be improved!
 
-## `conda constructor`
+It also adds new subcommands not available on the regular `conda`:
 
-This subcommand is unique to `conda-standalone` (not available on the regular `conda`).
-Its mainly used by the installers generated with `constructor`.
+### `conda.exe constructor`
+
+This subcommand is mainly used by the installers generated with `constructor`.
 
 ```bash
 $ conda.exe constructor --help
-usage: conda.exe [-h] --prefix PREFIX [--extract-conda-pkgs] [--extract-tarball]
-                 [--make-menus [MENU_PKG ...]] [--rm-menus]
+usage: conda.exe constructor [-h] --prefix PREFIX [--extract-conda-pkgs] [--extract-tarball] [--make-menus [PKG_NAME ...]] [--rm-menus]
 
-constructor args
+constructor helper subcommand
 
 optional arguments:
   -h, --help            show this help message and exit
-  --prefix PREFIX       path to conda prefix
-  --extract-conda-pkgs  path to conda prefix
+  --prefix PREFIX       path to the conda environment to operate on
+  --extract-conda-pkgs  extract conda packages found in prefix/pkgs
   --extract-tarball     extract tarball from stdin
-  --make-menus [MENU_PKG ...]
-                        make menus
-  --rm-menus            rm menus
+  --make-menus [PKG_NAME ...]
+                        create menu items for the given packages; if none are given, create menu items for all packages in the environment specified by --prefix
+  --rm-menus            remove menu items for all packages in the environment specified by --prefix
 ```
+
+### `conda.exe python`
+
+This subcommand provides access to the Python interpreter bundled in the conda-standalone
+binary. It tries to emulate the same `python` CLI, but in practice it's just a convenience
+subset. The following options are supported:
+
+```bash
+$ conda.exe python --help
+Usage: conda.exe python [-V] [-c cmd | -m mod | file] [arg] ...
+```
+
+- `-c <script>`: Execute the Python code in `<script>`. You can also pipe things via `stdin`;
+  e.g `echo 'print("Hello World")' | conda.exe python`.
+- `-m <module>`: Search `sys.path` for the named Python module and execute its contents as the `__main__` module.
+- `<file>`: Execute the Python code contained in `<file>`.
+- `-V`, `--version`: Print the Python version number and exit.
+- _No options_: Enter interactive mode. Very useful for debugging.
+  You can import all the packages bundled in the binary.
+
+[issue]: https://github.com/conda/conda-standalone/issues
