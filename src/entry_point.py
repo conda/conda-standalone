@@ -43,6 +43,37 @@ def _fix_sys_path():
 def _constructor_parse_cli():
     import argparse
 
+    # This might be None!
+    CPU_COUNT = os.cpu_count()
+    # See validation results for magic number of 3
+    # https://dholth.github.io/conda-benchmarks/#extract.TimeExtract.time_extract?
+    #   conda-package-handling=2.0.0a2&p-format='.conda'&p-format='.tar.bz2'&p-lang='py'
+    DEFAULT_NUM_WORKERS = 1 if not CPU_COUNT else min(3, CPU_COUNT)
+
+    class _NumProcessorsAction(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            """Converts a string representing the max number of workers to an integer
+            while performing validation checks; raises argparse.ArgumentError if anything fails.
+            """
+
+            ERROR_MSG = f"Value must be int between 1 and the CPU count ({CPU_COUNT})."
+            try:
+                num = int(values)
+            except ValueError as exc:
+                raise argparse.ArgumentError(self, ERROR_MSG) from exc
+            if num < 1:
+                raise argparse.ArgumentError(self, ERROR_MSG)
+
+            # cpu_count can return None, so skip this check if that happens
+            if CPU_COUNT:
+                # See Windows notes for magic number of 61
+                # https://docs.python.org/3/library/concurrent.futures.html#processpoolexecutor
+                max_cpu_num = min(CPU_COUNT, 61) if os.name == "nt" else CPU_COUNT
+                if num > max_cpu_num:
+                    raise argparse.ArgumentError(self, ERROR_MSG)
+
+            setattr(namespace, self.dest, num)
+
     p = argparse.ArgumentParser(description="constructor helper subcommand")
     p.add_argument(
         "--prefix",
@@ -59,16 +90,24 @@ def _constructor_parse_cli():
     #     "defaults to --prefix if not provided",
     # )
     p.add_argument(
+        "--num-processors",
+        default=DEFAULT_NUM_WORKERS,
+        action=_NumProcessorsAction,
+        help="Number of processors to use with --extract-conda-pkgs",
+    )
+
+    g = p.add_mutually_exclusive_group(required=True)
+    g.add_argument(
         "--extract-conda-pkgs",
         action="store_true",
         help="extract conda packages found in prefix/pkgs",
     )
-    p.add_argument(
+    g.add_argument(
         "--extract-tarball",
         action="store_true",
         help="extract tarball from stdin",
     )
-    p.add_argument(
+    g.add_argument(
         "--make-menus",
         nargs="*",
         metavar="PKG_NAME",
@@ -76,7 +115,7 @@ def _constructor_parse_cli():
         "if none are given, create menu items for all packages "
         "in the environment specified by --prefix",
     )
-    p.add_argument(
+    g.add_argument(
         "--rm-menus",
         action="store_true",
         help="remove menu items for all packages "
@@ -88,17 +127,22 @@ def _constructor_parse_cli():
     args.prefix = os.path.abspath(args.prefix)
     args.root_prefix = os.path.abspath(os.environ.get("CONDA_ROOT_PREFIX", args.prefix))
 
+    if "--num-processors" in sys.argv and not args.extract_conda_pkgs:
+        raise argparse.ArgumentError(
+            "--num-processors can only be used with --extract-conda-pkgs"
+        )
+
     return args, args_unknown
 
 
-def _constructor_extract_conda_pkgs(prefix):
+def _constructor_extract_conda_pkgs(prefix, max_workers=None):
     from concurrent.futures import ProcessPoolExecutor
 
     import tqdm
     from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
     from conda_package_handling import api
 
-    executor = ProcessPoolExecutor()
+    executor = ProcessPoolExecutor(max_workers=max_workers)
 
     os.chdir(os.path.join(prefix, "pkgs"))
     flist = []
@@ -157,7 +201,7 @@ def _constructor_subcommand():
     os.chdir(args.prefix)
 
     if args.extract_conda_pkgs:
-        _constructor_extract_conda_pkgs(args.prefix)
+        _constructor_extract_conda_pkgs(args.prefix, max_workers=args.num_processors)
 
     elif args.extract_tarball:
         _constructor_extract_tarball()

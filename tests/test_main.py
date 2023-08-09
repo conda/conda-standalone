@@ -1,6 +1,8 @@
 import os
+import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -8,6 +10,7 @@ CONDA_EXE = os.environ.get(
     "CONDA_STANDALONE",
     os.path.join(sys.prefix, "standalone_conda", "conda.exe"),
 )
+HERE = Path(__file__).parent
 
 
 def run_conda(*args, **kwargs):
@@ -34,6 +37,23 @@ def test_new_environment(tmp_path, solver):
 
 def test_constructor():
     run_conda("constructor", "--help", check=True)
+
+
+def test_extract_conda_pkgs(tmp_path: Path):
+    shutil.copytree(HERE / "data", tmp_path / "pkgs")
+    run_conda("constructor", "--prefix", tmp_path, "--extract-conda-pkgs", check=True)
+
+
+def test_extract_conda_pkgs_num_processors(tmp_path: Path):
+    shutil.copytree(HERE / "data", tmp_path / "pkgs")
+    run_conda(
+        "constructor",
+        "--prefix",
+        tmp_path,
+        "--extract-conda-pkgs",
+        "--num-processors=2",
+        check=True,
+    )
 
 
 def test_python():
