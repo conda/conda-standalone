@@ -46,9 +46,8 @@ def _constructor_parse_cli():
     # This might be None!
     CPU_COUNT = os.cpu_count()
     # See validation results for magic number of 3
-    # https://dholth.github.io/conda-benchmarks/#extract.TimeExtract.time_extract?
-    #   conda-package-handling=2.0.0a2&p-format='.conda'&p-format='.tar.bz2'&p-lang='py'
-    DEFAULT_NUM_WORKERS = 1 if not CPU_COUNT else min(3, CPU_COUNT)
+    # https://dholth.github.io/conda-benchmarks/#extract.TimeExtract.time_extract?conda-package-handling=2.0.0a2&p-format='.conda'&p-format='.tar.bz2'&p-lang='py'  # noqa
+    DEFAULT_NUM_PROCESSORS = 1 if not CPU_COUNT else min(3, CPU_COUNT)
 
     class _NumProcessorsAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
@@ -56,13 +55,11 @@ def _constructor_parse_cli():
             while performing validation checks; raises argparse.ArgumentError if anything fails.
             """
 
-            ERROR_MSG = f"Value must be int between 1 and the CPU count ({CPU_COUNT})."
+            ERROR_MSG = f"Value must be int between 0 (auto) and {CPU_COUNT}."
             try:
                 num = int(values)
             except ValueError as exc:
                 raise argparse.ArgumentError(self, ERROR_MSG) from exc
-            if num < 1:
-                raise argparse.ArgumentError(self, ERROR_MSG)
 
             # cpu_count can return None, so skip this check if that happens
             if CPU_COUNT:
@@ -71,7 +68,10 @@ def _constructor_parse_cli():
                 max_cpu_num = min(CPU_COUNT, 61) if os.name == "nt" else CPU_COUNT
                 if num > max_cpu_num:
                     raise argparse.ArgumentError(self, ERROR_MSG)
-
+            if num < 0:
+                raise argparse.ArgumentError(self, ERROR_MSG)
+            elif num == 0:
+                num = None  # let the multiprocessing module decide
             setattr(namespace, self.dest, num)
 
     p = argparse.ArgumentParser(description="constructor helper subcommand")
@@ -91,9 +91,12 @@ def _constructor_parse_cli():
     # )
     p.add_argument(
         "--num-processors",
-        default=DEFAULT_NUM_WORKERS,
+        default=DEFAULT_NUM_PROCESSORS,
+        metavar="N",
         action=_NumProcessorsAction,
-        help="Number of processors to use with --extract-conda-pkgs",
+        help="Number of processors to use with --extract-conda-pkgs. "
+        "Value must be int between 0 (auto) and the number of processors. "
+        f"Defaults to {DEFAULT_NUM_PROCESSORS}.",
     )
 
     g = p.add_mutually_exclusive_group(required=True)
