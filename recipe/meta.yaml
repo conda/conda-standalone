@@ -45,7 +45,8 @@ test:
 
 about:
   home: https://github.com/conda/conda-standalone
-  license: BSD-3-Clause
-  license_family: BSD
-  license_file: LICENSE
+  license: LicenseRef-CondaStandalone
+  license_file:
+    - LICENSE
+    - 3rd-party-licenses.json
   summary: Entry point and dependency collection for PyInstaller-based standalone conda.
