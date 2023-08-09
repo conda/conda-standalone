@@ -24,6 +24,7 @@ source:
 
 build:
   number: 0
+  string: "{{ GIT_BUILD_STR }}_py{{ CONDA_PY }}_{{ PKG_BUILDNUM }}"
   ignore_run_exports:
     - '*'
 

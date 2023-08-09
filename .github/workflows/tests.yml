@@ -21,13 +21,21 @@ concurrency:
 
 jobs:
   build_recipe:
-    name: Build conda recipe (${{ matrix.os }})
+    name: Build conda recipe (${{ matrix.subdir }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.9"]
+        include:
+          - os: ubuntu-latest
+            subdir: linux-64
+            python-version: "3.9"
+          - os: macos-latest
+            subdir: osx-64
+            python-version: "3.9"
+          - os: windows-latest
+            subdir: win-64
+            python-version: "3.9"
     steps:
       - uses: actions/checkout@v3
       - uses: conda-incubator/setup-miniconda@v2
@@ -41,10 +49,35 @@ jobs:
       - name: Install conda-libmamba-solver
         shell: bash -el {0}
         run: |
-          mamba install "conda>=22.11.1" conda-libmamba-solver conda-build
+          mamba install "conda>=22.11.1" conda-libmamba-solver conda-build anaconda-client
           conda update --all --solver=libmamba
       - name: Build recipe
         shell: bash -el {0}
         env:
           CONDA_SOLVER: libmamba
+          CONDA_BLD_PATH: ${{ github.workspace }}/bld
         run: conda build recipe
+
+      - name: Upload package to anaconda.org
+        shell: bash -el {0}
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CONDA_BLD_PATH: ${{ github.workspace }}/bld
+          ANACONDA_ORG_TOKEN: ${{ secrets.CONDA_CANARY_ANACONDA_ORG_TOKEN }}
+          ANACONDA_ORG_CHANNEL: conda-canary
+          ANACONDA_ORG_LABEL: dev
+        run: |
+          anaconda \
+            --token="${ANACONDA_ORG_TOKEN}" \
+            upload \
+            --force \
+            --register \
+            --no-progress \
+            --user="${ANACONDA_ORG_CHANNEL}" \
+            --label="${ANACONDA_ORG_LABEL}" \
+            "${CONDA_BLD_PATH}/${{ matrix.subdir }}/conda-standalone-*.*
+          echo "Uploaded the following files:"
+          basename -a ./pkgs/${{ matrix.subdir }}/conda-standalone-*.*
+
+          echo "Use this command to try out the build:"
+          echo "conda install -c ${ANACONDA_ORG_CHANNEL}/label/${ANACONDA_ORG_LABEL} conda-standalone"
