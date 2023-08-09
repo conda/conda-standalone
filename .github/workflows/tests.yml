@@ -55,14 +55,14 @@ jobs:
         shell: bash -el {0}
         env:
           CONDA_SOLVER: libmamba
-          CONDA_BLD_PATH: ${{ github.workspace }}/bld
+          CONDA_BLD_PATH: ${{ runner.temp }}/bld
         run: conda build recipe
 
       - name: Upload package to anaconda.org
         shell: bash -el {0}
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
-          CONDA_BLD_PATH: ${{ github.workspace }}/bld
+          CONDA_BLD_PATH: ${{ runner.temp }}/bld
           ANACONDA_ORG_TOKEN: ${{ secrets.CONDA_CANARY_ANACONDA_ORG_TOKEN }}
           ANACONDA_ORG_CHANNEL: conda-canary
           ANACONDA_ORG_LABEL: dev
