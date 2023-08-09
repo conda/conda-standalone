@@ -1,0 +1,19 @@
+### Enhancements
+
+* Prevent `--extract-conda-pkgs` from greedily and inefficiently using all CPUs. (#32)
+
+### Bug fixes
+
+* <news item>
+
+### Deprecations
+
+* <news item>
+
+### Docs
+
+* <news item>
+
+### Other
+
+* <news item>
