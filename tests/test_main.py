@@ -6,7 +6,7 @@ import pytest
 
 CONDA_EXE = os.environ.get(
     "CONDA_STANDALONE",
-    os.path.join(sys.prefix, "standalone_conda", "conda.exe")
+    os.path.join(sys.prefix, "standalone_conda", "conda.exe"),
 )
 
 
@@ -30,3 +30,7 @@ def test_new_environment(tmp_path, solver):
         check=True,
     )
     assert list((tmp_path / "env" / "conda-meta").glob("libzlib-*.json"))
+
+
+def test_constructor():
+    run_conda("constructor", "--help", check=True)
