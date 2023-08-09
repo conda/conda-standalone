@@ -14,7 +14,7 @@ Main features:
 
 - Single-file binary, named `conda.exe`, that can be mostly used as the regular `conda` command.
 - No installation required, but there are some differences (see below).
-- New subcommand: `conda constructor`.
+- New subcommands (see below).
 
 ## Installation
 
