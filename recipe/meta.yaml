@@ -3,6 +3,7 @@
 {% set libmambapy_version = "1.4.1" %}
 {% set constructor_version = "3.4.5" %}
 {% set python_version = "3.9.15" %}
+{% set pyver = "".join(python_version.split(".")[:2]) %}
 
 package:
   name: conda-standalone
@@ -24,6 +25,7 @@ source:
 
 build:
   number: 0
+  string: "g{{ GIT_FULL_HASH[:7] }}_py{{ pyver }}_{{ PKG_BUILDNUM }}"
   ignore_run_exports:
     - '*'
 

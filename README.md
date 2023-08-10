@@ -1,9 +1,5 @@
 # conda-standalone
 
-[![Tests (GitHub Actions)](https://github.com/conda/conda-standalone/actions/workflows/tests.yml/badge.svg)](https://github.com/conda/conda-standalone/actions/workflows/tests.yml)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/conda/conda-standalone/main.svg)](https://results.pre-commit.ci/latest/github/conda/conda-standalone/main)
-[![Anaconda-Server Badge](https://anaconda.org/main/conda-standalone/badges/version.svg)](https://anaconda.org/main/conda-standalone/files)
-
 A standalone `conda` executable built with PyInstaller.
 
 ## What is this for?
@@ -18,7 +14,7 @@ Main features:
 
 - Single-file binary, named `conda.exe`, that can be mostly used as the regular `conda` command.
 - No installation required, but there are some differences (see below).
-- New subcommand: `conda constructor`.
+- New subcommands (see below).
 
 ## Installation
 
@@ -87,5 +83,13 @@ Usage: conda.exe python [-V] [-c cmd | -m mod | file] [arg] ...
 - `-V`, `--version`: Print the Python version number and exit.
 - _No options_: Enter interactive mode. Very useful for debugging.
   You can import all the packages bundled in the binary.
+
+## Build status
+
+| [![Build status](https://github.com/conda/conda-standalone/actions/workflows/tests.yml/badge.svg)](https://github.com/conda/conda-standalone/actions/workflows/tests.yml) [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/conda/conda-standalone/main.svg)](https://results.pre-commit.ci/latest/github/conda/conda-standalone/main)  | [![Anaconda-Server Badge](https://anaconda.org/conda-canary/conda-standalone/badges/latest_release_date.svg)](https://anaconda.org/conda-canary/conda-standalone) |
+| --- | :-: |
+| [`conda install defaults::conda-standalone`](https://anaconda.org/anaconda/conda-standalone) | [![Anaconda-Server Badge](https://anaconda.org/anaconda/conda-standalone/badges/version.svg)](https://anaconda.org/anaconda/conda-standalone) |
+| [`conda install conda-forge::conda-standalone`](https://anaconda.org/conda-forge/conda-standalone) | [![Anaconda-Server Badge](https://anaconda.org/conda-forge/conda-standalone/badges/version.svg)](https://anaconda.org/conda-forge/conda-standalone) |
+| [`conda install conda-canary/label/dev::conda-standalone`](https://anaconda.org/conda-canary/conda-standalone) | [![Anaconda-Server Badge](https://anaconda.org/conda-canary/conda-standalone/badges/version.svg)](https://anaconda.org/conda-canary/constructor) |
 
 [issue]: https://github.com/conda/conda-standalone/issues
