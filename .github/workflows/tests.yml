@@ -75,9 +75,9 @@ jobs:
             --no-progress \
             --user="${ANACONDA_ORG_CHANNEL}" \
             --label="${ANACONDA_ORG_LABEL}" \
-            "${CONDA_BLD_PATH}/${{ matrix.subdir }}/conda-standalone-*.*
+            ${CONDA_BLD_PATH}/${{ matrix.subdir }}/conda-standalone-*.*
           echo "Uploaded the following files:"
-          basename -a ./pkgs/${{ matrix.subdir }}/conda-standalone-*.*
+          basename -a ${CONDA_BLD_PATH}/pkgs/${{ matrix.subdir }}/conda-standalone-*.*
 
           echo "Use this command to try out the build:"
-          echo "conda install -c ${ANACONDA_ORG_CHANNEL}/label/${ANACONDA_ORG_LABEL} conda-standalone"
+          echo "  conda install -c ${ANACONDA_ORG_CHANNEL}/label/${ANACONDA_ORG_LABEL} conda-standalone"
