@@ -25,7 +25,9 @@ def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
 
 
 def _get_shortcut_dir(prefix=None):
-    user_mode = "user" if Path(prefix or sys.prefix, ".nonadmin").is_file() else "system"
+    user_mode = (
+        "user" if Path(prefix or sys.prefix, ".nonadmin").is_file() else "system"
+    )
     if sys.platform == "win32":
         try:
             from menuinst.platforms.win_utils.knownfolders import (
@@ -95,7 +97,11 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path):
 _pkg_specs = [
     (
         "jaimergp/label/menuinst-tests::package_1",
-        {"win32": "Package 1/A.lnk", "darwin": "A.app/Contents/MacOS/a", "linux": "package-1_a.desktop"},
+        {
+            "win32": "Package 1/A.lnk",
+            "darwin": "A.app/Contents/MacOS/a",
+            "linux": "package-1_a.desktop",
+        },
     ),
 ]
 if os.name == "nt":
@@ -126,7 +132,8 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     assert "menuinst Exception" not in p.stdout
     assert list(tmp_path.glob("Menu/*.json"))
     assert (
-        _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(prefix=tmp_path)
+        _get_shortcut_dir(tmp_path)
+        / shortcut_path[sys.platform].format(prefix=tmp_path)
     ).is_file()
 
 
@@ -152,7 +159,8 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     assert list(tmp_path.glob("Menu/*.json"))
     run_conda("constructor", "--prefix", tmp_path, "--make-menus", **run_kwargs)
     assert (
-        _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(prefix=tmp_path)
+        _get_shortcut_dir(tmp_path)
+        / shortcut_path[sys.platform].format(prefix=tmp_path)
     ).is_file()
     run_conda("constructor", "--prefix", tmp_path, "--rm-menus", **run_kwargs)
 
