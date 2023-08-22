@@ -13,8 +13,15 @@ CONDA_EXE = os.environ.get(
 HERE = Path(__file__).parent
 
 
-def run_conda(*args, **kwargs):
-    return subprocess.run([CONDA_EXE, *args], **kwargs)
+def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
+    check = kwargs.pop("check", False)
+    p = subprocess.run([CONDA_EXE, *args], **kwargs)
+    if check:
+        if kwargs.get("capture_output") and p.returncode:
+            print(p.stdout)
+            print(p.stderr, file=sys.stderr)
+        p.check_returncode()
+    return p
 
 
 @pytest.mark.parametrize("solver", ["classic", "libmamba"])
@@ -56,32 +63,53 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path):
     )
 
 
-def test_menuinst(tmp_path: Path):
-    # Check 'regular' conda can process menuinst JSONs
-    prefix1 = tmp_path / "prefix1"
+_pkg_specs = ["napari-menu"]
+if os.name == "nt":
+    _pkg_specs.append("miniforge_console_shortcut")
+_pkg_specs_params = pytest.mark.parametrize("pkg_spec", _pkg_specs)
+
+
+@_pkg_specs_params
+def test_menuinst_conda(tmp_path: Path, pkg_spec: str):
+    "Check 'regular' conda can process menuinst JSONs"
+    (tmp_path / ".nonadmin").touch()  # prevent elevation
     p = run_conda(
         "create",
         "-p",
-        prefix1,
-        "miniforge_console_shortcut",
-        check=True,
+        tmp_path,
+        "-y",
+        f"conda-forge::{pkg_spec}",
+        "--no-deps",
         capture_output=True,
         text=True,
-    )
-    assert "menuinst Exception" not in p.stdout
-    assert list(prefix1.glob("Menu/*.json"))
-
-    # The constructor helper should also be able to process them
-    prefix2 = tmp_path / "prefix2"
-    p = run_conda(
-        "create",
-        "-p",
-        prefix2,
-        "--no-shortcuts",
-        "miniforge_console_shortcut",
         check=True,
     )
-    p = run_conda("constructor", "--prefix", prefix2, "--make-menus", check=True)
+    assert "menuinst Exception" not in p.stdout
+    assert list(tmp_path.glob("Menu/*.json"))
+
+
+@_pkg_specs_params
+def test_menuinst_constructor(tmp_path: Path, pkg_spec: str):
+    "The constructor helper should also be able to process menuinst JSONs"
+    run_kwargs = dict(capture_output=True, text=True, check=True)
+    (tmp_path / ".nonadmin").touch()  # prevent elevation
+
+    # --no-shortcuts on non-Windows needs https://github.com/conda/conda/pull/11882
+    env = os.environ.copy()
+    env["CONDA_SHORTCUTS"] = "false"
+    run_conda(
+        "create",
+        "-p",
+        tmp_path,
+        "-y",
+        f"conda-forge::{pkg_spec}",
+        "--no-deps",
+        env=env,
+        **run_kwargs,
+    )
+    assert list(tmp_path.glob("Menu/*.json"))
+    run_conda("constructor", "--prefix", tmp_path, "--make-menus", **run_kwargs)
+    run_conda("constructor", "--prefix", tmp_path, "--rm-menus", **run_kwargs)
 
 
 def test_python():
