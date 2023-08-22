@@ -14,7 +14,15 @@ packages = [
     "conda_libmamba_solver",
     "libmambapy",
 ]
-site_packages = os.getenv("SP_DIR", site.getsitepackages()[0])
+site_packages = os.environ.get(
+    "SP_DIR", # site-packages in conda-build's host environment
+    # if not defined, get running Python's site-packages 
+    # Windows puts sys.prefix in this list first
+    next(
+        path for path in site.getsitepackages()
+        if path.endswith("site-packages")
+    )
+)
 files = [
     f
     for package in packages
@@ -263,7 +271,26 @@ import conda_package_handling.validate
 import libmambapy.__init__
 import libmambapy._version
 import libmambapy.bindings
-
+import menuinst.__init__
+# import menuinst._schema
+import menuinst.api
+import menuinst.platforms.__init__
+import menuinst.platforms.base
+import menuinst.platforms.linux
+import menuinst.platforms.osx
+import menuinst.utils
+if os.name == "nt":
+    import menuinst._legacy.__init__
+    import menuinst._legacy.cwp
+    import menuinst._legacy.main
+    import menuinst._legacy.utils
+    import menuinst._legacy.win32
+    import menuinst.platforms.win
+    import menuinst.platforms.win_utils.__init__
+    import menuinst.platforms.win_utils.knownfolders
+    import menuinst.platforms.win_utils.registry
+    import menuinst.platforms.win_utils.win_elevate
+    import menuinst.platforms.win_utils.winshortcut
 try:
     import conda_env.__main__
 except Exception:
