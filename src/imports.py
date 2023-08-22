@@ -15,7 +15,7 @@ packages = [
     "libmambapy",
 ]
 site_packages = os.environ.get(
-    "SP_DIR", # site-packages in conda-build's host environment
+    "SP_DIR",  # site-packages in conda-build's host environment
     # if not defined, get running Python's site-packages
     # Windows puts sys.prefix in this list first
     next(
