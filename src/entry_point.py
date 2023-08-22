@@ -278,7 +278,7 @@ def _conda_main():
     from conda.cli import main
 
     _fix_sys_path()
-    main()
+    return main()
 
 
 def main():
