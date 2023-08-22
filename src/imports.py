@@ -16,7 +16,7 @@ packages = [
 ]
 site_packages = os.environ.get(
     "SP_DIR", # site-packages in conda-build's host environment
-    # if not defined, get running Python's site-packages 
+    # if not defined, get running Python's site-packages
     # Windows puts sys.prefix in this list first
     next(
         path for path in site.getsitepackages()
@@ -272,6 +272,7 @@ import libmambapy.__init__
 import libmambapy._version
 import libmambapy.bindings
 import menuinst.__init__
+
 # import menuinst._schema
 import menuinst.api
 import menuinst.platforms.__init__
@@ -279,6 +280,7 @@ import menuinst.platforms.base
 import menuinst.platforms.linux
 import menuinst.platforms.osx
 import menuinst.utils
+
 if os.name == "nt":
     import menuinst._legacy.__init__
     import menuinst._legacy.cwp

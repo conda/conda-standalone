@@ -15,7 +15,7 @@ else:
 block_cipher = None
 sitepackages = os.environ.get(
     "SP_DIR", # site-packages in conda-build's host environment
-    # if not defined, get running Python's site-packages 
+    # if not defined, get running Python's site-packages
     # Windows puts sys.prefix in this list first
     next(
         path for path in site.getsitepackages()
@@ -25,10 +25,10 @@ sitepackages = os.environ.get(
 
 extra_exe_kwargs = {}
 # Non imported files need to be added manually via datas or binaries:
-# Datas are not analyzed, just copied over. Binaries go through some 
-# linkage analysis to also bring necessary libs. This includes plain 
+# Datas are not analyzed, just copied over. Binaries go through some
+# linkage analysis to also bring necessary libs. This includes plain
 # text files like JSON, modules never imported, or standalone binaries
-# Shared objects and DLLs should have been caught by pyinstaller import hooks, 
+# Shared objects and DLLs should have been caught by pyinstaller import hooks,
 # but if not, add them.
 # Format: a list of tuples like (file-path, target-DIRECTORY)
 binaries = []
