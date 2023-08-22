@@ -35,7 +35,7 @@ requirements:
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=1.6
-    - menuinst >=2
+    - menuinst >=2.0.0a0
     - conda-libmamba-solver ={{ conda_libmamba_solver_version }}
     - libmambapy ={{ libmambapy_version }}
   run_constrained:
