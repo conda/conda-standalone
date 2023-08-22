@@ -38,7 +38,7 @@ datas = [
 ]
 if sys.platform == "win32":
     datas += [
-        (os.path.join(os.getcwd(), 'constructor', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
+        (os.path.join(sitepackages, 'constructor', 'nsis', '_nsis.py'), 'Lib'),
         (os.path.join(os.getcwd(), 'entry_point_base.exe'), '.'),
     ]
 elif sys.platform == "darwin":
