@@ -24,6 +24,35 @@ def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
     return p
 
 
+def _get_shortcut_dir(prefix=None):
+    user_mode = "user" if Path(prefix or sys.prefix, ".nonadmin").is_file() else "system"
+    if sys.platform == "win32":
+        try:
+            from menuinst.platforms.win_utils.knownfolders import (
+                dirs_src as win_locations,
+            )
+
+            return Path(win_locations[user_mode]["start"][0])
+        except ImportError:
+            try:
+                from menuinst.win32 import dirs_src as win_locations
+
+                return Path(win_locations[user_mode]["start"][0])
+            except ImportError:
+                from menuinst.win32 import dirs as win_locations
+
+                return Path(win_locations[user_mode]["start"])
+    if sys.platform == "darwin":
+        if user_mode == "user":
+            return Path(os.environ["HOME"], "Applications")
+        return Path("/Applications")
+    if sys.platform == "linux":
+        if user_mode == "user":
+            return Path(os.environ["HOME"], ".local", "share", "applications")
+        return Path("/usr/share/applications")
+    raise NotImplementedError(sys.platform)
+
+
 @pytest.mark.parametrize("solver", ["classic", "libmamba"])
 def test_new_environment(tmp_path, solver):
     env = os.environ.copy()
@@ -63,14 +92,24 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path):
     )
 
 
-_pkg_specs = ["napari-menu"]
+_pkg_specs = [
+    (
+        "jaimergp/label/menuinst-tests::package_1",
+        {"win32": "Package 1/A.lnk", "darwin": "A.app/Contents/MacOS/a", "linux": "package-1_a.desktop"},
+    ),
+]
 if os.name == "nt":
-    _pkg_specs.append("miniforge_console_shortcut")
-_pkg_specs_params = pytest.mark.parametrize("pkg_spec", _pkg_specs)
+    _pkg_specs.append(
+        (
+            "conda-forge::miniforge_console_shortcut",
+            {"win32": "Anaconda3 (64-bit)/Anaconda Prompt ({prefix}).lnk"},
+        ),
+    )
+_pkg_specs_params = pytest.mark.parametrize("pkg_spec, shortcut_path", _pkg_specs)
 
 
 @_pkg_specs_params
-def test_menuinst_conda(tmp_path: Path, pkg_spec: str):
+def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     "Check 'regular' conda can process menuinst JSONs"
     (tmp_path / ".nonadmin").touch()  # prevent elevation
     p = run_conda(
@@ -78,7 +117,7 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str):
         "-p",
         tmp_path,
         "-y",
-        f"conda-forge::{pkg_spec}",
+        pkg_spec,
         "--no-deps",
         capture_output=True,
         text=True,
@@ -86,10 +125,13 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str):
     )
     assert "menuinst Exception" not in p.stdout
     assert list(tmp_path.glob("Menu/*.json"))
+    assert (
+        _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(prefix=tmp_path)
+    ).is_file()
 
 
 @_pkg_specs_params
-def test_menuinst_constructor(tmp_path: Path, pkg_spec: str):
+def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     "The constructor helper should also be able to process menuinst JSONs"
     run_kwargs = dict(capture_output=True, text=True, check=True)
     (tmp_path / ".nonadmin").touch()  # prevent elevation
@@ -102,13 +144,16 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str):
         "-p",
         tmp_path,
         "-y",
-        f"conda-forge::{pkg_spec}",
+        pkg_spec,
         "--no-deps",
         env=env,
         **run_kwargs,
     )
     assert list(tmp_path.glob("Menu/*.json"))
     run_conda("constructor", "--prefix", tmp_path, "--make-menus", **run_kwargs)
+    assert (
+        _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(prefix=tmp_path)
+    ).is_file()
     run_conda("constructor", "--prefix", tmp_path, "--rm-menus", **run_kwargs)
 
 
