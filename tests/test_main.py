@@ -56,6 +56,34 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path):
     )
 
 
+def test_menuinst(tmp_path: Path):
+    # Check 'regular' conda can process menuinst JSONs
+    prefix1 = tmp_path / "prefix1"
+    p = run_conda(
+        "create",
+        "-p",
+        prefix1,
+        "miniforge_console_shortcut",
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "menuinst Exception" not in p.stdout
+    assert list(prefix1.glob("Menu/*.json"))
+
+    # The constructor helper should also be able to process them
+    prefix2 = tmp_path / "prefix2"
+    p = run_conda(
+        "create",
+        "-p",
+        prefix2,
+        "--no-shortcuts",
+        "miniforge_console_shortcut",
+        check=True,
+    )
+    p = run_conda("constructor", "--prefix", prefix2, "--make-menus", check=True)
+
+
 def test_python():
     p = run_conda("python", "-V", check=True, capture_output=True, text=True)
     assert p.stdout.startswith("Python 3.")
