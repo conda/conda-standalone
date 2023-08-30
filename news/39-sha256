@@ -1,10 +1,10 @@
 ### Enhancements
 
-* Add a `python` subcommand so users can leverage the bundled Python interpreter. (#29)
+* <news item>
 
 ### Bug fixes
 
-* <news item>
+* Update the SHA256 value of the `conda` tarball in the recipe. (#39)
 
 ### Deprecations
 
