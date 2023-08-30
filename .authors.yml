@@ -1,0 +1,70 @@
+- name: Matthew R. Becker
+  email: beckermr@users.noreply.github.com
+  num_commits: 0
+  first_commit: 2020-10-07 21:47:20
+  github: mrbecker
+- name: regro-cf-autotick-bot
+  email: circleci@cf-graph.regro.github.com
+  alternate_emails:
+  - 36490558+regro-cf-autotick-bot@users.noreply.github.com
+  num_commits: 0
+  first_commit: 2019-12-10 23:26:11
+  github: regro-cf-autotick-bot
+- name: Mike Sarahan
+  email: msarahan@gmail.com
+  num_commits: 0
+  first_commit: 2020-01-27 22:40:52
+  github: msarahan
+- name: Jaime Rodríguez-Guerra
+  email: jaimergp@users.noreply.github.com
+  aliases:
+  - jaimergp
+  github: jaimergp
+  num_commits: 0
+  first_commit: 2022-01-04 19:04:55
+- name: Daniel Bast
+  email: 2790401+dbast@users.noreply.github.com
+  num_commits: 0
+  first_commit: 2023-01-13 09:01:33
+  github: dbast
+- name: Eric Prestat
+  email: eric.prestat@gmail.com
+  num_commits: 0
+  first_commit: 2021-07-31 16:04:10
+  github: ericpre
+- name: Nehal J Wani
+  email: nehaljw.kkd1@gmail.com
+  num_commits: 0
+  first_commit: 2020-02-09 15:03:21
+  github: nehaljwani
+- name: conda-bot
+  email: 18747875+conda-bot@users.noreply.github.com
+  num_commits: 0
+  first_commit: 2023-02-08 16:08:24
+  github: conda-bot
+- name: Hadrien Mary
+  email: hadim@users.noreply.github.com
+  alternate_emails:
+  - hadrien.mary@gmail.com
+  num_commits: 0
+  first_commit: 2019-11-17 06:28:19
+  github: hadim
+- name: pre-commit-ci[bot]
+  email: 66853113+pre-commit-ci[bot]@users.noreply.github.com
+  num_commits: 0
+  first_commit: 2023-02-06 23:27:05
+  github: pre-commit-ci[bot]
+- name: Isuru Fernando
+  email: isuruf@gmail.com
+  num_commits: 0
+  first_commit: 2020-09-18 02:26:33
+  github: isuruf
+- name: conda-forge-admin
+  email: pelson.pub+conda-forge@gmail.com
+  num_commits: 0
+  first_commit: 2019-11-16 19:19:16
+  github: conda-forge-admin
+  alternate_emails:
+  - conda-forge@googlegroups.com
+  aliases:
+  - Travis-CI on github.com/conda-forge/staged-recipes
