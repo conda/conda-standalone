@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Bundle `menuinst` v2.0.0a0. (#36)
+* Bundle `menuinst` v2.0.0a0 and import `menuinst` directly without relying on `constructor`'s `_nsis.py` module. (#36)
 
 ### Bug fixes
 
