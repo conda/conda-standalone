@@ -1,4 +1,4 @@
-{% set conda_version = "23.7.2" %}
+{% set conda_version = "23.7.3" %}
 {% set conda_libmamba_solver_version = "23.7.0" %}
 {% set libmambapy_version = "1.4.1" %}
 {% set constructor_version = "3.4.5" %}
@@ -12,7 +12,7 @@ package:
 source:
   - path: ../
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 141ddbc101c67df54a344f0e41e044b7215f9b73c0876d2bee0c97ecc124e0d4
+    sha256: c2c7c12a087b03e2d6833fe4d9b4898de0216721d19eb4ac8b573ff833378711
     folder: conda_src
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
