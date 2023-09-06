@@ -13,6 +13,23 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 23.7.3 (2023-09-05)
+
+### Enhancements
+
+* Update the bundled `conda` to 23.7.3. (#40)
+
+### Bug fixes
+
+* Update the SHA256 value of the `conda` tarball in the recipe. (#39)
+
+### Contributors
+
+* @jaimergp
+* @conda-bot
+
+
+
 ## 23.7.2 (2023-08-28)
 
 ### Enhancements
