@@ -13,6 +13,18 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 23.7.4 (2023-09-25)
+
+### Enhancements
+
+* Update the bundled `conda` to 23.7.4. (#44)
+
+### Contributors
+
+* @jaimergp
+
+
+
 ## 23.7.3 (2023-09-05)
 
 ### Enhancements
