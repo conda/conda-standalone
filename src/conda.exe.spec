@@ -15,7 +15,7 @@ else:
 block_cipher = None
 sitepackages = os.environ.get(
     "SP_DIR", # site-packages in conda-build's host environment
-    # if not defined, get running Python's site-packages 
+    # if not defined, get running Python's site-packages
     # Windows puts sys.prefix in this list first
     next(
         path for path in site.getsitepackages()
@@ -33,7 +33,7 @@ if sys.platform == "win32":
     datas += [
         (os.path.join(os.getcwd(), 'constructor_src', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
         (os.path.join(os.getcwd(), 'entry_point_base.exe'), '.')]
-    
+
 elif sys.platform == "darwin":
     extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
 
