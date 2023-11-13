@@ -26,6 +26,10 @@ sitepackages = os.environ.get(
 
 extra_exe_kwargs = {}
 datas = [
+    (os.path.join(sitepackages, 'archspec', 'json', 'COPYRIGHT'), 'archspec/json'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'NOTICE'), 'archspec/json'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'LICENSE-APACHE'), 'archspec/json'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'LICENSE-MIT'), 'archspec/json'),
     (os.path.join(sitepackages, 'archspec', 'json', 'cpu', 'microarchitectures.json'), 'archspec/json/cpu'),
     (os.path.join(sitepackages, 'archspec', 'json', 'cpu', 'microarchitectures_schema.json'), 'archspec/json/cpu'),
 ]
