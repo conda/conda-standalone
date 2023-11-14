@@ -13,6 +13,18 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 23.10.0 (2023-11-14)
+
+### Enhancements
+
+* Update to `conda` 23.10.0, `conda-libmamba-solver` 23.11.0, `libmambapy` 1.5.3 and `constructor` 3.5.0 (#48)
+
+### Contributors
+
+* @jaimergp
+
+
+
 ## 23.9.0 (2023-10-04)
 
 ### Enhancements

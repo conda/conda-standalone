@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+import site
 import sys
 
 # __file__ is not defined in the pyinstaller context,
@@ -12,12 +13,31 @@ else:
     HERE = os.path.join(os.path.getcwd(), "src")
 
 block_cipher = None
+sitepackages = os.environ.get(
+    "SP_DIR", # site-packages in conda-build's host environment
+    # if not defined, get running Python's site-packages
+    # Windows puts sys.prefix in this list first
+    next(
+        path for path in site.getsitepackages()
+        if path.endswith("site-packages")
+    )
+)
+
 
 extra_exe_kwargs = {}
-datas = []
+datas = [
+    (os.path.join(sitepackages, 'archspec', 'json', 'COPYRIGHT'), 'archspec/json'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'NOTICE'), 'archspec/json'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'LICENSE-APACHE'), 'archspec/json'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'LICENSE-MIT'), 'archspec/json'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'cpu', 'microarchitectures.json'), 'archspec/json/cpu'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'cpu', 'microarchitectures_schema.json'), 'archspec/json/cpu'),
+]
 if sys.platform == "win32":
-    datas = [(os.path.join(os.getcwd(), 'constructor_src', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
-             (os.path.join(os.getcwd(), 'entry_point_base.exe'), '.')]
+    datas += [
+        (os.path.join(os.getcwd(), 'constructor_src', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
+        (os.path.join(os.getcwd(), 'entry_point_base.exe'), '.')]
+
 elif sys.platform == "darwin":
     extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
 
