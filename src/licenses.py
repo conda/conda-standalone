@@ -41,10 +41,10 @@ def dump_licenses(prefix, include_text=False, text_errors=None, output="licenses
         info = json.loads(info_json.read_text())
         extracted_package_dir = info["extracted_package_dir"]
         licenses_dir = os.path.join(extracted_package_dir, "info", "licenses")
-        licenses[info["name"]]["type"] = info["license"]
         if "license" not in info:
-            print(f"WARNING: no license for {extracted_package_dir}")
+            print(f"WARNING: no license for {info['name']}")
             continue
+        licenses[info["name"]]["type"] = info["license"]
         licenses[info["name"]]["files"] = license_files = []
         if not os.path.isdir(licenses_dir):
             continue
