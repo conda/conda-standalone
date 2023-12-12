@@ -186,9 +186,6 @@ def _constructor_subcommand():
     - extract conda packages
     - extract the tarball payload contained in the shell installers
     - invoke menuinst to create and remove menu items on Windows
-
-    It is supported by a module included in `constructor`, `_nsis.py`, which is placed
-    in `$INSTDIR\Lib\_nsis.py` on Windows installations.
     """
     args, _ = _constructor_parse_cli()
     os.chdir(args.prefix)
