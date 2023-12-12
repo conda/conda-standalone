@@ -13,6 +13,59 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 23.10.0 (2023-11-14)
+
+### Enhancements
+
+* Update to `conda` 23.10.0, `conda-libmamba-solver` 23.11.0, `libmambapy` 1.5.3 and `constructor` 3.5.0 (#48)
+
+### Contributors
+
+* @jaimergp
+
+
+
+## 23.9.0 (2023-10-04)
+
+### Enhancements
+
+* Update to `conda` 23.9.0, `conda-libmamba-solver` 23.9.1 and `libmambapy` 1.5.1. (#46)
+
+### Contributors
+
+* @jaimergp
+
+
+
+## 23.7.4 (2023-09-25)
+
+### Enhancements
+
+* Update the bundled `conda` to 23.7.4. (#44)
+
+### Contributors
+
+* @jaimergp
+
+
+
+## 23.7.3 (2023-09-05)
+
+### Enhancements
+
+* Update the bundled `conda` to 23.7.3. (#40)
+
+### Bug fixes
+
+* Update the SHA256 value of the `conda` tarball in the recipe. (#39)
+
+### Contributors
+
+* @jaimergp
+* @conda-bot
+
+
+
 ## 23.7.2 (2023-08-28)
 
 ### Enhancements
