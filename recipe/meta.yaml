@@ -1,6 +1,6 @@
 {% set conda_version = "23.11.0" %}
 {% set conda_libmamba_solver_version = "23.11.1" %}
-{% set libmambapy_version = "1.5.5" %}
+{% set libmambapy_version = "1.5.3" %}
 {% set constructor_version = "3.5.0" %}
 {% set python_version = "3.9.15" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}

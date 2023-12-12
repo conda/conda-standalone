@@ -29,13 +29,10 @@ jobs:
         include:
           - os: ubuntu-latest
             subdir: linux-64
-            python-version: "3.9"
           - os: macos-latest
             subdir: osx-64
-            python-version: "3.9"
           - os: windows-latest
             subdir: win-64
-            python-version: "3.9"
     steps:
       - uses: actions/checkout@v3
       - uses: conda-incubator/setup-miniconda@v2
@@ -43,6 +40,7 @@ jobs:
           auto-activate-base: true
           activate-environment: ""
           run-post: false
+
       - name: Install conda-libmamba-solver
         shell: bash -el {0}
         run: conda install -y conda-build anaconda-client
