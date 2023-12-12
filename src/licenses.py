@@ -39,12 +39,13 @@ def dump_licenses(prefix, include_text=False, text_errors=None, output="licenses
     licenses = defaultdict(dict)
     for info_json in Path(prefix).glob("conda-meta/*.json"):
         info = json.loads(info_json.read_text())
-        extracted_package_dir = info["extracted_package_dir"]
-        licenses_dir = os.path.join(extracted_package_dir, "info", "licenses")
-        if "license" not in info:
+        license_info = info.get("license")
+        if license_info is None:
             print(f"WARNING: no license for {info['name']}")
             continue
-        licenses[info["name"]]["type"] = info["license"]
+        extracted_package_dir = info["extracted_package_dir"]
+        licenses_dir = os.path.join(extracted_package_dir, "info", "licenses")
+        licenses[info["name"]]["type"] = license_info
         licenses[info["name"]]["files"] = license_files = []
         if not os.path.isdir(licenses_dir):
             continue
