@@ -120,6 +120,7 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     (tmp_path / ".nonadmin").touch()  # prevent elevation
     p = run_conda(
         "create",
+        "-vvv",
         "-p",
         tmp_path,
         "-y",
@@ -137,8 +138,10 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
         prefix=tmp_path
     )
     assert created_shortcut.is_file()
+
     p = run_conda(
         "remove",
+        "-vvv",
         "-p",
         tmp_path,
         "-y",
@@ -159,16 +162,19 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     (tmp_path / ".nonadmin").touch()  # prevent elevation
     p = run_conda(
         "create",
+        "-vvv",
         "-p",
         tmp_path,
         "-y",
         pkg_spec,
         "--no-deps",
+        "--no-shortcuts",
         **run_kwargs,
     )
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
     assert list(tmp_path.glob("Menu/*.json"))
+
     p = run_conda("constructor", "--prefix", tmp_path, "--make-menus", **run_kwargs)
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
@@ -176,6 +182,7 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
         prefix=tmp_path
     )
     assert created_shortcut.is_file()
+
     p = run_conda("constructor", "--prefix", tmp_path, "--rm-menus", **run_kwargs)
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
