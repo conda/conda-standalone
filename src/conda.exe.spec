@@ -44,7 +44,7 @@ datas = [
 ]
 if sys.platform == "win32":
     datas += [
-        (os.path.join(sitepackages, 'constructor', 'nsis', '_nsis.py'), 'Lib'),
+        (os.path.join(os.getcwd(), 'constructor_src', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
         (os.path.join(os.getcwd(), 'entry_point_base.exe'), '.'),
     ]
 elif sys.platform == "darwin":
@@ -54,7 +54,7 @@ elif sys.platform == "darwin":
         (os.path.join(sitepackages, 'menuinst', 'data', 'appkit_launcher_arm64'), 'menuinst/data'),
         (os.path.join(sitepackages, 'menuinst', 'data', 'appkit_launcher_x86_64'), 'menuinst/data'),
     ]
-    extra_exe_kwargs["entitlements_file"] = "entitlements.plist"
+    extra_exe_kwargs["entitlements_file"] = str(HERE / "entitlements.plist")
 
 a = Analysis(['entry_point.py', 'imports.py'],
              pathex=['.'],
