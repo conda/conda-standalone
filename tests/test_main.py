@@ -140,7 +140,7 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
         "-p",
         tmp_path,
         "-y",
-        pkg_spec,
+        pkg_spec.split("::")[-1],
         capture_output=True,
         text=True,
         check=True,
