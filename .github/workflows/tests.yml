@@ -56,10 +56,7 @@ jobs:
         env:
           CONDA_SOLVER: libmamba
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
-        run: |
-          # TEMPORARY
-          # conda build recipe
-          conda build recipe --override-channels -c conda-forge -c conda-canary/label/dev
+        run: conda build recipe
 
       - name: Upload package to anaconda.org
         shell: bash -el {0}
