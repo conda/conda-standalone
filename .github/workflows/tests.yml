@@ -41,9 +41,9 @@ jobs:
           activate-environment: ""
           run-post: false
 
-      - name: Install conda-libmamba-solver
+      - name: Install dependencies
         shell: bash -el {0}
-        run: conda install -y conda-build anaconda-client
+        run: conda install -y conda-build=3.27 anaconda-client
 
       - name: Build recipe
         shell: bash -el {0}
