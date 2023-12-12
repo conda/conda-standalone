@@ -1,7 +1,7 @@
-{% set conda_version = "23.7.3" %}
-{% set conda_libmamba_solver_version = "23.7.0" %}
-{% set libmambapy_version = "1.4.1" %}
-{% set constructor_version = "3.4.5" %}
+{% set conda_version = "23.11.0" %}
+{% set conda_libmamba_solver_version = "23.11.1" %}
+{% set libmambapy_version = "1.5.5" %}
+{% set constructor_version = "3.5.0" %}
 {% set python_version = "3.9.15" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
@@ -35,7 +35,7 @@ requirements:
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=1.6
-    - menuinst >=2.0.0a0
+    - menuinst >=2.0.1
     - conda-libmamba-solver ={{ conda_libmamba_solver_version }}
     - libmambapy ={{ libmambapy_version }}
   run_constrained:
