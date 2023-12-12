@@ -1,6 +1,7 @@
 ### Enhancements
 
-* Bundle `menuinst` v2.0.0a0 and import `menuinst` directly without relying on `constructor`'s `_nsis.py` module. (#36)
+* Bump to `23.11.0`, `conda-libmamba-solver` 23.11.1 and `libmambapy` 1.5.5. (#36)
+* Bundle `menuinst` v2.0.1 and import `menuinst` directly without relying on `constructor`'s `_nsis.py` module. (#36)
 
 ### Bug fixes
 
