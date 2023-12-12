@@ -129,6 +129,8 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
         text=True,
         check=True,
     )
+    print(p.stdout)
+    print(p.stderr, file=sys.stderr)
     assert "menuinst Exception" not in p.stdout
     assert list(tmp_path.glob("Menu/*.json"))
     created_shortcut = _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(
@@ -145,6 +147,8 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
         text=True,
         check=True,
     )
+    print(p.stdout)
+    print(p.stderr, file=sys.stderr)
     assert not created_shortcut.is_file()
 
 
@@ -153,27 +157,28 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     "The constructor helper should also be able to process menuinst JSONs"
     run_kwargs = dict(capture_output=True, text=True, check=True)
     (tmp_path / ".nonadmin").touch()  # prevent elevation
-
-    # --no-shortcuts on non-Windows needs https://github.com/conda/conda/pull/11882
-    env = os.environ.copy()
-    env["CONDA_SHORTCUTS"] = "false"
-    run_conda(
+    p = run_conda(
         "create",
         "-p",
         tmp_path,
         "-y",
         pkg_spec,
         "--no-deps",
-        env=env,
         **run_kwargs,
     )
+    print(p.stdout)
+    print(p.stderr, file=sys.stderr)
     assert list(tmp_path.glob("Menu/*.json"))
-    run_conda("constructor", "--prefix", tmp_path, "--make-menus", **run_kwargs)
+    p = run_conda("constructor", "--prefix", tmp_path, "--make-menus", **run_kwargs)
+    print(p.stdout)
+    print(p.stderr, file=sys.stderr)
     created_shortcut = _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(
         prefix=tmp_path
     )
     assert created_shortcut.is_file()
-    run_conda("constructor", "--prefix", tmp_path, "--rm-menus", **run_kwargs)
+    p = run_conda("constructor", "--prefix", tmp_path, "--rm-menus", **run_kwargs)
+    print(p.stdout)
+    print(p.stderr, file=sys.stderr)
     assert not created_shortcut.is_file()
 
 
