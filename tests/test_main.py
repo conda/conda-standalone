@@ -96,7 +96,7 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path):
 
 _pkg_specs = [
     (
-        "jaimergp/label/menuinst-tests::package_1",
+        "conda-test/label/menuinst-tests::package_1",
         {
             "win32": "Package 1/A.lnk",
             "darwin": "A.app/Contents/MacOS/a",
@@ -131,10 +131,21 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     )
     assert "menuinst Exception" not in p.stdout
     assert list(tmp_path.glob("Menu/*.json"))
-    assert (
-        _get_shortcut_dir(tmp_path)
-        / shortcut_path[sys.platform].format(prefix=tmp_path)
-    ).is_file()
+    created_shortcut = _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(
+        prefix=tmp_path
+    )
+    assert created_shortcut.is_file()
+    p = run_conda(
+        "remove",
+        "-p",
+        tmp_path,
+        "-y",
+        pkg_spec,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert not created_shortcut.is_file()
 
 
 @_pkg_specs_params
@@ -158,11 +169,12 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     )
     assert list(tmp_path.glob("Menu/*.json"))
     run_conda("constructor", "--prefix", tmp_path, "--make-menus", **run_kwargs)
-    assert (
-        _get_shortcut_dir(tmp_path)
-        / shortcut_path[sys.platform].format(prefix=tmp_path)
-    ).is_file()
+    created_shortcut = _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(
+        prefix=tmp_path
+    )
+    assert created_shortcut.is_file()
     run_conda("constructor", "--prefix", tmp_path, "--rm-menus", **run_kwargs)
+    assert not created_shortcut.is_file()
 
 
 def test_python():
