@@ -54,7 +54,7 @@ elif sys.platform == "darwin":
         (os.path.join(sitepackages, 'menuinst', 'data', 'appkit_launcher_arm64'), 'menuinst/data'),
         (os.path.join(sitepackages, 'menuinst', 'data', 'appkit_launcher_x86_64'), 'menuinst/data'),
     ]
-    extra_exe_kwargs["entitlements_file"] = str(HERE / "entitlements.plist")
+    extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
 
 a = Analysis(['entry_point.py', 'imports.py'],
              pathex=['.'],
