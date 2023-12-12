@@ -12,7 +12,7 @@ package:
 source:
   - path: ../
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 273d49db8ea723426b87866381daf2df27c7bca2c3474196460d637b62de2a1c
+    sha256: 9276686c8a6ee536dc451cc6557685724fe275a44949ac4f741066fd23cdc7b4
     folder: conda_src
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
