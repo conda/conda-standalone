@@ -42,19 +42,14 @@ jobs:
         with:
           auto-activate-base: true
           activate-environment: ""
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          use-mamba: true
           run-post: false
       - name: Install conda-libmamba-solver
         shell: bash -el {0}
-        run: |
-          mamba install "conda>=22.11.1" conda-libmamba-solver conda-build anaconda-client
-          conda update --all --solver=libmamba
+        run: conda install -y conda-build anaconda-client
+
       - name: Build recipe
         shell: bash -el {0}
         env:
-          CONDA_SOLVER: libmamba
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
         run: conda build recipe
 

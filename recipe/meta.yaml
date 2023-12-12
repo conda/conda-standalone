@@ -11,6 +11,7 @@ package:
 
 source:
   - path: ../
+
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
     sha256: 9276686c8a6ee536dc451cc6557685724fe275a44949ac4f741066fd23cdc7b4
     folder: conda_src
