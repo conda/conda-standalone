@@ -28,7 +28,7 @@ def _get_shortcut_dir(prefix=None):
     from menuinst.utils import needs_admin
 
     user_mode = (
-        "user" if needs_admin(prefix or sys.prefix, sys.prefix) else "system"
+        "system" if needs_admin(prefix or sys.prefix, sys.prefix) else "user"
     )
     if sys.platform == "win32":
         from menuinst.platforms.win_utils.knownfolders import (
