@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+# TIP: You can debug the tests with this setup:
+# CONDA_STANDALONE=src/entry_point.py pytest ...
 CONDA_EXE = os.environ.get(
     "CONDA_STANDALONE",
     os.path.join(sys.prefix, "standalone_conda", "conda.exe"),
