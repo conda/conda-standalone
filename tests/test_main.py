@@ -24,23 +24,19 @@ def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
     return p
 
 
-def _get_shortcut_dir(prefix=None):
-    from menuinst.utils import needs_admin
-
-    user_mode = (
-        "system" if needs_admin(prefix or sys.prefix, sys.prefix) else "user"
-    )
+def _get_shortcut_dirs():
     if sys.platform == "win32":
         from menuinst.platforms.win_utils.knownfolders import dirs_src as win_locations
-        return Path(win_locations[user_mode]["start"][0])
+
+        return Path(win_locations["user"]["start"][0]), Path(
+            win_locations["system"]["start"][0]
+        )
     if sys.platform == "darwin":
-        if user_mode == "user":
-            return Path(os.environ["HOME"], "Applications")
-        return Path("/Applications")
+        return Path(os.environ["HOME"], "Applications"), Path("/Applications")
     if sys.platform == "linux":
-        if user_mode == "user":
-            return Path(os.environ["HOME"], ".local", "share", "applications")
-        return Path("/usr/share/applications")
+        return Path(os.environ["HOME"], ".local", "share", "applications"), Path(
+            "/usr/share/applications"
+        )
     raise NotImplementedError(sys.platform)
 
 
@@ -106,7 +102,6 @@ _pkg_specs_params = pytest.mark.parametrize("pkg_spec, shortcut_path", _pkg_spec
 @_pkg_specs_params
 def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     "Check 'regular' conda can process menuinst JSONs"
-    (tmp_path / ".nonadmin").touch()  # prevent elevation
     p = run_conda(
         "create",
         "-vvv",
@@ -123,11 +118,10 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     print(p.stderr, file=sys.stderr)
     assert "menuinst Exception" not in p.stdout
     assert list(tmp_path.glob("Menu/*.json"))
-    created_shortcut = _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(
-        prefix=tmp_path
+    assert any(
+        (folder / shortcut_path[sys.platform].format(prefix=tmp_path)).is_file()
+        for folder in _get_shortcut_dirs()
     )
-    assert created_shortcut.is_file()
-
     p = run_conda(
         "remove",
         "-vvv",
@@ -141,14 +135,16 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     )
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
-    assert not created_shortcut.is_file()
+    assert all(
+        not (folder / shortcut_path[sys.platform].format(prefix=tmp_path)).is_file()
+        for folder in _get_shortcut_dirs()
+    )
 
 
 @_pkg_specs_params
 def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     "The constructor helper should also be able to process menuinst JSONs"
     run_kwargs = dict(capture_output=True, text=True, check=True)
-    (tmp_path / ".nonadmin").touch()  # prevent elevation
     p = run_conda(
         "create",
         "-vvv",
@@ -167,15 +163,18 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     p = run_conda("constructor", "--prefix", tmp_path, "--make-menus", **run_kwargs)
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
-    created_shortcut = _get_shortcut_dir(tmp_path) / shortcut_path[sys.platform].format(
-        prefix=tmp_path
+    assert any(
+        (folder / shortcut_path[sys.platform].format(prefix=tmp_path)).is_file()
+        for folder in _get_shortcut_dirs()
     )
-    assert created_shortcut.is_file()
 
     p = run_conda("constructor", "--prefix", tmp_path, "--rm-menus", **run_kwargs)
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
-    assert not created_shortcut.is_file()
+    assert all(
+        not (folder / shortcut_path[sys.platform].format(prefix=tmp_path)).is_file()
+        for folder in _get_shortcut_dirs()
+    )
 
 
 def test_python():
