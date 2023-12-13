@@ -1,2 +1,2 @@
 pytest
-menuinst
+menuinst>=2

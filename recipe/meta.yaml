@@ -45,7 +45,7 @@ requirements:
 test:
   requires:
     - pytest
-    - menuinst
+    - menuinst >=2
   source_files:
     - tests
   commands:
