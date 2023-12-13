@@ -31,9 +31,7 @@ def _get_shortcut_dir(prefix=None):
         "system" if needs_admin(prefix or sys.prefix, sys.prefix) else "user"
     )
     if sys.platform == "win32":
-        from menuinst.platforms.win_utils.knownfolders import (
-            dirs_src as win_locations,
-        )
+        from menuinst.platforms.win_utils.knownfolders import dirs_src as win_locations
         return Path(win_locations[user_mode]["start"][0])
     if sys.platform == "darwin":
         if user_mode == "user":
