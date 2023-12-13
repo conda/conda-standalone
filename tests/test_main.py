@@ -25,25 +25,16 @@ def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
 
 
 def _get_shortcut_dir(prefix=None):
+    from menuinst.utils import needs_admin
+
     user_mode = (
-        "user" if Path(prefix or sys.prefix, ".nonadmin").is_file() else "system"
+        "user" if needs_admin(prefix or sys.prefix, sys.prefix) else "system"
     )
     if sys.platform == "win32":
-        try:
-            from menuinst.platforms.win_utils.knownfolders import (
-                dirs_src as win_locations,
-            )
-
-            return Path(win_locations[user_mode]["start"][0])
-        except ImportError:
-            try:
-                from menuinst.win32 import dirs_src as win_locations
-
-                return Path(win_locations[user_mode]["start"][0])
-            except ImportError:
-                from menuinst.win32 import dirs as win_locations
-
-                return Path(win_locations[user_mode]["start"])
+        from menuinst.platforms.win_utils.knownfolders import (
+            dirs_src as win_locations,
+        )
+        return Path(win_locations[user_mode]["start"][0])
     if sys.platform == "darwin":
         if user_mode == "user":
             return Path(os.environ["HOME"], "Applications")

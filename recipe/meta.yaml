@@ -45,7 +45,7 @@ requirements:
 test:
   requires:
     - pytest
-    - menuinst  # [win]
+    - menuinst
   source_files:
     - tests
   commands:
