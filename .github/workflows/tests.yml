@@ -27,10 +27,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            subdir: linux-64
-          - os: macos-latest
-            subdir: osx-64
+          # - os: ubuntu-latest
+          #   subdir: linux-64
+          # - os: macos-latest
+          #   subdir: osx-64
           - os: windows-latest
             subdir: win-64
     steps:
@@ -50,6 +50,10 @@ jobs:
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
         run: conda build recipe
+      
+      - name: Debug with tmate
+        uses: mxschmitt/action-tmate@v2
+        timeout-minutes: 60
 
       - name: Upload package to anaconda.org
         shell: bash -el {0}
