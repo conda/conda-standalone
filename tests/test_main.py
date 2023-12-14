@@ -106,9 +106,13 @@ else:
 @pytest.mark.parametrize("pkg_spec, shortcut_path", _pkg_specs_conda)
 def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     "Check 'regular' conda can process menuinst JSONs"
-    variables = {"base": Path(sys.prefix).name, "name": tmp_path.name}
     env = os.environ.copy()
     env["CONDA_ROOT_PREFIX"] = sys.prefix
+    # The shortcut will take 'root_prefix' as the base, but conda-standalone
+    # sets that to its temporary 'sys.prefix' as provided by the pyinstaller
+    # self-extraction. We override it via 'CONDA_ROOT_PREFIX' in the same
+    # way 'constructor' will do it.
+    variables = {"base": Path(sys.prefix).name, "name": tmp_path.name}
     p = run_conda(
         "create",
         "-vvv",
@@ -137,6 +141,7 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
         tmp_path,
         "-y",
         pkg_spec.split("::")[-1],
+        env=env,
         capture_output=True,
         text=True,
         check=True,
