@@ -45,16 +45,17 @@ jobs:
         shell: bash -el {0}
         run: conda install -y conda-build=3.27 anaconda-client
 
+      - name: Debug with tmate
+        if: always()
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 60
+
       - name: Build recipe
         shell: bash -el {0}
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
         run: conda build recipe
       
-      - name: Debug with tmate
-        if: always()
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 60
 
       - name: Upload package to anaconda.org
         shell: bash -el {0}
