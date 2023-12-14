@@ -50,10 +50,7 @@ jobs:
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
         run: conda build recipe
-      - name: Debug with tmate
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 60
+
       - name: Upload package to anaconda.org
         shell: bash -el {0}
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
