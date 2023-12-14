@@ -81,7 +81,7 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path):
     )
 
 
-_pkg_specs_v2 = [
+_pkg_specs = [
     (
         "conda-test/label/menuinst-tests::package_1",
         {
@@ -92,18 +92,16 @@ _pkg_specs_v2 = [
     ),
 ]
 if os.name == "nt":
-    _pkg_specs_conda = [
-        *_pkg_specs_v2,
+    _pkg_specs.append(
         (
             "conda-forge::miniforge_console_shortcut",
             {"win32": "{base}/{base} Prompt ({name}).lnk"},
         ),
-    ]
-else:
-    _pkg_specs_conda = _pkg_specs_v2
+    )
+_pkg_specs_params = pytest.mark.parametrize("pkg_spec, shortcut_path", _pkg_specs)
 
 
-@pytest.mark.parametrize("pkg_spec, shortcut_path", _pkg_specs_conda)
+@_pkg_specs_params
 def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     "Check 'regular' conda can process menuinst JSONs"
     env = os.environ.copy()
@@ -154,22 +152,11 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     )
 
 
-if os.name == "nt":
-    _pkg_specs_constructor = [
-        *_pkg_specs_v2,
-        (
-            "conda-forge::miniforge_console_shortcut",
-            {"win32": "{name}/{name} Prompt.lnk"},
-        ),
-    ]
-else:
-    _pkg_specs_constructor = _pkg_specs_v2
-
-
-@pytest.mark.parametrize("pkg_spec, shortcut_path", _pkg_specs_constructor)
+@_pkg_specs_params
 def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     "The constructor helper should also be able to process menuinst JSONs"
     run_kwargs = dict(capture_output=True, text=True, check=True)
+    variables = {"base": Path(sys.prefix).name, "name": tmp_path.name}
     p = run_conda(
         "create",
         "-vvv",
@@ -185,19 +172,35 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     print(p.stderr, file=sys.stderr)
     assert list(tmp_path.glob("Menu/*.json"))
 
-    p = run_conda("constructor", "--prefix", tmp_path, "--make-menus", **run_kwargs)
+    p = run_conda(
+        "constructor",
+        "--root-prefix",
+        sys.prefix,
+        "--prefix",
+        tmp_path,
+        "--make-menus",
+        **run_kwargs,
+    )
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
     assert any(
-        (folder / shortcut_path[sys.platform].format(name=tmp_path.name)).is_file()
+        (folder / shortcut_path[sys.platform].format(**variables)).is_file()
         for folder in _get_shortcut_dirs()
     )
 
-    p = run_conda("constructor", "--prefix", tmp_path, "--rm-menus", **run_kwargs)
+    p = run_conda(
+        "constructor",
+        "--root-prefix",
+        sys.prefix,
+        "--prefix",
+        tmp_path,
+        "--rm-menus",
+        **run_kwargs,
+    )
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
     assert all(
-        not (folder / shortcut_path[sys.platform].format(name=tmp_path.name)).is_file()
+        not (folder / shortcut_path[sys.platform].format(**variables)).is_file()
         for folder in _get_shortcut_dirs()
     )
 
