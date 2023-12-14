@@ -52,6 +52,7 @@ jobs:
         run: conda build recipe
       
       - name: Debug with tmate
+        if: always()
         uses: mxschmitt/action-tmate@v2
         timeout-minutes: 60
 
