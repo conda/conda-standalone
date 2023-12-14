@@ -172,14 +172,19 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     print(p.stderr, file=sys.stderr)
     assert list(tmp_path.glob("Menu/*.json"))
 
+    env = os.environ.copy()
+    env["CONDA_ROOT_PREFIX"] = sys.prefix
     p = run_conda(
         "constructor",
-        "--root-prefix",
-        sys.prefix,
+        # Not supported in micromamba's interface yet
+        # use CONDA_ROOT_PREFIX instead
+        # "--root-prefix",
+        # sys.prefix,
         "--prefix",
         tmp_path,
         "--make-menus",
         **run_kwargs,
+        env=env,
     )
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
@@ -190,12 +195,15 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
 
     p = run_conda(
         "constructor",
-        "--root-prefix",
-        sys.prefix,
+        # Not supported in micromamba's interface yet
+        # use CONDA_ROOT_PREFIX instead
+        # "--root-prefix",
+        # sys.prefix,
         "--prefix",
         tmp_path,
         "--rm-menus",
         **run_kwargs,
+        env=env,
     )
     print(p.stdout)
     print(p.stderr, file=sys.stderr)
