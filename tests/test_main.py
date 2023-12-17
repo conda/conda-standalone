@@ -111,7 +111,7 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     # self-extraction. We override it via 'CONDA_ROOT_PREFIX' in the same
     # way 'constructor' will do it.
     variables = {"base": Path(sys.prefix).name, "name": tmp_path.name}
-    p = run_conda(
+    process = run_conda(
         "create",
         "-vvv",
         "-p",
@@ -124,15 +124,15 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
         text=True,
         check=True,
     )
-    print(p.stdout)
-    print(p.stderr, file=sys.stderr)
-    assert "menuinst Exception" not in p.stdout
+    print(process.stdout)
+    print(process.stderr, file=sys.stderr)
+    assert "menuinst Exception" not in process.stdout
     assert list(tmp_path.glob("Menu/*.json"))
     assert any(
         (folder / shortcut_path[sys.platform].format(**variables)).is_file()
         for folder in _get_shortcut_dirs()
     )
-    p = run_conda(
+    process = run_conda(
         "remove",
         "-vvv",
         "-p",
@@ -144,8 +144,8 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
         text=True,
         check=True,
     )
-    print(p.stdout)
-    print(p.stderr, file=sys.stderr)
+    print(process.stdout)
+    print(process.stderr, file=sys.stderr)
     assert all(
         not (folder / shortcut_path[sys.platform].format(**variables)).is_file()
         for folder in _get_shortcut_dirs()
@@ -157,7 +157,7 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     "The constructor helper should also be able to process menuinst JSONs"
     run_kwargs = dict(capture_output=True, text=True, check=True)
     variables = {"base": Path(sys.prefix).name, "name": tmp_path.name}
-    p = run_conda(
+    process = run_conda(
         "create",
         "-vvv",
         "-p",
@@ -168,13 +168,13 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
         "--no-shortcuts",
         **run_kwargs,
     )
-    print(p.stdout)
-    print(p.stderr, file=sys.stderr)
+    print(process.stdout)
+    print(process.stderr, file=sys.stderr)
     assert list(tmp_path.glob("Menu/*.json"))
 
     env = os.environ.copy()
     env["CONDA_ROOT_PREFIX"] = sys.prefix
-    p = run_conda(
+    process = run_conda(
         "constructor",
         # Not supported in micromamba's interface yet
         # use CONDA_ROOT_PREFIX instead
@@ -186,14 +186,14 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
         **run_kwargs,
         env=env,
     )
-    print(p.stdout)
-    print(p.stderr, file=sys.stderr)
+    print(process.stdout)
+    print(process.stderr, file=sys.stderr)
     assert any(
         (folder / shortcut_path[sys.platform].format(**variables)).is_file()
         for folder in _get_shortcut_dirs()
     )
 
-    p = run_conda(
+    process = run_conda(
         "constructor",
         # Not supported in micromamba's interface yet
         # use CONDA_ROOT_PREFIX instead
@@ -205,8 +205,8 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
         **run_kwargs,
         env=env,
     )
-    print(p.stdout)
-    print(p.stderr, file=sys.stderr)
+    print(process.stdout)
+    print(process.stderr, file=sys.stderr)
     assert all(
         not (folder / shortcut_path[sys.platform].format(**variables)).is_file()
         for folder in _get_shortcut_dirs()
@@ -214,10 +214,10 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
 
 
 def test_python():
-    p = run_conda("python", "-V", check=True, capture_output=True, text=True)
-    assert p.stdout.startswith("Python 3.")
+    process = run_conda("python", "-V", check=True, capture_output=True, text=True)
+    assert process.stdout.startswith("Python 3.")
 
-    p = run_conda(
+    process = run_conda(
         "python",
         "-m",
         "calendar",
@@ -227,9 +227,9 @@ def test_python():
         capture_output=True,
         text=True,
     )
-    assert "2023" in p.stdout
+    assert "2023" in process.stdout
 
-    p = run_conda(
+    process = run_conda(
         "python",
         "-c",
         "import sys; print(sys.argv)",
@@ -238,4 +238,4 @@ def test_python():
         capture_output=True,
         text=True,
     )
-    assert eval(p.stdout) == ["-c", "extra-arg"]
+    assert eval(process.stdout) == ["-c", "extra-arg"]
