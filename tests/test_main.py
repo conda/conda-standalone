@@ -17,13 +17,13 @@ HERE = Path(__file__).parent
 
 def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
     check = kwargs.pop("check", False)
-    p = subprocess.run([CONDA_EXE, *args], **kwargs)
+    process = subprocess.run([CONDA_EXE, *args], **kwargs)
     if check:
-        if kwargs.get("capture_output") and p.returncode:
-            print(p.stdout)
-            print(p.stderr, file=sys.stderr)
-        p.check_returncode()
-    return p
+        if kwargs.get("capture_output") and process.returncode:
+            print(process.stdout)
+            print(process.stderr, file=sys.stderr)
+        process.check_returncode()
+    return process
 
 
 def _get_shortcut_dirs():
