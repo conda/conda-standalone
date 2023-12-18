@@ -43,7 +43,7 @@ jobs:
 
       - name: Install dependencies
         shell: bash -el {0}
-        run: conda install -y conda-build=3.27 anaconda-client
+        run: conda install -y "conda-build!=3.28.0,!=3.28.1" anaconda-client
 
       - name: Build recipe
         shell: bash -el {0}
