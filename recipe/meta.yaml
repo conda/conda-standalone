@@ -21,7 +21,7 @@ source:
       - ../src/conda_patches/0003-Return-unknown-module-in-deprecations.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: 787ffd85e9414bdf70fe531f01eab3987a040e3f6a6ac3a01409f4d332f7de9e  # [win]
+    sha256: 928ddd32942093a89563ef2eb3abb116be17795cf277545ea9f6e9a0a4ba7a17  # [win]
     folder: constructor_src  # [win]
 
 build:
