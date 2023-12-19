@@ -9,6 +9,7 @@ preliminary work and handling some special cases that arise when PyInstaller is 
 import os
 import sys
 from multiprocessing import freeze_support
+from pathlib import Path
 
 
 def _create_dummy_executor(*args, **kwargs):
@@ -169,23 +170,12 @@ def _constructor_extract_tarball():
 
 
 def _constructor_menuinst(prefix, pkg_names=None, root_prefix=None, remove=False):
-    import importlib.util
+    from menuinst import install
 
-    root_prefix = root_prefix or prefix
-
-    utility_script = os.path.join(root_prefix, "Lib", "_nsis.py")
-    spec = importlib.util.spec_from_file_location("constructor_utils", utility_script)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    if remove:
-        module.rm_menus(prefix=prefix, root_prefix=prefix)
-    elif pkg_names is not None:
-        module.mk_menus(
-            remove=False,
-            prefix=prefix,
-            pkg_names=pkg_names,
-            root_prefix=prefix,
-        )
+    for json_path in Path(prefix, "Menu").glob("*.json"):
+        if pkg_names and json_path.stem not in pkg_names:
+            continue
+        install(str(json_path), remove=remove, prefix=prefix, root_prefix=root_prefix)
 
 
 def _constructor_subcommand():
@@ -196,9 +186,6 @@ def _constructor_subcommand():
     - extract conda packages
     - extract the tarball payload contained in the shell installers
     - invoke menuinst to create and remove menu items on Windows
-
-    It is supported by a module included in `constructor`, `_nsis.py`, which is placed
-    in `$INSTDIR\Lib\_nsis.py` on Windows installations.
     """
     args, _ = _constructor_parse_cli()
     os.chdir(args.prefix)
@@ -212,10 +199,6 @@ def _constructor_subcommand():
     # when called with --make-menus and no package names, the value is an empty list
     # hence the explicit check for None
     elif (args.make_menus is not None) or args.rm_menus:
-        if sys.platform != "win32":
-            raise NotImplementedError(
-                "Menu creation and removal is only supported on Windows"
-            )
         _constructor_menuinst(
             prefix=args.prefix,
             pkg_names=args.make_menus,
@@ -292,7 +275,7 @@ def _conda_main():
     from conda.cli import main
 
     _fix_sys_path()
-    main()
+    return main()
 
 
 def main():

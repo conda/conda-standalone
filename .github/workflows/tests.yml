@@ -29,32 +29,25 @@ jobs:
         include:
           - os: ubuntu-latest
             subdir: linux-64
-            python-version: "3.9"
           - os: macos-latest
             subdir: osx-64
-            python-version: "3.9"
           - os: windows-latest
             subdir: win-64
-            python-version: "3.9"
     steps:
       - uses: actions/checkout@v3
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-activate-base: true
           activate-environment: ""
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          use-mamba: true
           run-post: false
-      - name: Install conda-libmamba-solver
+
+      - name: Install dependencies
         shell: bash -el {0}
-        run: |
-          mamba install "conda>=22.11.1" conda-libmamba-solver conda-build anaconda-client
-          conda update --all --solver=libmamba
+        run: conda install -y "conda-build!=3.28.0,!=3.28.1" anaconda-client
+
       - name: Build recipe
         shell: bash -el {0}
         env:
-          CONDA_SOLVER: libmamba
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
         run: conda build recipe
 

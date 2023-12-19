@@ -1,8 +1,8 @@
-{% set conda_version = "23.10.0" %}
-{% set conda_libmamba_solver_version = "23.11.0" %}
+{% set conda_version = "23.11.0" %}
+{% set conda_libmamba_solver_version = "23.11.1" %}
 {% set libmambapy_version = "1.5.3" %}
 {% set constructor_version = "3.5.0" %}
-{% set python_version = "3.9.15" %}
+{% set python_version = "3.10.13" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
 package:
@@ -11,8 +11,9 @@ package:
 
 source:
   - path: ../
+
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 273d49db8ea723426b87866381daf2df27c7bca2c3474196460d637b62de2a1c
+    sha256: 9276686c8a6ee536dc451cc6557685724fe275a44949ac4f741066fd23cdc7b4
     folder: conda_src
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
@@ -20,7 +21,7 @@ source:
       - ../src/conda_patches/0003-Return-unknown-module-in-deprecations.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: 787ffd85e9414bdf70fe531f01eab3987a040e3f6a6ac3a01409f4d332f7de9e  # [win]
+    sha256: 928ddd32942093a89563ef2eb3abb116be17795cf277545ea9f6e9a0a4ba7a17  # [win]
     folder: constructor_src  # [win]
 
 build:
@@ -35,7 +36,7 @@ requirements:
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=1.6
-    - menuinst >=1.4.18,<2.0a0  # [win]
+    - menuinst >=2.0.1
     - conda-libmamba-solver ={{ conda_libmamba_solver_version }}
     - libmambapy ={{ libmambapy_version }}
   run_constrained:
@@ -44,6 +45,7 @@ requirements:
 test:
   requires:
     - pytest
+    - menuinst >=2
   source_files:
     - tests
   commands:
