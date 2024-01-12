@@ -1,7 +1,7 @@
 {% set conda_version = "23.11.0" %}
-{% set conda_libmamba_solver_version = "23.11.1" %}
+{% set conda_libmamba_solver_version = "23.12.0" %}
 {% set libmambapy_version = "1.5.3" %}
-{% set constructor_version = "3.5.0" %}
+{% set constructor_version = "3.6.0" %}
 {% set python_version = "3.10.13" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
@@ -21,7 +21,7 @@ source:
       - ../src/conda_patches/0003-Return-unknown-module-in-deprecations.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: 928ddd32942093a89563ef2eb3abb116be17795cf277545ea9f6e9a0a4ba7a17  # [win]
+    sha256: c7ad07fa68322db93d47f617ab92ddf0349a027affd02473493ea6d1499b49e4  # [win]
     folder: constructor_src  # [win]
 
 build:
@@ -36,7 +36,7 @@ requirements:
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=1.6
-    - menuinst >=2.0.1
+    - menuinst >=2.0.2
     - conda-libmamba-solver ={{ conda_libmamba_solver_version }}
     - libmambapy ={{ libmambapy_version }}
   run_constrained:
@@ -45,7 +45,7 @@ requirements:
 test:
   requires:
     - pytest
-    - menuinst >=2
+    - menuinst >=2.0.2
   source_files:
     - tests
   commands:
