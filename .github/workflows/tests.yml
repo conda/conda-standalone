@@ -49,7 +49,7 @@ jobs:
         shell: bash -el {0}
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
-        run: conda build recipe
+        run: conda build recipe --override-channels -c conda-forge
 
       - name: Upload package to anaconda.org
         shell: bash -el {0}
