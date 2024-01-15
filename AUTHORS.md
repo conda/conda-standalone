@@ -9,6 +9,7 @@ Authors are sorted alphabetically.
 * Matthew R. Becker
 * Mike Sarahan
 * Nehal J Wani
+* SC426
 * conda-bot
 * conda-forge-admin
 * pre-commit-ci[bot]
