@@ -13,6 +13,20 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 23.11.0 (2024-01-15)
+
+### Enhancements
+
+* Bump to `python` 3.10.13, `conda` 23.11.0, `conda-libmamba-solver` 23.12.0 and `libmambapy` 1.5.3. (#36, #51)
+* Import `menuinst` directly without relying on `constructor`'s `_nsis.py` module. (#36)
+* Bundle `menuinst` 2.0.2 and `constructor` 3.6.0. (#51, #52)
+
+### Bug fixes
+
+* Do not crash if the metadata in one or more packages does not specify a `license` field. (#49)
+
+
+
 ## 23.10.0 (2023-11-14)
 
 ### Enhancements
