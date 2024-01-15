@@ -25,6 +25,11 @@ Remember to update the hyperlinks at the bottom.
 
 * Do not crash if the metadata in one or more packages does not specify a `license` field. (#49)
 
+### Contributors
+
+* @jaimergp
+* @SC246
+
 
 
 ## 23.10.0 (2023-11-14)
