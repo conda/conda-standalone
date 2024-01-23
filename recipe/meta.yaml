@@ -50,6 +50,7 @@ test:
     - tests
   commands:
     - pytest -vv
+    - test ! -e {{ PREFIX }}/bin/codesign  # [osx]
 
 about:
   home: https://github.com/conda/conda-standalone

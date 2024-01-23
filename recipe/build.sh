@@ -29,3 +29,7 @@ python src/licenses.py \
 
 # clean up .pyc files that pyinstaller creates
 rm -rf "$PREFIX/lib"
+
+if [[ $target_platform == osx-* ]]; then
+  rm "$BUILD_PREFIX/bin/codesign"
+fi
