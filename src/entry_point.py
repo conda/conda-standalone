@@ -155,7 +155,11 @@ def _constructor_extract_conda_pkgs(prefix, max_workers=None):
             if pkg.endswith(ext):
                 fn = os.path.join(os.getcwd(), pkg)
                 flist.append(fn)
-    with tqdm.tqdm(total=len(flist), leave=False, disable=None) as t:
+    if os.environ.get("CONDA_QUIET", "").lower() not in ("", "false", "0", "no"):
+        disabled = True
+    else:
+        disabled = None  # only for non-tty
+    with tqdm.tqdm(total=len(flist), leave=False, disable=disabled) as t:
         for fn, _ in zip(flist, executor.map(api.extract, flist)):
             t.set_description("Extracting : %s" % os.path.basename(fn))
             t.update()

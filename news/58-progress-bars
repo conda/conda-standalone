@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Do not render extraction progress bars in non-interactive runs. (#58)
+* Do not render extraction progress bars in non-interactive runs or when `CONDA_QUIET` is set to a truthy value. (#58)
 
 ### Bug fixes
 
