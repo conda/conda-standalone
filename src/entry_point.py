@@ -162,7 +162,7 @@ def _constructor_extract_conda_pkgs(prefix, max_workers=None):
         disabled = None  # only for non-tty
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(api.extract, fn): fn for fn in flist}
-        with tqdm(total=len(flist), leave=False, disabled=disabled) as pbar:
+        with tqdm(total=len(flist), leave=False, disable=disabled) as pbar:
             for future in as_completed(futures):
                 fn = futures[future]
                 try:
