@@ -142,6 +142,8 @@ def _constructor_parse_cli():
 def _constructor_extract_conda_pkgs(prefix, max_workers=None):
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
+    import tqdm
+    from conda.auxlib.type_coercion import boolify
     from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
     from conda_package_handling import api
     from tqdm.auto import tqdm
@@ -155,9 +157,13 @@ def _constructor_extract_conda_pkgs(prefix, max_workers=None):
             if pkg.endswith(ext):
                 fn = os.path.join(os.getcwd(), pkg)
                 flist.append(fn)
+    if boolify(os.environ.get("CONDA_QUIET")):
+        disabled = True
+    else:
+        disabled = None  # only for non-tty
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(api.extract, fn): fn for fn in flist}
-        with tqdm(total=len(flist), leave=False) as pbar:
+        with tqdm(total=len(flist), leave=False, disabled=disabled) as pbar:
             for future in as_completed(futures):
                 fn = futures[future]
                 try:
