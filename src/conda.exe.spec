@@ -33,12 +33,18 @@ extra_exe_kwargs = {}
 # Format: a list of tuples like (file-path, target-DIRECTORY)
 binaries = []
 datas = [
+    # put a dummy file in archspec/cpu so directory is created and relative paths can be resolved at runtime
+    (os.path.join(sitepackages, 'archspec', 'json', 'COPYRIGHT'), 'archspec/cpu'),
     (os.path.join(sitepackages, 'archspec', 'json', 'COPYRIGHT'), 'archspec/json'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'NOTICE'), 'archspec/json'),
     (os.path.join(sitepackages, 'archspec', 'json', 'NOTICE'), 'archspec/json'),
     (os.path.join(sitepackages, 'archspec', 'json', 'LICENSE-APACHE'), 'archspec/json'),
     (os.path.join(sitepackages, 'archspec', 'json', 'LICENSE-MIT'), 'archspec/json'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'cpu', 'cpuid.json'), 'archspec/json/cpu'),
+    (os.path.join(sitepackages, 'archspec', 'json', 'cpu', 'cpuid_schema.json'), 'archspec/json/cpu'),
     (os.path.join(sitepackages, 'archspec', 'json', 'cpu', 'microarchitectures.json'), 'archspec/json/cpu'),
     (os.path.join(sitepackages, 'archspec', 'json', 'cpu', 'microarchitectures_schema.json'), 'archspec/json/cpu'),
+    (os.path.join(sitepackages, 'archspec', 'vendor', 'cpuid', 'LICENSE'), 'archspec/vendor/cpuid'),
     (os.path.join(sitepackages, 'menuinst', 'data', 'menuinst.default.json'), 'menuinst/data'),
     (os.path.join(sitepackages, 'menuinst', 'data', 'menuinst.schema.json'), 'menuinst/data'),
 ]
