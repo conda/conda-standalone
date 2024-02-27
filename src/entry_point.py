@@ -142,7 +142,6 @@ def _constructor_parse_cli():
 def _constructor_extract_conda_pkgs(prefix, max_workers=None):
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
-    import tqdm
     from conda.auxlib.type_coercion import boolify
     from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
     from conda_package_handling import api
