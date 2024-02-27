@@ -143,6 +143,7 @@ def _constructor_extract_conda_pkgs(prefix, max_workers=None):
     from concurrent.futures import ProcessPoolExecutor
 
     import tqdm
+    from conda.auxlib.type_coercion import boolify
     from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
     from conda_package_handling import api
 
@@ -155,7 +156,7 @@ def _constructor_extract_conda_pkgs(prefix, max_workers=None):
             if pkg.endswith(ext):
                 fn = os.path.join(os.getcwd(), pkg)
                 flist.append(fn)
-    if os.environ.get("CONDA_QUIET", "").lower() not in ("", "false", "0", "no"):
+    if boolify(os.environ.get("CONDA_QUIET")):
         disabled = True
     else:
         disabled = None  # only for non-tty
