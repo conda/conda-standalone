@@ -140,12 +140,12 @@ def _constructor_parse_cli():
 
 
 def _constructor_extract_conda_pkgs(prefix, max_workers=None):
-    from concurrent.futures import ProcessPoolExecutor
+    from concurrent.futures import ProcessPoolExecutor, as_completed
 
-    import tqdm
     from conda.auxlib.type_coercion import boolify
     from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
     from conda_package_handling import api
+    from tqdm.auto import tqdm
 
     executor = ProcessPoolExecutor(max_workers=max_workers)
 
@@ -160,10 +160,18 @@ def _constructor_extract_conda_pkgs(prefix, max_workers=None):
         disabled = True
     else:
         disabled = None  # only for non-tty
-    with tqdm.tqdm(total=len(flist), leave=False, disable=disabled) as t:
-        for fn, _ in zip(flist, executor.map(api.extract, flist)):
-            t.set_description("Extracting : %s" % os.path.basename(fn))
-            t.update()
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(api.extract, fn): fn for fn in flist}
+        with tqdm(total=len(flist), leave=False, disable=disabled) as pbar:
+            for future in as_completed(futures):
+                fn = futures[future]
+                try:
+                    future.result()
+                except Exception as exc:
+                    raise RuntimeError(f"Failed to extract {fn}: {exc}") from exc
+                else:
+                    pbar.set_description(f"Extracting: {os.path.basename(fn)}")
+                    pbar.update()
 
 
 def _constructor_extract_tarball():
