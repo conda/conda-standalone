@@ -13,6 +13,21 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 24.1.2 (2024-03-04)
+
+### Enhancements
+
+* Do not render extraction progress bars in non-interactive runs or when `CONDA_QUIET` is set to a truthy value. (#58)
+* Add compatibility for archspec 0.2.3. (#60)
+* Update to conda 24.1.2, conda-libmamba-solver 24.1.0, libmambapy 1.5.6. (#60)
+
+### Bug fixes
+
+* Handle exceptions raised during `pkgs/` multiprocessor extraction. (#55 via #59)
+* Remove lingering `codesign` symlink in `$PREFIX/bin` (macOS only). (#54)
+
+
+
 ## 23.11.0 (2024-01-15)
 
 ### Enhancements
