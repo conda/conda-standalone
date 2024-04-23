@@ -37,12 +37,11 @@ jobs:
             subdir: win-64
     steps:
       - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-activate-base: true
           activate-environment: ""
           run-post: false
-          miniconda-version: ${{ "latest" if matrix.subdir == 'osx-arm64' else null }}
 
       - name: Install dependencies
         shell: bash -el {0}
