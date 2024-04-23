@@ -31,6 +31,8 @@ jobs:
             subdir: linux-64
           - os: macos-12  # ensure x86_64
             subdir: osx-64
+          - os: macos-14  # FUTURE: Use -latest once GHA has fully migrated
+            subdir: osx-arm64
           - os: windows-latest
             subdir: win-64
     steps:
