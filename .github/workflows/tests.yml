@@ -42,7 +42,6 @@ jobs:
           auto-activate-base: true
           activate-environment: ""
           run-post: false
-          miniconda-version: ${{ matrix.os == 'macos-13' && 'latest' || null }}
 
       - name: Install dependencies
         shell: bash -el {0}
