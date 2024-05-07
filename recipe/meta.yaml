@@ -1,8 +1,8 @@
-{% set conda_version = "24.1.2" %}
+{% set conda_version = "24.3.0" %}
 {% set conda_libmamba_solver_version = "24.1.0" %}
-{% set libmambapy_version = "1.5.6" %}
-{% set constructor_version = "3.6.0" %}
-{% set python_version = "3.10.13" %}
+{% set libmambapy_version = "1.5.8" %}
+{% set constructor_version = "3.7.0" %}
+{% set python_version = "3.10.14" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
 package:
@@ -13,14 +13,14 @@ source:
   - path: ../
 
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 6bc4f1f72a0edddefa10e0667d6ab2eb2f1956919a59508bf3bf6c001bf7a6e8
+    sha256: 92211ae60037bceb452e3f03183be29dcecc62c7826661cff6eaeb41cb216208
     folder: conda_src
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: d47e6f805337de70a72dea62999853361fbf558e2fbf3a9016c7a007be82ff46  # [win]
+    sha256: e84de1d7db3dbd394c03fa0e966bd293729307b9de0c8733ed7189f422a4b5b5  # [win]
     folder: constructor_src  # [win]
 
 build:
