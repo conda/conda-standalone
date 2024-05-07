@@ -13,6 +13,18 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 24.3.0 (2024-05-07)
+
+### Enhancements
+
+* Update to conda 24.3.0, libmamba 1.5.8, constructor 3.7.0, Python 3.10.14. (#69).
+
+### Contributors
+
+* @jaimergp
+
+
+
 ## 24.1.2 (2024-03-05)
 
 ### Enhancements
