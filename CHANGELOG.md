@@ -13,6 +13,22 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 24.4.0 (2024-05-15)
+
+### Enhancements
+
+* Update to conda 24.4.0, Python 3.11.9. (#71).
+
+### Bug fixes
+
+* Remove outdated `hiddenimport` configuration in PyInstaller. (#71)
+
+### Contributors
+
+* @jaimergp
+
+
+
 ## 24.3.0 (2024-05-07)
 
 ### Enhancements
