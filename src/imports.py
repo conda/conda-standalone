@@ -9,6 +9,7 @@ import site
 packages = [
     "conda",
     "conda_package_handling",
+    "conda_package_streaming",
     "menuinst",
     "conda_env",
     "conda_libmamba_solver",
