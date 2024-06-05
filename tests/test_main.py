@@ -72,7 +72,7 @@ def test_extract_conda_pkgs(tmp_path: Path):
     run_conda("constructor", "--prefix", tmp_path, "--extract-conda-pkgs", check=True)
 
 
-def test_extract_tarball_umask(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_extract_tarball_umask(tmp_path: Path):
     "Ported from https://github.com/conda/conda-package-streaming/pull/65"
 
     def empty_tarfile_bytes(name, mode=0o644):
@@ -88,13 +88,11 @@ def test_extract_tarball_umask(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         tar.seek(0)
         return tar
 
-    monkeypatch.setattr("conda_package_streaming.package_streaming.UMASK", 0o22)
-
     tarbytes = empty_tarfile_bytes(name="naughty_umask", mode=0o777)
-
     process = subprocess.Popen(
         [CONDA_EXE, "constructor", "--prefix", tmp_path, "--extract-tarball"],
         stdin=subprocess.PIPE,
+        umask=0o022,
     )
     process.communicate(tarbytes.getvalue())
     rc = process.wait()
