@@ -1,5 +1,8 @@
+import io
 import os
+import tarfile
 import shutil
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -67,6 +70,37 @@ def test_constructor():
 def test_extract_conda_pkgs(tmp_path: Path):
     shutil.copytree(HERE / "data", tmp_path / "pkgs")
     run_conda("constructor", "--prefix", tmp_path, "--extract-conda-pkgs", check=True)
+
+
+def test_extract_tarball_umask(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    "Ported from https://github.com/conda/conda-package-streaming/pull/65"
+
+    def empty_tarfile_bytes(name, mode=0o644):
+        """
+        Return BytesIO containing a tarfile with one empty file named :name
+        """
+        tar = io.BytesIO()
+        t = tarfile.TarFile(mode="w", fileobj=tar)
+        tarinfo = tarfile.TarInfo(name=name)
+        tarinfo.mode = mode
+        t.addfile(tarinfo, io.BytesIO())
+        t.close()
+        tar.seek(0)
+        return tar
+
+    monkeypatch.setattr("conda_package_streaming.package_streaming.UMASK", 0o22)
+
+    tarbytes = empty_tarfile_bytes(name="naughty_umask", mode=0o777)
+
+    process = subprocess.Popen(
+        [CONDA_EXE, "constructor", "--prefix", tmp_path, "--extract-tarball"],
+        stdin=subprocess.PIPE,
+    )
+    process.communicate(tarbytes.getvalue())
+    rc = process.wait()
+    assert rc == 0
+    mode = (tmp_path / "naughty_umask").stat().st_mode
+    assert not mode & stat.S_IWGRP, "%o" % mode
 
 
 def test_extract_conda_pkgs_num_processors(tmp_path: Path):
