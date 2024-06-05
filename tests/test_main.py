@@ -97,8 +97,9 @@ def test_extract_tarball_umask(tmp_path: Path):
     process.communicate(tarbytes.getvalue())
     rc = process.wait()
     assert rc == 0
-    mode = (tmp_path / "naughty_umask").stat().st_mode
-    assert not mode & stat.S_IWGRP, "%o" % mode
+    if sys.platform != "win32":
+        mode = (tmp_path / "naughty_umask").stat().st_mode
+        assert not mode & stat.S_IWGRP, "%o" % mode
 
 
 def test_extract_conda_pkgs_num_processors(tmp_path: Path):
