@@ -1,10 +1,10 @@
 import io
 import os
-import tarfile
 import shutil
 import stat
 import subprocess
 import sys
+import tarfile
 from pathlib import Path
 
 import pytest
