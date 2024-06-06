@@ -88,18 +88,22 @@ def test_extract_tarball_umask(tmp_path: Path):
         tar.seek(0)
         return tar
 
-    tarbytes = empty_tarfile_bytes(name="naughty_umask", mode=0o777)
+    naughty_mode = 0o777
+    umask = 0o022
+    tarbytes = empty_tarfile_bytes(name="naughty_umask", mode=naughty_mode)
     process = subprocess.Popen(
         [CONDA_EXE, "constructor", "--prefix", tmp_path, "--extract-tarball"],
         stdin=subprocess.PIPE,
-        umask=0o022,
+        umask=umask,
     )
     process.communicate(tarbytes.getvalue())
     rc = process.wait()
     assert rc == 0
     if sys.platform != "win32":
         mode = (tmp_path / "naughty_umask").stat().st_mode
-        assert not mode & stat.S_IWGRP, "%o" % mode
+        chmod_bits = stat.S_IMODE(mode)  # we only want the chmod bits (last three octal digits)
+        expected_bits = naughty_mode & ~umask
+        assert chmod_bits == expected_bits == 0o755, f"{expected_bits:o}"
 
 
 def test_extract_conda_pkgs_num_processors(tmp_path: Path):
