@@ -9,6 +9,7 @@ import site
 packages = [
     "conda",
     "conda_package_handling",
+    "conda_package_streaming",
     "menuinst",
     "conda_env",
     "conda_libmamba_solver",
@@ -268,6 +269,14 @@ import conda_package_handling.streaming
 import conda_package_handling.tarball
 import conda_package_handling.utils
 import conda_package_handling.validate
+import conda_package_streaming.__init__
+import conda_package_streaming.exceptions
+import conda_package_streaming.extract
+import conda_package_streaming.lazy_wheel
+import conda_package_streaming.package_streaming
+import conda_package_streaming.s3
+import conda_package_streaming.transmute
+import conda_package_streaming.url
 import libmambapy.__init__
 import libmambapy._version
 import libmambapy.bindings

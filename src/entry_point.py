@@ -6,6 +6,7 @@ This module is the entry point executed when you run `conda.exe` on the command 
 It will end up calling the `conda` CLI, but it intercepts the call to do some
 preliminary work and handling some special cases that arise when PyInstaller is involved.
 """
+
 import os
 import sys
 from multiprocessing import freeze_support
@@ -175,9 +176,9 @@ def _constructor_extract_conda_pkgs(prefix, max_workers=None):
 
 
 def _constructor_extract_tarball():
-    import tarfile
+    from conda_package_streaming.package_streaming import TarfileNoSameOwner
 
-    t = tarfile.open(mode="r|*", fileobj=sys.stdin.buffer)
+    t = TarfileNoSameOwner.open(mode="r|*", fileobj=sys.stdin.buffer)
     t.extractall()
     t.close()
 
