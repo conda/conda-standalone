@@ -36,7 +36,7 @@ jobs:
           - os: windows-latest
             subdir: win-64
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-activate-base: true
