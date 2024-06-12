@@ -1,7 +1,8 @@
-{% set conda_version = "24.4.0" %}
+{% set conda_version = "24.5.0" %}
 {% set conda_libmamba_solver_version = "24.1.0" %}
 {% set libmambapy_version = "1.5.8" %}
-{% set constructor_version = "3.7.0" %}
+{% set constructor_version = "3.8.0" %}
+{% set menuinst_lower_bound = "2.1.1" %}
 {% set python_version = "3.11.9" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
@@ -13,14 +14,14 @@ source:
   - path: ../
 
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 6e0f3fb26a39f27c3c8fb1baf76ab85010b552e39ed145b4a3a2795ad344105d
+    sha256: 4a571495f08d49127b9ae28d8b8cb30bb055d061c189d8ef8c5682b26b6bde24
     folder: conda_src
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: e84de1d7db3dbd394c03fa0e966bd293729307b9de0c8733ed7189f422a4b5b5  # [win]
+    sha256: 0a0ca62e6bee9d6321f410ff88e24201de9d83bf38682d4911813c06b8a611a6  # [win]
     folder: constructor_src  # [win]
 
 build:
@@ -34,9 +35,9 @@ requirements:
     - pyinstaller
     - python ={{ python_version }}
     - conda ={{ conda_version }}
-    - conda-package-handling >=1.6
+    - conda-package-handling >=2.3.0
     - conda-package-streaming >=0.9.0
-    - menuinst >=2.0.2
+    - menuinst >={{ menuinst_lower_bound }}
     - conda-libmamba-solver ={{ conda_libmamba_solver_version }}
     - libmambapy ={{ libmambapy_version }}
     - archspec >=0.2.3
@@ -46,7 +47,7 @@ requirements:
 test:
   requires:
     - pytest
-    - menuinst >=2.0.2
+    - menuinst >={{ menuinst_lower_bound }}
   source_files:
     - tests
   commands:
