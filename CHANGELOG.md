@@ -13,6 +13,18 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 24.5.0 (2024-06-13)
+
+### Enhancements
+
+* Upgrade to `conda 24.5.0`, `constructor 3.8.0` and `menuinst 2.1.1`. (#75)
+
+### Bug fixes
+
+* Respect `umask` when extracting tarballs for `constructor`. (#74)
+
+
+
 ## 24.4.0 (2024-05-15)
 
 ### Enhancements
