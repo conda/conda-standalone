@@ -12,5 +12,6 @@ Authors are sorted alphabetically.
 * SC426
 * conda-bot
 * conda-forge-admin
+* dependabot[bot]
 * pre-commit-ci[bot]
 * regro-cf-autotick-bot
