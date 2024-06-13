@@ -23,6 +23,10 @@ Remember to update the hyperlinks at the bottom.
 
 * Respect `umask` when extracting tarballs for `constructor`. (#74)
 
+### Contributors
+
+* @jaimergp
+
 
 
 ## 24.4.0 (2024-05-15)
