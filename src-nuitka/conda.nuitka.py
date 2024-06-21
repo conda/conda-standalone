@@ -13,6 +13,8 @@
 # nuitka-project: --include-distribution-metadata=conda
 # nuitka-project: --include-distribution-metadata=conda-libmamba-solver
 # nuitka-project: --include-package-data=archspec:*.json
+# nuitka-project: --include-package-data=menuinst:*.json
+# nuitka-project: --no-deployment-flag=self-execution
 
 """
 This module is the entry point executed when you run `conda.exe` on the command line.
@@ -27,6 +29,7 @@ from multiprocessing import freeze_support
 from pathlib import Path
 
 os.environ["ARCHSPEC_CPU_DIR"] = str(Path(sys.prefix, "archspec/json/cpu"))
+
 
 def _create_dummy_executor(*args, **kwargs):
     "use this for debugging, because ProcessPoolExecutor isn't pdb/ipdb friendly"
