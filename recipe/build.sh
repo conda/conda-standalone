@@ -13,6 +13,12 @@ done
 if [[ $target_platform == osx-* && -f "$BUILD_PREFIX/bin/codesign" ]]; then
   mv "$BUILD_PREFIX/bin/codesign" "$BUILD_PREFIX/bin/codesign.bak"
   ln -s /usr/bin/codesign "$BUILD_PREFIX/bin/codesign"
+
+  # We need to patch nuitka's install_otool_name. We will used to add a line.
+  # We want to add one more condition to ignore signing warnings
+  # See https://stackoverflow.com/a/48406504 for syntax
+  sed -i.bak -e '/if b"generating fake signature" not in line/a\'$'\n''if b"replacing existing signature" not in line/' \
+    "$SP_DIR/nuitka/utils/SharedLibraries.py"
 fi
 
 python -m nuitka src-nuitka/conda.nuitka.py --product-version=${PKG_VERSION} --file-version=${PKG_VERSION}
