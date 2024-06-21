@@ -14,6 +14,8 @@
 # nuitka-project: --include-distribution-metadata=conda-libmamba-solver
 # nuitka-project: --include-package-data=archspec:*.json
 # nuitka-project: --include-package-data=menuinst:*.json
+# nuitka-project-if: {OS} == "Darwin":
+#    nuitka-project: --include-package-data=menuinst:*launcher*
 # nuitka-project: --no-deployment-flag=self-execution
 
 """
