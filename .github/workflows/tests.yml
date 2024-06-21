@@ -51,6 +51,7 @@ jobs:
         shell: bash -el {0}
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
+          PYTHONUNBUFFERED: "1"
         run: conda build recipe --override-channels -c conda-forge
 
       - name: Upload package to anaconda.org
