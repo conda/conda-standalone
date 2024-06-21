@@ -10,7 +10,8 @@ done
 # make sure pyinstaller finds Apple's codesign first in PATH
 # some base installations have 'sigtool', which ships a
 # 'codesign' binary that might shadow Apple's codesign
-if [[ $target_platform == osx-* ]]; then
+if [[ $target_platform == osx-* && -f "$BUILD_PREFIX/bin/codesign" ]]; then
+  mv "$BUILD_PREFIX/bin/codesign" "$BUILD_PREFIX/bin/codesign.bak"
   ln -s /usr/bin/codesign "$BUILD_PREFIX/bin/codesign"
 fi
 
@@ -28,6 +29,6 @@ python src/licenses.py \
 # clean up .pyc files that pyinstaller creates
 rm -rf "$PREFIX/lib"
 
-if [[ $target_platform == osx-* ]]; then
-  rm "$BUILD_PREFIX/bin/codesign"
+if [[ $target_platform == osx-* && -f "$BUILD_PREFIX/bin/codesign.bak" ]]; then
+  mv "$BUILD_PREFIX/bin/codesign.bak" "$BUILD_PREFIX/bin/codesign"
 fi
