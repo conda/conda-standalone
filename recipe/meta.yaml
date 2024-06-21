@@ -32,7 +32,9 @@ build:
 
 requirements:
   build:
-    - pyinstaller
+    - nuitka
+    - ccache
+    - ordered-set
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=2.3.0

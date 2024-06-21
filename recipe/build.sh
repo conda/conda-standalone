@@ -14,9 +14,7 @@ if [[ $target_platform == osx-* ]]; then
   ln -s /usr/bin/codesign "$BUILD_PREFIX/bin/codesign"
 fi
 
-# -F is to create a single file
-# -s strips executables and libraries
-pyinstaller --clean --log-level=DEBUG src/conda.exe.spec
+python -m nuitka src-nuitka/conda.nuitka.py --product-version=${PKG_VERSION} --file-version=${PKG_VERSION}
 mkdir -p "$PREFIX/standalone_conda"
 mv dist/conda.exe "$PREFIX/standalone_conda"
 
