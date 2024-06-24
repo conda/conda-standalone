@@ -14,8 +14,7 @@ COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error
 :: standalone and have only an env, not an installation, include it here.
 COPY constructor_src\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py" || goto :error
 
-CALL conda remove --force --prefix "%BUILD_PREFIX%" vs2019_win-64
-
+python -m pip install https://files.pythonhosted.org/packages/13/8a/9764cc981dfe4337abe1c37a8e51b7b644cf3d19f9377367fdfff9e3ae21/Nuitka-2.3.9.tar.gz || goto :error
 python -m nuitka src-nuitka/conda.nuitka.py --product-version=%PKG_VERSION% --file-version=%PKG_VERSION% || goto :error
 MKDIR "%PREFIX%\standalone_conda" || goto :error
 MOVE dist\conda.exe "%PREFIX%\standalone_conda\conda.exe" || goto :error

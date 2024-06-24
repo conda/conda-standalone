@@ -32,10 +32,10 @@ build:
 
 requirements:
   build:
-    - nuitka >=2
-    - ccache  # [unix]
+    - nuitka >=2  # [unix]
+    - ccache
     - ordered-set
-    - vs2022_win-64  # [win]
+    - pip  # [win]
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=2.3.0
