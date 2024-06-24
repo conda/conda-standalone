@@ -14,9 +14,7 @@ COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error
 :: standalone and have only an env, not an installation, include it here.
 COPY constructor_src\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py" || goto :error
 
-CALL conda deactivate "%BUILD_PREFIX%"
-CALL conda remove --force --prefix "%BUILD_PREFIX%" vs2019_win-64 --solver=classic
-CALL conda activate "%BUILD_PREFIX%"
+CALL conda remove --force --prefix "%BUILD_PREFIX%" vs2019_win-64
 
 python -m nuitka src-nuitka/conda.nuitka.py --product-version=%PKG_VERSION% --file-version=%PKG_VERSION% || goto :error
 MKDIR "%PREFIX%\standalone_conda" || goto :error
