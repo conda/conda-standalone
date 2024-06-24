@@ -57,7 +57,7 @@ jobs:
         run: conda build recipe --override-channels -c conda-forge
 
       - name: Build nuitka
-        shell: bash -el {0}
+        shell: CMD /C CALL {0}
         if: matrix.os == 'windows-latest'
         env:
           PYTHONUNBUFFERED: "1"
