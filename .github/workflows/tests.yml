@@ -63,7 +63,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: |
           CALL conda install --override-channels -c conda-forge conda=24.5.0 nuitka ordered-set ccache python=3.12 || exit 1
-          CALL python -m nuitka src-nuitka/conda.nuitka.py --product-version=24.5.0 --file-version=24.5.0 || exit 1
+          CALL python -m nuitka src-nuitka/conda.nuitka.py --product-version=24.5.0 --file-version=24.5.0 --assume-yes-for-downloads || exit 1
 
       - name: Upload package to anaconda.org
         shell: bash -el {0}
