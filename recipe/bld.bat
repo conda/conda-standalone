@@ -14,8 +14,9 @@ COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error
 :: standalone and have only an env, not an installation, include it here.
 COPY constructor_src\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py" || goto :error
 
-set CC=clang
-%PYTHON% -m nuitka src-nuitka/conda.nuitka.py --product-version=%PKG_VERSION% --file-version=%PKG_VERSION% --assume-yes-for-downloads --clang || goto :error
+set CC=cc
+set "CFLAGS="
+%PYTHON% -m nuitka src-nuitka/conda.nuitka.py --product-version=%PKG_VERSION% --file-version=%PKG_VERSION% --assume-yes-for-downloads --mingw64 || goto :error
 MKDIR "%PREFIX%\standalone_conda" || goto :error
 MOVE dist\conda.exe "%PREFIX%\standalone_conda\conda.exe" || goto :error
 
