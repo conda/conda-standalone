@@ -16,8 +16,6 @@
 # nuitka-project: --include-package-data=menuinst:*.json
 # nuitka-project-if: {OS} == "Darwin":
 #    nuitka-project: --include-package-data=menuinst:*launcher*
-# nuitka-project-if: {OS} == "Windows":
-#    nuitka-project: --mingw64
 # nuitka-project: --no-deployment-flag=self-execution
 
 """
