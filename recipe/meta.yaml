@@ -32,7 +32,7 @@ build:
 
 requirements:
   build:
-    - nuitka
+    - nuitka >=2
     - ccache
     - ordered-set
     - python ={{ python_version }}
