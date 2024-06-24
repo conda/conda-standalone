@@ -35,6 +35,11 @@ requirements:
     - nuitka >=2
     - ccache
     - ordered-set
+    - {{ stdlib('c') }}
+    - {{ compiler('c') }}  # [unix]
+    - {{ compiler('cxx') }}  # [unix]
+    - {{ compiler('m2w64_c') }}     # [win]
+    - {{ compiler('m2w64_cxx') }}   # [win]
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=2.3.0
