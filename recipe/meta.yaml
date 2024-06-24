@@ -35,6 +35,7 @@ requirements:
     - nuitka >=2
     - ccache
     - ordered-set
+    - clang_win-64 # [win]
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=2.3.0
