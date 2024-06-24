@@ -1,16 +1,40 @@
 #!/usr/bin/env python
+# nuitka-project: --product-name=conda-standalone
+# nuitka-project: --company-name=conda
+# nuitka-project: --file-description=A single-binary distribution of conda, using Nuitka
+# nuitka-project: --onefile
+# nuitka-project: --output-filename=conda.exe
+# nuitka-project: --output-dir=dist
+# nuitka-project: --onefile-tempdir-spec={CACHE_DIR}/{COMPANY}/{PRODUCT}/{VERSION}
+# nuitka-project: --include-package=conda_libmamba_solver
+# nuitka-project: --include-package=conda_package_handling
+# nuitka-project: --include-package=conda_package_streaming
+# nuitka-project: --include-package=libmambapy
+# nuitka-project: --include-distribution-metadata=conda
+# nuitka-project: --include-distribution-metadata=conda-libmamba-solver
+# nuitka-project: --include-package-data=archspec:*.json
+# nuitka-project: --include-package-data=menuinst:*.json
+# nuitka-project-if: {OS} == "Darwin":
+#    nuitka-project: --include-package-data=menuinst:*launcher*
+# nuitka-project-if: {OS} == "Windows":
+#    nuitka-project: --windows-icon-from-ico={MAIN_DIRECTORY}/icon.ico
+# nuitka-project: --no-deployment-flag=self-execution
+# nuitka-project: --show-scons
+# nuitka-project: --show-progress
 
 """
 This module is the entry point executed when you run `conda.exe` on the command line.
 
 It will end up calling the `conda` CLI, but it intercepts the call to do some
-preliminary work and handling some special cases that arise when PyInstaller is involved.
+preliminary work and handling some special cases that arise when nuitka is involved.
 """
 
 import os
 import sys
 from multiprocessing import freeze_support
 from pathlib import Path
+
+os.environ["ARCHSPEC_CPU_DIR"] = str(Path(sys.prefix, "archspec/json/cpu"))
 
 
 def _create_dummy_executor(*args, **kwargs):
@@ -267,11 +291,15 @@ def _python_subcommand():
 
     if len(sys.argv) > 2:
         if first_arg == "-m":
-            del sys.argv[1]  # delete '-m'
-            mod_name = sys.argv[1]  # save the actual module name
-            del sys.argv[1]  # delete the module name
-            runpy.run_module(mod_name, alter_sys=True, run_name="__main__")
-            return
+            # Not feasible. See https://github.com/Nuitka/Nuitka/issues/528
+            print(
+                "'-m <module>' is not supported by the Nuitka builds.",
+                "Consider using an equivalent command with the '-c' syntax.",
+                "For example, instead of '-m calendar',",
+                'use \'-c "import calendar; calendar.main([])"',
+                file=sys.stderr,
+            )
+            return 1
         elif first_arg == "-c":
             del sys.argv[0]  # remove the executable, but keep '-c' in sys.argv
             cmd = sys.argv[1]  # save the actual command

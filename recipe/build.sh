@@ -10,13 +10,18 @@ done
 # make sure pyinstaller finds Apple's codesign first in PATH
 # some base installations have 'sigtool', which ships a
 # 'codesign' binary that might shadow Apple's codesign
-if [[ $target_platform == osx-* ]]; then
+if [[ $target_platform == osx-* && -f "$BUILD_PREFIX/bin/codesign" ]]; then
+  mv "$BUILD_PREFIX/bin/codesign" "$BUILD_PREFIX/bin/codesign.bak"
   ln -s /usr/bin/codesign "$BUILD_PREFIX/bin/codesign"
+
+  # We need to patch nuitka's install_otool_name. We will used to add a line.
+  # We want to add one more condition to ignore signing warnings
+  # See https://stackoverflow.com/a/48406504 for syntax
+  sed -i.bak -e '/if b"generating fake signature" not in line/a\'$'\n''if b"replacing existing signature" not in line' \
+    "$SP_DIR/nuitka/utils/SharedLibraries.py"
 fi
 
-# -F is to create a single file
-# -s strips executables and libraries
-pyinstaller --clean --log-level=DEBUG src/conda.exe.spec
+python -m nuitka src/entry_point.py --product-version=${PKG_VERSION} --file-version=${PKG_VERSION}
 mkdir -p "$PREFIX/standalone_conda"
 mv dist/conda.exe "$PREFIX/standalone_conda"
 
@@ -30,6 +35,6 @@ python src/licenses.py \
 # clean up .pyc files that pyinstaller creates
 rm -rf "$PREFIX/lib"
 
-if [[ $target_platform == osx-* ]]; then
-  rm "$BUILD_PREFIX/bin/codesign"
+if [[ $target_platform == osx-* && -f "$BUILD_PREFIX/bin/codesign.bak" ]]; then
+  mv "$BUILD_PREFIX/bin/codesign.bak" "$BUILD_PREFIX/bin/codesign"
 fi
