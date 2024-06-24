@@ -44,15 +44,26 @@ jobs:
           run-post: false
 
       - name: Install dependencies
+        if: matrix.os != 'windows-latest'
         shell: bash -el {0}
         run: conda install -y "conda-build!=3.28.0,!=3.28.1" anaconda-client
 
       - name: Build recipe
         shell: bash -el {0}
+        if: matrix.os != 'windows-latest'
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
           PYTHONUNBUFFERED: "1"
         run: conda build recipe --override-channels -c conda-forge
+
+      - name: Build nuitka
+        shell: bash -el {0}
+        if: matrix.os == 'windows-latest'
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          CALL conda install --override-channels -c conda-forge conda=24.5.0 nuitka ordered-set ccache python=3.12 || exit 1
+          CALL python -m nuitka src-nuitka/conda.nuitka.py --product-version=24.5.0 --file-version=24.5.0 || exit 1
 
       - name: Upload package to anaconda.org
         shell: bash -el {0}
