@@ -33,7 +33,7 @@ build:
 requirements:
   build:
     - nuitka >=2
-    - ccache
+    - ccache  # [unix]
     - ordered-set
     - vs2022_win-64  # [win]
     - python ={{ python_version }}
