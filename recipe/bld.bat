@@ -16,7 +16,7 @@ COPY constructor_src\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py" || goto :
 
 set CC=cc
 set "CFLAGS="
-%PYTHON% -m nuitka src-nuitka/conda.nuitka.py --product-version=%PKG_VERSION% --file-version=%PKG_VERSION% --assume-yes-for-downloads --mingw64 || goto :error
+%PYTHON% -m nuitka src\entry_point.py --product-version=%PKG_VERSION% --file-version=%PKG_VERSION% --assume-yes-for-downloads --mingw64 || goto :error
 MKDIR "%PREFIX%\standalone_conda" || goto :error
 MOVE dist\conda.exe "%PREFIX%\standalone_conda\conda.exe" || goto :error
 

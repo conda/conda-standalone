@@ -21,7 +21,7 @@ if [[ $target_platform == osx-* && -f "$BUILD_PREFIX/bin/codesign" ]]; then
     "$SP_DIR/nuitka/utils/SharedLibraries.py"
 fi
 
-python -m nuitka src-nuitka/conda.nuitka.py --product-version=${PKG_VERSION} --file-version=${PKG_VERSION}
+python -m nuitka src/entry_point.py --product-version=${PKG_VERSION} --file-version=${PKG_VERSION}
 mkdir -p "$PREFIX/standalone_conda"
 mv dist/conda.exe "$PREFIX/standalone_conda"
 
