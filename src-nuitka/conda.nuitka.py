@@ -17,7 +17,6 @@
 # nuitka-project-if: {OS} == "Darwin":
 #    nuitka-project: --include-package-data=menuinst:*launcher*
 # nuitka-project: --no-deployment-flag=self-execution
-# nuitka-project: --verbose
 # nuitka-project: --show-scons
 
 """
