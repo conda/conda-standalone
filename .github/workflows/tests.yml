@@ -51,7 +51,16 @@ jobs:
         shell: bash -el {0}
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
+          PYTHONUNBUFFERED: "1"
         run: conda build recipe --override-channels -c conda-forge
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
+        with:
+          name: conda-standalone-${{ matrix.subdir }}
+          path: |
+            ${{ runner.temp }}/bld/${{ matrix.subdir }}/conda-standalone-*.*
 
       - name: Upload package to anaconda.org
         shell: bash -el {0}

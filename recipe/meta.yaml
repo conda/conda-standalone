@@ -3,7 +3,7 @@
 {% set libmambapy_version = "1.5.8" %}
 {% set constructor_version = "3.8.0" %}
 {% set menuinst_lower_bound = "2.1.1" %}
-{% set python_version = "3.11.9" %}
+{% set python_version = "3.12.4" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
 package:
@@ -32,7 +32,9 @@ build:
 
 requirements:
   build:
-    - pyinstaller
+    - nuitka >=2
+    - ccache
+    - ordered-set
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=2.3.0
