@@ -60,7 +60,7 @@ jobs:
         with:
           name: conda-standalone-${{ matrix.subdir }}
           path: ${{ runner.temp }}/bld/${{ matrix.subdir }}/conda-standalone-*.*
-    
+
       - name: Upload package to anaconda.org
         shell: bash -el {0}
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
