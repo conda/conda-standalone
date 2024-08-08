@@ -12,8 +12,9 @@ import sys
 from multiprocessing import freeze_support
 from pathlib import Path
 
-if "SSLKEYLOGFILE" in os.environ:
-    # This causes a crash with requests 2.32+
+if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
+    # This causes a crash with requests 2.32+ on Windows
+    # Root cause is 'urllib3.util.ssl_.create_urllib3_context()'
     # See https://github.com/conda/conda-standalone/issues/86
     del os.environ["SSLKEYLOGFILE"]
 
