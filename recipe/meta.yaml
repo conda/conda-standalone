@@ -1,7 +1,7 @@
 {% set conda_version = "24.7.1" %}
 {% set conda_libmamba_solver_version = "24.7.0" %}
 {% set libmambapy_version = "1.5.8" %}
-{% set constructor_version = "3.9.0" %}
+{% set constructor_version = "3.9.1" %}
 {% set menuinst_lower_bound = "2.1.2" %}
 {% set python_version = "3.11.9" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
@@ -21,7 +21,7 @@ source:
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: 5970b5b1dc661f786069010f62b191db8cd6be2d798c0451ce0fb6cfe56266d4  # [win]
+    sha256: f8e0ac3c6bbfead1c458f09e6aaf30dca56fd9503b2c505502f6cd34af0ca91b  # [win]
     folder: constructor_src  # [win]
 
 build:
