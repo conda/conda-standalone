@@ -13,6 +13,18 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 24.7.1 (2024-08-13)
+
+### Enhancements
+
+* Bump to conda 24.7.1, conda-libmamba-version 24.7.0, constructor 3.9.2, menuinst 2.1.2. (#90)
+
+### Bug fixes
+
+* Add workaround to prevent crash on Windows when the `SSLKEYLOGFILE` environment variable is set. (#86 via #89).
+
+
+
 ## 24.5.0 (2024-06-13)
 
 ### Enhancements
