@@ -23,6 +23,11 @@ Remember to update the hyperlinks at the bottom.
 
 * Add workaround to prevent crash on Windows when the `SSLKEYLOGFILE` environment variable is set. (#86 via #89).
 
+### Contributors
+
+* @jaimergp
+* @marcoesters
+
 
 
 ## 24.5.0 (2024-06-13)
