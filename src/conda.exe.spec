@@ -77,10 +77,7 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
-          [],
+          exclude_binaries=True,
           name='conda.exe',
           icon=os.path.join(HERE, "icon.ico"),
           debug=False,
@@ -91,3 +88,11 @@ exe = EXE(pyz,
           runtime_tmpdir=None,
           console=True,
           **extra_exe_kwargs)
+
+coll = COLLECT(exe,
+               a.binaries,
+               a.zipfiles,
+               a.datas,
+               strip=(sys.platform!="win32"),
+               upx=True,
+               name='conda.exe')
