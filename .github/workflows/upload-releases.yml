@@ -36,6 +36,7 @@ jobs:
             echo "Fetching $fn..."
             subdir="${fn%%/*}"
             mkdir -p "${subdir}"
+            cd "${subdir}"
             curl -sLO "https://conda.anaconda.org/conda-forge/${fn}"
             unzip conda-standalone-${version}-*.conda
             tar xf info-*
