@@ -31,7 +31,7 @@ jobs:
           version=${{ inputs.version || '24.7.1' }}
           build_number=${{ inputs.build_number || 0 }}
           mkdir -p release
-          filenames="$(curl -s https://api.anaconda.org/package/conda-forge/conda-standalone/files | jq -r '.[] | select(.version=="${version}" and .attrs.build_number==${build_number}) | .basename')"
+          filenames="$(curl -s https://api.anaconda.org/package/conda-forge/conda-standalone/files | jq -r ".[] | select(.version==\"${version}\" and .attrs.build_number==${build_number}) | .basename")"
           for fn in $filenames; do 
             echo "Fetching $fn..."
             subdir="${fn%%/*}"
