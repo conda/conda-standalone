@@ -81,7 +81,12 @@ def test_conda_standalone_config():
         recipe_config = YAML().load(crc)
 
     proc = run_conda(
-        "config", "--show-sources", "--json", check=True, capture_output=True, text=True
+        "config",
+        "--show-sources",
+        "--json",
+        check=True,
+        capture_output=True,
+        text=True,
     )
     condarcs = json.loads(proc.stdout)
 
@@ -96,13 +101,13 @@ def test_conda_standalone_config():
     )
     tmp_root = Path(proc.stdout).parent
 
+    conda_config = None
     for filepath, config in condarcs.items():
         if filepath == "cmd_line":
             continue
         if Path(filepath).parent.parent == tmp_root:
             conda_config = config
             break
-
     assert recipe_config == conda_config
 
 
