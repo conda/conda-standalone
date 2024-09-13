@@ -48,6 +48,7 @@ test:
   requires:
     - pytest
     - menuinst >={{ menuinst_lower_bound }}
+    - ruamel.yaml
   source_files:
     - tests
   commands:

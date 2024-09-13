@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import shutil
 import stat
@@ -8,6 +9,7 @@ import tarfile
 from pathlib import Path
 
 import pytest
+from ruamel.yaml import YAML
 
 # TIP: You can debug the tests with this setup:
 # CONDA_STANDALONE=src/entry_point.py pytest ...
@@ -65,6 +67,43 @@ def test_new_environment(tmp_path, solver):
 
 def test_constructor():
     run_conda("constructor", "--help", check=True)
+
+
+@pytest.mark.skipif(
+    "RECIPE_DIR" not in os.environ,
+    reason="Requires RECIPE_DIR environment variable.",
+)
+def test_conda_config():
+    recipe_condarc = Path(os.environ["RECIPE_DIR"], ".condarc")
+    if not recipe_condarc.exists():
+        pytest.skip("Recipe does not have a .condarc file.")
+    with open(recipe_condarc) as crc:
+        recipe_config = YAML().load(crc)
+
+    proc = run_conda(
+        "config", "--show-sources", "--json", check=True, capture_output=True, text=True
+    )
+    condarcs = json.loads(proc.stdout)
+
+    # Quick way to get the location conda-standalone is extracted into
+    proc = run_conda(
+        "python",
+        "-c",
+        "import sys; print(sys.prefix)",
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    tmp_root = Path(proc.stdout).parent
+
+    for filepath, config in condarcs.items():
+        if filepath == "cmd_line":
+            continue
+        if Path(filepath).parent.parent == tmp_root:
+            conda_config = config
+            break
+
+    assert recipe_config == conda_config
 
 
 def test_extract_conda_pkgs(tmp_path: Path):
