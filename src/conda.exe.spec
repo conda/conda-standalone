@@ -62,6 +62,13 @@ elif sys.platform == "darwin":
     ]
     extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
 
+# Add .condarc file to bundle to configure channels
+# during the package building stage
+if "RECIPE_DIR" in os.environ:
+    condarc = os.path.join(os.environ["RECIPE_DIR"], ".condarc")
+    if os.path.exists(condarc):
+        datas.append((condarc, "."))
+
 a = Analysis(['entry_point.py', 'imports.py'],
              pathex=['.'],
              binaries=binaries,
