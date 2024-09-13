@@ -73,7 +73,7 @@ def test_constructor():
     "RECIPE_DIR" not in os.environ,
     reason="Requires RECIPE_DIR environment variable.",
 )
-def test_conda_config():
+def test_conda_standalone_config():
     recipe_condarc = Path(os.environ["RECIPE_DIR"], ".condarc")
     if not recipe_condarc.exists():
         pytest.skip("Recipe does not have a .condarc file.")
