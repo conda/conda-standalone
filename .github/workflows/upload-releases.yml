@@ -32,21 +32,21 @@ jobs:
           build_number=${{ inputs.build_number || 0 }}
           mkdir -p release
           filenames="$(curl -s https://api.anaconda.org/package/conda-forge/conda-standalone/files | jq -r ".[] | select(.version==\"${version}\" and .attrs.build_number==${build_number}) | .basename")"
-          for fn in $filenames; do 
+          for fn in $filenames; do
             echo "Fetching $fn..."
             subdir="${fn%%/*}"
             mkdir -p "${subdir}"
             cd "${subdir}"
             curl -sLO "https://conda.anaconda.org/conda-forge/${fn}"
-            unzip conda-standalone-${version}-*.conda
+            unzip -q conda-standalone-${version}-*.conda
             tar xf info-*
             tar xf pkg-*
             platform="$(echo "${subdir}" | sed -e s/-64/-x86_64/ -e s/linux/Linux/ -e s/win/Windows/ -e s/osx/macOS/)"
             mv standalone_conda/conda.exe "../release/conda-standalone-${version}-${platform}.exe"
             cd ..
           done
-          ls -alh conda-standalone-*.exe
-    
+          ls -alh release/
+
       - name: Upload to release
         if: github.event_name == 'workflow_dispatch'
         env:
@@ -54,5 +54,5 @@ jobs:
         run: >
           gh release upload "${{ inputs.version }}"
           --repo "${{ github.repository }}"
-          --clobber 
+          --clobber
           release/*
