@@ -123,17 +123,19 @@ def test_conda_standalone_config(restrict_search_path, tmp_path, monkeypatch):
 
     conda_configs = {}
     for filepath, config in condarcs.items():
-        if filepath.startswith(tmp_root):
-            conda_configs["recipe"] = config
-        elif Path(filepath).exists():
+        if Path(filepath).exists():
             conda_configs[filepath] = config
+        elif filepath.startswith(tmp_root):
+            conda_configs["recipe"] = config
     if restrict_search_path:
         assert expected_configs == conda_configs
     else:
         # If the search path is restricted, there may be other .condarc
         # files in the final config, so be less strict with assertions
         for filepath, config in expected_configs.items():
-            assert conda_configs.get(filepath) == config
+            assert (
+                conda_configs.get(filepath) == config
+            ), f"Incorrect config for {filepath}"
 
 
 def test_extract_conda_pkgs(tmp_path: Path):

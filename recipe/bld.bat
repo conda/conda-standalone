@@ -1,6 +1,6 @@
 @ECHO on
 
-FOR %%filename IN(core\path_actions.py utils.py deprecations.py case\constants.py) DO (
+FOR %%filename IN (core\path_actions.py utils.py deprecations.py case\constants.py) DO (
     RENAME "%SP_DIR%\conda\%%filename" %%filename.bak || goto :error
     COPY conda_src\conda\%%filename "%SP_DIR%\conda\%%filename" || goto :error
 )
