@@ -85,7 +85,7 @@ def test_conda_standalone_config(restrict_search_path, tmp_path, monkeypatch):
         expected_configs["recipe"] = recipe_config
 
     if restrict_search_path:
-        monkeypatch.setenv("CONDA_RESTRUCT_RC_SEARCH_PATH", "1")
+        monkeypatch.setenv("CONDA_RESTRICT_RC_SEARCH_PATH", "1")
     else:
         config_path = str(tmp_path / ".condarc")
         expected_configs[config_path] = {
@@ -96,6 +96,7 @@ def test_conda_standalone_config(restrict_search_path, tmp_path, monkeypatch):
         with open(config_path, "w") as crc:
             yaml.dump(expected_configs[config_path], crc)
         monkeypatch.setenv("CONDA_ROOT", str(tmp_path))
+    env = os.environ.copy()
 
     proc = run_conda(
         "config",
@@ -104,6 +105,7 @@ def test_conda_standalone_config(restrict_search_path, tmp_path, monkeypatch):
         check=True,
         capture_output=True,
         text=True,
+        env=env,
     )
     condarcs = json.loads(proc.stdout)
 
@@ -115,6 +117,7 @@ def test_conda_standalone_config(restrict_search_path, tmp_path, monkeypatch):
         check=True,
         capture_output=True,
         text=True,
+        env=env,
     )
     tmp_root = str(Path(proc.stdout).parent)
 

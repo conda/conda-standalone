@@ -1,11 +1,9 @@
 @ECHO on
 
-RENAME "%SP_DIR%\conda\core\path_actions.py" path_actions.py.bak || goto :error
-COPY conda_src\conda\core\path_actions.py "%SP_DIR%\conda\core\path_actions.py" || goto :error
-RENAME "%SP_DIR%\conda\utils.py" utils.py.bak || goto :error
-COPY conda_src\conda\utils.py "%SP_DIR%\conda\utils.py" || goto :error
-RENAME "%SP_DIR%\conda\deprecations.py" deprecations.py.bak || goto :error
-COPY conda_src\conda\deprecations.py "%SP_DIR%\conda\deprecations.py" || goto :error
+FOR %%filename IN(core\path_actions.py utils.py deprecations.py case\constants.py) DO (
+    RENAME "%SP_DIR%\conda\%%filename" %%filename.bak || goto :error
+    COPY conda_src\conda\%%filename "%SP_DIR%\conda\%%filename" || goto :error
+)
 
 :: we need these for noarch packages with entry points to work on windows
 COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error
