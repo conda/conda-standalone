@@ -1,13 +1,21 @@
 diff --git a/conda/base/constants.py b/conda/base/constants.py
-index d38502a48..dc180c0bf 100644
+index d38502a48..b56724933 100644
 --- a/conda/base/constants.py
 +++ b/conda/base/constants.py
-@@ -25,42 +25,47 @@ machine_bits = 8 * struct.calcsize("P")
+@@ -10,6 +10,7 @@ Another important source of "static" configuration is conda/models/enums.py.
+ 
+ import struct
+ from enum import Enum, EnumMeta
++from os import environ
+ from os.path import join
+ 
+ from ..common.compat import on_win
+@@ -25,42 +26,47 @@ machine_bits = 8 * struct.calcsize("P")
  
  APP_NAME = "conda"
  
 -if on_win:  # pragma: no cover
-+if "CONDA_RESTRICT_RC_SEARCH_PATH" in os.environ:
++if "CONDA_RESTRICT_RC_SEARCH_PATH" in environ:
      SEARCH_PATH = (
 -        "C:/ProgramData/conda/.condarc",
 -        "C:/ProgramData/conda/condarc",
