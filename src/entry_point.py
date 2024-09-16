@@ -18,12 +18,7 @@ if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
     # See https://github.com/conda/conda-standalone/issues/86
     del os.environ["SSLKEYLOGFILE"]
 
-if (
-    not os.path.samefile(sys.prefix, os.environ.get("CONDA_ROOT"))
-    and "CONDARC" not in os.environ
-):
-    # Fallback option for when CONDA_ROOT is set externally, e.g.,
-    # during the test step of conda build
+if "CONDARC" not in os.environ:
     os.environ["CONDARC"] = os.path.join(sys.prefix, ".condarc")
 
 

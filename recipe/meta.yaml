@@ -19,6 +19,7 @@ source:
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
+      - ../src/conda_patches/0003-Restrict-search-paths.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
     sha256: 0ea4f6d563a53ebb03475dc6d2d88d3ab01be4e9d291fd276c79315aa92e5114  # [win]

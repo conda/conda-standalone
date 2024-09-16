@@ -73,12 +73,29 @@ def test_constructor():
     "RECIPE_DIR" not in os.environ,
     reason="Requires RECIPE_DIR environment variable.",
 )
-def test_conda_standalone_config():
+@pytest.mark.parametrize("restrict_search_path", (True, False))
+def test_conda_standalone_config(restrict_search_path, tmp_path, monkeypatch):
     recipe_condarc = Path(os.environ["RECIPE_DIR"], ".condarc")
     if not recipe_condarc.exists():
         pytest.skip("Recipe does not have a .condarc file.")
+    expected_configs = {}
+    yaml = YAML()
     with open(recipe_condarc) as crc:
         recipe_config = YAML().load(crc)
+        expected_configs["recipe"] = recipe_config
+
+    if restrict_search_path:
+        monkeypatch.setenv("CONDA_RESTRUCT_RC_SEARCH_PATH", "1")
+    else:
+        config_path = str(tmp_path / ".condarc")
+        expected_configs[config_path] = {
+            "channels": [
+                "defaults",
+            ]
+        }
+        with open(config_path, "w") as crc:
+            yaml.dump(expected_configs[config_path], crc)
+        monkeypatch.setenv("CONDA_ROOT", str(tmp_path))
 
     proc = run_conda(
         "config",
@@ -99,16 +116,15 @@ def test_conda_standalone_config():
         capture_output=True,
         text=True,
     )
-    tmp_root = Path(proc.stdout).parent
+    tmp_root = str(Path(proc.stdout).parent)
 
-    conda_config = None
+    conda_configs = {}
     for filepath, config in condarcs.items():
-        if filepath == "cmd_line":
-            continue
-        if Path(filepath).parent.parent == tmp_root:
-            conda_config = config
-            break
-    assert recipe_config == conda_config
+        if filepath.startswith(tmp_root):
+            conda_configs["recipe"] = config
+        elif Path(filepath).exists():
+            conda_configs[filepath] = config
+    assert expected_configs == conda_configs
 
 
 def test_extract_conda_pkgs(tmp_path: Path):
