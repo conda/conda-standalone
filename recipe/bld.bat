@@ -1,8 +1,8 @@
 @ECHO on
 
-FOR %%filename IN (core\path_actions.py utils.py deprecations.py case\constants.py) DO (
-    RENAME "%SP_DIR%\conda\%%filename" %%filename.bak || goto :error
-    COPY conda_src\conda\%%filename "%SP_DIR%\conda\%%filename" || goto :error
+FOR %%f IN (core\path_actions.py utils.py deprecations.py case\constants.py) DO (
+    RENAME "%SP_DIR%\conda\%%f" "%%f.bak" || goto :error
+    COPY "conda_src\conda\%%f" "%SP_DIR%\conda\%%f" || goto :error
 )
 
 :: we need these for noarch packages with entry points to work on windows
