@@ -298,6 +298,12 @@ def _conda_main():
     from conda.cli import main
 
     _fix_sys_path()
+    try:
+        no_rc = sys.argv.index("--no-rc")
+        os.environ["CONDA_RESTRICT_RC_SEARCH_PATH"] = "1"
+        del sys.argv[no_rc]
+    except ValueError:
+        pass
     return main()
 
 
