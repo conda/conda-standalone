@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - .github/workflows/upload-releases.yml
   schedule:
     - cron: '30 6 * * *'
 

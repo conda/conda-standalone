@@ -1,0 +1,61 @@
+name: Releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+      build_number:
+        required: true
+  pull_request:
+    paths:
+      - .github/workflows/upload-releases.yml
+
+
+concurrency:
+  # Concurrency group that uses the workflow name and PR number if available
+  # or commit SHA as a fallback. If a new build is triggered under that
+  # concurrency group while a previous build is running it will be canceled.
+  # Repeated pushes to a PR will cancel all previous builds, while multiple
+  # merges to main will not cancel.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  copy:
+    name: Copy from conda-forge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download, extract and rename artifacts
+        run: |
+          version=${{ inputs.version || '24.7.1' }}
+          build_number=${{ inputs.build_number || 0 }}
+          mkdir -p release
+          filenames="$(curl -s https://api.anaconda.org/package/conda-forge/conda-standalone/files | jq -r ".[] | select(.version==\"${version}\" and .attrs.build_number==${build_number}) | .basename")"
+          for fn in $filenames; do
+            echo "Fetching $fn..."
+            subdir="${fn%%/*}"
+            mkdir -p "${subdir}"
+            cd "${subdir}"
+            curl -sLO "https://conda.anaconda.org/conda-forge/${fn}"
+            unzip -q conda-standalone-${version}-*.conda
+            tar xf info-*
+            tar xf pkg-*
+            platform="$(echo "${subdir}" | sed -e s/-64/-x86_64/ -e s/linux/Linux/ -e s/win/Windows/ -e s/osx/macOS/)"
+            mv standalone_conda/conda.exe "../release/conda-standalone-${version}-${platform}.exe"
+            cd ..
+          done
+          ls -alh release/
+
+      - name: Upload to release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release upload "${{ inputs.version }}"
+          --repo "${{ github.repository }}"
+          --clobber
+          release/*
