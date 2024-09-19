@@ -30,6 +30,8 @@ build:
   string: "g{{ GIT_FULL_HASH[:7] }}_py{{ pyver }}_{{ PKG_BUILDNUM }}"
   ignore_run_exports:
     - '*'
+  script_env:
+    - PYINSTALLER_CONDARC_DIR={{ RECIPE_DIR }}
 
 requirements:
   build:

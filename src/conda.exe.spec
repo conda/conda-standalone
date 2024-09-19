@@ -64,7 +64,7 @@ elif sys.platform == "darwin":
 
 # Add .condarc file to bundle to configure channels
 # during the package building stage
-if "RECIPE_DIR" in os.environ:
+if "PYINSTALLER_CONDARC_DIR" in os.environ:
     condarc = os.path.join(os.environ["RECIPE_DIR"], ".condarc")
     if os.path.exists(condarc):
         datas.append((condarc, "."))
