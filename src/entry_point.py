@@ -11,6 +11,7 @@ import os
 import sys
 from multiprocessing import freeze_support
 from pathlib import Path
+from typing import List
 
 if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
     # This causes a crash with requests 2.32+ on Windows
@@ -291,6 +292,224 @@ def _python_subcommand():
     return 1
 
 
+def _get_init_reverse_plan(
+    root_prefix,
+    prefixes: List[Path],
+    for_user: bool,
+    for_system: bool,
+    anaconda_prompt: bool,
+) -> List[dict]:
+    import re
+
+    from conda.activate import native_path_to_unix
+    from conda.base.constants import COMPATIBLE_SHELLS
+    from conda.common.compat import on_win
+    from conda.core.initialize import (
+        CONDA_INITIALIZE_PS_RE_BLOCK,
+        CONDA_INITIALIZE_RE_BLOCK,
+        _read_windows_registry,
+        make_initialize_plan,
+    )
+
+    BIN_DIRECTORY = "Scripts" if on_win else "bin"
+    reverse_plan = []
+    for shell in COMPATIBLE_SHELLS:
+        # Make plan for each shell individually because
+        # not every plan includes the shell name
+        plan = make_initialize_plan(
+            root_prefix,
+            [shell],
+            for_user,
+            for_system,
+            anaconda_prompt,
+            reverse=True,
+        )
+        for initializer in plan:
+            target_path = initializer["kwargs"]["target_path"]
+            if shell == "cmd.exe":
+                # target_path for cmd.exe is a registry path
+                reg_entry, _ = _read_windows_registry(target_path)
+                if reg_entry is None:
+                    continue
+                autorun_parts = reg_entry.split("&")
+                for prefix in prefixes:
+                    hook = str(prefix / "condabin" / "conda_hook.bat")
+                    if hook in autorun_parts:
+                        reverse_plan.append(initializer)
+                        break
+            else:
+                target_path = Path(target_path)
+                # Only reverse for paths that are outside the root prefix
+                # since paths inside the root prefix will be deleted anyway
+                if not target_path.exists() or any(
+                    parent == root_prefix for parent in target_path.parents
+                ):
+                    continue
+                rc_content = target_path.read_text()
+                if shell == "powershell":
+                    pattern = CONDA_INITIALIZE_PS_RE_BLOCK
+                else:
+                    pattern = CONDA_INITIALIZE_RE_BLOCK
+                flags = re.MULTILINE
+                matches = re.findall(pattern, rc_content, flags=flags)
+                if not matches:
+                    continue
+                for prefix in prefixes:
+                    # Ignore .exe suffix to make the logic simpler
+                    sentinel_str = str(prefix / BIN_DIRECTORY / "conda")
+                    if shell != "powershell":
+                        sentinel_str = native_path_to_unix(sentinel_str)
+                        # Remove /cygdrive to make the path shell-independent
+                        if sentinel_str.startswith("/cygdrive"):
+                            sentinel_str = sentinel_str[9:]
+                    if any(sentinel_str in match for match in matches):
+                        reverse_plan.append(initializer)
+                        break
+    return reverse_plan
+
+
+def _uninstall_subcommand():
+    import argparse
+
+    p = argparse.ArgumentParser(
+        description="Uninstalls a conda directory and all environments inside."
+    )
+    p.add_argument(
+        "prefix",
+        help="Path to the conda directory to uninstall.",
+    )
+    p.add_argument(
+        "--remove-condarcs",
+        action="store_true",
+        required=False,
+        help=(
+            "Remove all .condarc files."
+            " If run with admin permissions, this will remove system .condarc files as well."
+            " Not recommended when multiple conda installations are on the system."
+        ),
+    )
+    p.add_argument(
+        "--remove-caches",
+        action="store_true",
+        required=False,
+        help=(
+            "Remove all cache directories created by conda."
+            " This includes the .conda directory inside HOME/USERPROFILE."
+            " Not recommended when multiple conda installations are on the system."
+        ),
+    )
+    p.add_argument(
+        "--clean",
+        action="store_true",
+        required=False,
+        help=(
+            "Run conda --clean --all to remove package caches outside the installation directory."
+            " This is only useful when pkgs_dirs is set in a .condarc file."
+            " Not recommended with multiple conda installations when softlinks are enabled."
+        ),
+    )
+
+    args, args_unknown = p.parse_known_args()
+
+    root_prefix = Path(args.prefix).expanduser().resolve()
+    if not (root_prefix / "conda-meta" / "history").exists():
+        raise OSError(f"{root_prefix} is not a valid conda environment")
+
+    import pdb
+    from shutil import rmtree
+
+    from conda.base.context import context
+    from conda.cli.main import main as conda_main
+    from conda.core.initialize import print_plan_results, run_plan, run_plan_elevated
+
+    def _remove_directory(directory: Path):
+        if not directory.exists():
+            return
+        if directory.is_symlink():
+            link = directory
+            directory = directory.resolve()
+            os.remove(link)
+        rmtree(directory)
+
+    print(f"Uninstalling conda installation in {root_prefix}...")
+    prefixes = [
+        file.parent.parent.resolve()
+        for file in root_prefix.glob("**/conda-meta/history")
+    ]
+    # Sort by path depth. This will place the root prefix first
+    # Since it is more likely that profiles contain the root prefix,
+    # this makes loops more efficient.
+    prefixes.sort(key=lambda x: len(x.parts))
+
+    # Run conda --init reverse for the shells
+    # that contain a prefix that is being uninstalled
+    anaconda_prompt = False
+    print("Running conda init --reverse...")
+    for for_user in (True, False):
+        # Run user and system reversal separately because user
+        # and system files may contain separate paths.
+        for_system = not for_user
+        anaconda_prompt = False
+        plan = _get_init_reverse_plan(
+            root_prefix, prefixes, for_user, for_system, anaconda_prompt
+        )
+        # Do not call conda.core.initialize() because it will always run make_install_plan.
+        # That function will search for activation scripts in sys.prefix, which do no exist
+        # in the extraction directory of conda-standalone.
+        run_plan(plan)
+        run_plan_elevated(plan)
+        print_plan_results(plan)
+
+    # Uninstalling environments must be performed with the deepest environment first.
+    # Otherwise, parent environments will delete the environment directory and
+    # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
+    print("Removing environments...")
+    for prefix in reversed(prefixes):
+        conda_main("remove", "-y", "-p", str(prefix), "--all", "-y")
+
+    if args.clean:
+        conda_main("clean", "--all", "-y")
+        # Delete empty package cache directories
+        for directory in context.pkgs_dirs:
+            pkgs_dir = Path(directory)
+            try:
+                next(pkgs_dir.iterdir())
+            except FileNotFoundError:
+                pass
+            except StopIteration:
+                _remove_directory(pkgs_dir)
+
+    if args.remove_condarcs:
+        print("Removing .condarc files...")
+        for config_file in context.config_files:
+            try:
+                os.remove(str(config_file))
+            except PermissionError:
+                pass
+
+    if args.remove_caches:
+        from conda.base.constants import APP_NAME
+        from conda.gateways.anaconda_client import _get_binstar_token_directory
+        from conda.notices.cache import get_notices_cache_dir
+        from platformdirs import user_cache_dir, user_data_dir
+
+        print("Removing config and cache directories...")
+        cache_data_directories = (
+            "~/.conda",
+            _get_binstar_token_directory(),
+            user_data_dir(APP_NAME),
+            user_cache_dir(APP_NAME),
+        )
+        for cache_data_directory in cache_data_directories:
+            directory = Path(cache_data_directory).expanduser()
+            try:
+                _remove_directory(directory)
+            except PermissionError:
+                pass
+
+    return 0
+
+
 def _conda_main():
     from conda.cli import main
 
@@ -306,6 +525,9 @@ def main():
             return _constructor_subcommand()
         elif sys.argv[1] == "python":
             return _python_subcommand()
+        elif sys.argv[1] == "uninstall":
+            del sys.argv[1]
+            return _uninstall_subcommand()
 
     return _conda_main()
 
