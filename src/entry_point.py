@@ -385,7 +385,8 @@ def _uninstall_subcommand():
         help=(
             "Remove all .condarc files."
             " If run with admin permissions, this will remove system .condarc files as well."
-            " Not recommended when multiple conda installations are on the system."
+            " Not recommended when multiple conda installations are on the system"
+            " or when running on an environments directory."
         ),
     )
     p.add_argument(
@@ -395,7 +396,8 @@ def _uninstall_subcommand():
         help=(
             "Remove all cache directories created by conda."
             " This includes the .conda directory inside HOME/USERPROFILE."
-            " Not recommended when multiple conda installations are on the system."
+            " Not recommended when multiple conda installations are on the system"
+            " or when running on an environments directory."
         ),
     )
     p.add_argument(
@@ -412,8 +414,13 @@ def _uninstall_subcommand():
     args, args_unknown = p.parse_known_args()
 
     root_prefix = Path(args.prefix).expanduser().resolve()
-    if not (root_prefix / "conda-meta" / "history").exists():
-        raise OSError(f"{root_prefix} is not a valid conda environment")
+    if (
+        not (root_prefix / "conda-meta" / "history").exists()
+        and not (root_prefix / ".conda_envs_dir_test").exists()
+    ):
+        raise OSError(
+            f"{root_prefix} is not a valid conda environment or environments directory."
+        )
 
     import pdb
     from shutil import rmtree
@@ -466,6 +473,14 @@ def _uninstall_subcommand():
     print("Removing environments...")
     for prefix in reversed(prefixes):
         conda_main("remove", "-y", "-p", str(prefix), "--all", "-y")
+    if root_prefix.exists():
+        delete_root_prefix = True
+        for file in root_prefix.iterdir():
+            if file.name != ".conda_envs_dir_test":
+                delete_root_prefix = False
+                break
+        if delete_root_prefix:
+            _remove_directory(root_prefix)
 
     if args.clean:
         conda_main("clean", "--all", "-y")
