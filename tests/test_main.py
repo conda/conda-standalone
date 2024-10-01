@@ -72,13 +72,13 @@ def test_constructor():
 @pytest.mark.parametrize("search_paths", ("all_rcs", "--no-rc", "env_var"))
 def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
     expected_configs = {}
-    if recipe_dir := os.environ.get("PYINSTALLER_CONDARC_DIR"):
-        recipe_condarc = Path(recipe_dir, ".condarc")
-        if recipe_condarc.exists():
+    if rc_dir := os.environ.get("PYINSTALLER_CONDARC_DIR"):
+        condarc = Path(rc_dir, ".condarc")
+        if condarc.exists():
             yaml = YAML()
-            with open(recipe_condarc) as crc:
-                recipe_config = YAML().load(crc)
-                expected_configs["recipe"] = recipe_config
+            with open(condarc) as crc:
+                config = YAML().load(crc)
+                expected_configs["standalone"] = config
 
     config_args = ["--show-sources", "--json"]
     if search_paths == "env_var":
@@ -108,7 +108,7 @@ def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
     condarcs = json.loads(proc.stdout)
 
     tmp_root = None
-    if recipe_dir:
+    if rc_dir:
         # Quick way to get the location conda-standalone is extracted into
         proc = run_conda(
             "python",
@@ -125,8 +125,8 @@ def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
     for filepath, config in condarcs.items():
         if Path(filepath).exists():
             conda_configs[filepath] = config
-        elif recipe_dir and filepath.startswith(tmp_root):
-            conda_configs["recipe"] = config
+        elif rc_dir and filepath.startswith(tmp_root):
+            conda_configs["standalone"] = config
     if search_paths == "all_rcs":
         # If the search path is restricted, there may be other .condarc
         # files in the final config, so be less strict with assertions
