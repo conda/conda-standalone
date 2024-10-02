@@ -431,14 +431,53 @@ def _uninstall_subcommand():
     from conda.cli.main import main as conda_main
     from conda.core.initialize import print_plan_results, run_plan, run_plan_elevated
 
-    def _remove_directory(directory: Path):
-        if not directory.exists():
-            return
-        if directory.is_symlink():
-            link = directory
-            directory = directory.resolve()
-            os.remove(link)
-        rmtree(directory)
+    def _remove_file_directory(file: Path):
+        """
+        Try to remove a file or directory.
+
+        If the file is a link, just unlink, do not remove the target.
+        """
+        try:
+            if not file.exists():
+                return
+            if file.is_symlink() or file.is_file():
+                file.unlink()
+            elif file.is_dir():
+                rmtree(file)
+        except PermissionError:
+            pass
+
+    def _remove_config_file_and_parents(file: Path):
+        """
+        Remove a configuration file and empty parent directories.
+
+        Only remove the configuration files created by conda.
+        For that reason, search only for specific subdirectories
+        and search backwards to be conservative about what is deleted.
+        """
+        try:
+            _remove_file_directory(file)
+            rootdir = None
+            parts_inverse = list(reversed(file.parts))
+            for config_dir in (".config", ".conda", "conda", "xonsh"):
+                try:
+                    root_index = parts_inverse.index(config_dir) + 1
+                    rootdir = Path(*file.parts[:-root_index]).resolve()
+                    break
+                except ValueError:
+                    pass
+            if not rootdir:
+                return
+            directory = file.resolve().parent
+            while directory != rootdir:
+                try:
+                    next(directory.iterdir())
+                    return
+                except StopIteration:
+                    _remove_file_directory(directory)
+                    directory = directory.resolve().parent
+        except PermissionError:
+            pass
 
     print(f"Uninstalling conda installation in {root_prefix}...")
     prefixes = [
@@ -470,6 +509,10 @@ def _uninstall_subcommand():
         run_plan(plan)
         run_plan_elevated(plan)
         print_plan_results(plan)
+        for initializer in plan:
+            target_path = Path(initializer["kwargs"]["target_path"])
+            if target_path.exists() and not target_path.read_text().strip():
+                _remove_config_file_and_parents(target_path)
 
     # Uninstalling environments must be performed with the deepest environment first.
     # Otherwise, parent environments will delete the environment directory and
@@ -484,7 +527,7 @@ def _uninstall_subcommand():
                 delete_root_prefix = False
                 break
         if delete_root_prefix:
-            _remove_directory(root_prefix)
+            _remove_file_directory(root_prefix)
 
     if args.clean:
         conda_main("clean", "--all", "-y")
@@ -496,23 +539,20 @@ def _uninstall_subcommand():
             except FileNotFoundError:
                 pass
             except StopIteration:
-                _remove_directory(pkgs_dir)
+                _remove_file_directory(pkgs_dir)
 
     if args.remove_condarcs:
         print("Removing .condarc files...")
         for config_file in context.config_files:
-            try:
-                if args.remove_condarcs == "user" and not _is_subdir(
-                    config_file.parent, homedir
-                ):
-                    continue
-                elif args.remove_condarcs == "system" and _is_subdir(
-                    config_file.parent, homedir
-                ):
-                    continue
-                os.remove(str(config_file))
-            except PermissionError:
-                pass
+            if args.remove_condarcs == "user" and not _is_subdir(
+                config_file.parent, homedir
+            ):
+                continue
+            elif args.remove_condarcs == "system" and _is_subdir(
+                config_file.parent, homedir
+            ):
+                continue
+            _remove_config_file_and_parents(config_file)
 
     if args.remove_caches:
         from conda.base.constants import APP_NAME
@@ -529,10 +569,7 @@ def _uninstall_subcommand():
         )
         for cache_data_directory in cache_data_directories:
             directory = Path(cache_data_directory).expanduser()
-            try:
-                _remove_directory(directory)
-            except PermissionError:
-                pass
+            _remove_file_directory(directory)
 
     return 0
 
