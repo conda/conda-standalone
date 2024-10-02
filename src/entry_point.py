@@ -403,7 +403,7 @@ def _uninstall_subcommand():
         ),
     )
     p.add_argument(
-        "--clean",
+        "--conda-clean",
         action="store_true",
         required=False,
         help=(
@@ -529,7 +529,7 @@ def _uninstall_subcommand():
         if delete_root_prefix:
             _remove_file_directory(root_prefix)
 
-    if args.clean:
+    if args.conda_clean:
         conda_main("clean", "--all", "-y")
         # Delete empty package cache directories
         for directory in context.pkgs_dirs:
