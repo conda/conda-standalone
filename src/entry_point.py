@@ -292,6 +292,10 @@ def _python_subcommand():
     return 1
 
 
+def _is_subdir(directory: Path, root: Path) -> bool:
+    return any(root == parent for parent in directory.parents)
+
+
 def _get_init_reverse_plan(
     root_prefix,
     prefixes: List[Path],
@@ -341,9 +345,7 @@ def _get_init_reverse_plan(
                 target_path = Path(target_path)
                 # Only reverse for paths that are outside the root prefix
                 # since paths inside the root prefix will be deleted anyway
-                if not target_path.exists() or any(
-                    parent == root_prefix for parent in target_path.parents
-                ):
+                if not target_path.exists() or _is_subdir(target_path, root_prefix):
                     continue
                 rc_content = target_path.read_text()
                 if shell == "powershell":
