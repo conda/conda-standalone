@@ -293,6 +293,11 @@ def _python_subcommand():
 
 
 def _is_subdir(directory: Path, root: Path) -> bool:
+    """
+    Helper function to detect whether a directory is a subdirectory.
+
+    Rely on Path objects rather than string comparison to be portable.
+    """
     return directory == root or any(root == parent for parent in directory.parents)
 
 
@@ -303,6 +308,13 @@ def _get_init_reverse_plan(
     for_system: bool,
     anaconda_prompt: bool,
 ) -> List[dict]:
+    """
+    Prepare conda init --reverse runs for the uninstallation.
+
+    Only grab the shells that were initialized by the prefix that
+    is to be uninstalled since the shells within the prefix are
+    removed later.
+    """
     import re
 
     from conda.activate import native_path_to_unix
@@ -371,6 +383,12 @@ def _get_init_reverse_plan(
 
 
 def _uninstall_subcommand():
+    """
+    Remove a conda prefix or a directory containing conda environments.
+
+    This command also provides options to remove various cache and configuration
+    files to fully remove a conda installation.
+    """
     import argparse
 
     p = argparse.ArgumentParser(
