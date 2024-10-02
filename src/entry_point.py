@@ -293,7 +293,7 @@ def _python_subcommand():
 
 
 def _is_subdir(directory: Path, root: Path) -> bool:
-    return any(root == parent for parent in directory.parents)
+    return directory == root or any(root == parent for parent in directory.parents)
 
 
 def _get_init_reverse_plan(
@@ -382,11 +382,11 @@ def _uninstall_subcommand():
     )
     p.add_argument(
         "--remove-condarcs",
-        action="store_true",
+        choices=["user", "system", "all"],
+        default=None,
         required=False,
         help=(
             "Remove all .condarc files."
-            " If run with admin permissions, this will remove system .condarc files as well."
             " Not recommended when multiple conda installations are on the system"
             " or when running on an environments directory."
         ),
@@ -450,6 +450,8 @@ def _uninstall_subcommand():
     # this makes loops more efficient.
     prefixes.sort(key=lambda x: len(x.parts))
 
+    homedir = Path("~").expanduser()
+
     # Run conda --init reverse for the shells
     # that contain a prefix that is being uninstalled
     anaconda_prompt = False
@@ -463,7 +465,7 @@ def _uninstall_subcommand():
             root_prefix, prefixes, for_user, for_system, anaconda_prompt
         )
         # Do not call conda.core.initialize() because it will always run make_install_plan.
-        # That function will search for activation scripts in sys.prefix, which do no exist
+        # That function will search for activation scripts in sys.prefix which do no exist
         # in the extraction directory of conda-standalone.
         run_plan(plan)
         run_plan_elevated(plan)
@@ -500,6 +502,14 @@ def _uninstall_subcommand():
         print("Removing .condarc files...")
         for config_file in context.config_files:
             try:
+                if args.remove_condarcs == "user" and not _is_subdir(
+                    config_file.parent, homedir
+                ):
+                    continue
+                elif args.remove_condarcs == "system" and _is_subdir(
+                    config_file.parent, homedir
+                ):
+                    continue
                 os.remove(str(config_file))
             except PermissionError:
                 pass
