@@ -1,0 +1,20 @@
+### Enhancements
+
+* Configure conda-standalone binaries with .condarc files. (#97 via #99)
+* Add environment variable `CONDA_RESTRICT_RC_SEARCH_PATH` and CLI option `--no-rc` to only load `.condarc` file delivered by `conda-standalone` bundle or `CONDARC` environment variable. (#99)
+
+### Bug fixes
+
+* <news item>
+
+### Deprecations
+
+* <news item>
+
+### Docs
+
+* <news item>
+
+### Other
+
+* <news item>

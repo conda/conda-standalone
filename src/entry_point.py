@@ -18,6 +18,9 @@ if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
     # See https://github.com/conda/conda-standalone/issues/86
     del os.environ["SSLKEYLOGFILE"]
 
+if "CONDARC" not in os.environ:
+    os.environ["CONDARC"] = os.path.join(sys.prefix, ".condarc")
+
 
 def _create_dummy_executor(*args, **kwargs):
     "use this for debugging, because ProcessPoolExecutor isn't pdb/ipdb friendly"
@@ -295,6 +298,12 @@ def _conda_main():
     from conda.cli import main
 
     _fix_sys_path()
+    try:
+        no_rc = sys.argv.index("--no-rc")
+        os.environ["CONDA_RESTRICT_RC_SEARCH_PATH"] = "1"
+        del sys.argv[no_rc]
+    except ValueError:
+        pass
     return main()
 
 
