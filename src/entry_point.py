@@ -342,10 +342,10 @@ def _get_init_reverse_plan(
         )
         for initializer in plan:
             target_path = initializer["kwargs"]["target_path"]
-            if shell == "cmd.exe":
+            if target_path.startswith("HKEY"):
                 # target_path for cmd.exe is a registry path
                 reg_entry, _ = _read_windows_registry(target_path)
-                if reg_entry is None:
+                if not isinstance(reg_entry, str):
                     continue
                 autorun_parts = reg_entry.split("&")
                 for prefix in prefixes:
