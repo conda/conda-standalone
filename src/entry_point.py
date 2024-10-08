@@ -350,7 +350,7 @@ def _get_init_reverse_plan(
                 autorun_parts = reg_entry.split("&")
                 for prefix in prefixes:
                     hook = str(prefix / "condabin" / "conda_hook.bat")
-                    if hook in autorun_parts:
+                    if any(hook in part for part in autorun_parts):
                         reverse_plan.append(initializer)
                         break
             else:
@@ -527,10 +527,12 @@ def _uninstall_subcommand():
         # That function will search for activation scripts in sys.prefix which do no exist
         # in the extraction directory of conda-standalone.
         run_plan(plan)
-        run_plan_elevated(plan)
         print_plan_results(plan)
         for initializer in plan:
-            target_path = Path(initializer["kwargs"]["target_path"])
+            target_path = initializer["kwargs"]["target_path"]
+            if target_path.startswith("HKEY"):
+                continue
+            target_path = Path(target_path)
             if target_path.exists() and not target_path.read_text().strip():
                 _remove_config_file_and_parents(target_path)
 
