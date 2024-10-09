@@ -538,6 +538,10 @@ def _uninstall_subcommand():
     # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
     print("Removing environments...")
     for prefix in reversed(prefixes):
+        # menuinst must be run separately because conda remove --all does not remove all shortcut.
+        # This is because some placeholders depend on conda's context.root_prefix, which is set to
+        # the extraction directory of conda-standalone.
+        _constructor_menuinst(str(prefix), root_prefix=str(root_prefix), remove=True)
         conda_main("remove", "-y", "-p", str(prefix), "--all")
     if root_prefix.exists():
         delete_root_prefix = True
