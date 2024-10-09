@@ -435,14 +435,11 @@ def _uninstall_subcommand():
 
     args, args_unknown = p.parse_known_args()
 
+    from conda.base.constants import PREFIX_MAGIC_FILE
+
     root_prefix = Path(args.prefix).expanduser().resolve()
-    if (
-        not (root_prefix / "conda-meta" / "history").exists()
-        and not (root_prefix / ".conda_envs_dir_test").exists()
-    ):
-        raise OSError(
-            f"{root_prefix} is not a valid conda environment or environments directory."
-        )
+    if not (root_prefix / PREFIX_MAGIC_FILE).exists():
+        raise OSError(f"{root_prefix} is not a valid conda environment.")
 
     import pdb
     from shutil import rmtree
@@ -502,7 +499,7 @@ def _uninstall_subcommand():
     print(f"Uninstalling conda installation in {root_prefix}...")
     prefixes = [
         file.parent.parent.resolve()
-        for file in root_prefix.glob("**/conda-meta/history")
+        for file in root_prefix.glob(f"**/{PREFIX_MAGIC_FILE}")
     ]
     # Sort by path depth. This will place the root prefix first
     # Since it is more likely that profiles contain the root prefix,
@@ -541,11 +538,11 @@ def _uninstall_subcommand():
     # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
     print("Removing environments...")
     for prefix in reversed(prefixes):
-        conda_main("remove", "-y", "-p", str(prefix), "--all", "-y")
+        conda_main("remove", "-y", "-p", str(prefix), "--all")
     if root_prefix.exists():
         delete_root_prefix = True
         for file in root_prefix.iterdir():
-            if file.name != ".conda_envs_dir_test":
+            if not file.name.suffix == ".conda_trash":
                 delete_root_prefix = False
                 break
         if delete_root_prefix:
