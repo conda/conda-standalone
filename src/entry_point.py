@@ -437,9 +437,16 @@ def _uninstall_subcommand():
 
     from conda.base.constants import PREFIX_MAGIC_FILE
 
+    ENVS_DIR_MAGIC_FILE = ".conda_envs_dir_test"
+
     root_prefix = Path(args.prefix).expanduser().resolve()
-    if not (root_prefix / PREFIX_MAGIC_FILE).exists():
-        raise OSError(f"{root_prefix} is not a valid conda environment.")
+    if (
+        not (root_prefix / PREFIX_MAGIC_FILE).exists()
+        and not (root_prefix / ENVS_DIR_MAGIC_FILE).exists()
+    ):
+        raise OSError(
+            f"{root_prefix} is not a valid conda environment or environments directory."
+        )
 
     import pdb
     from shutil import rmtree
@@ -536,17 +543,28 @@ def _uninstall_subcommand():
     # Uninstalling environments must be performed with the deepest environment first.
     # Otherwise, parent environments will delete the environment directory and
     # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
+    # menuinst must be run separately because conda remove --all does not remove all shortcut.
+    # This is because some placeholders depend on conda's context.root_prefix, which is set to
+    # the extraction directory of conda-standalone.
     print("Removing environments...")
+    if (root_prefix / ENVS_DIR_MAGIC_FILE).exists():
+        # If the uninstaller is pointed towards an environments directory,
+        # the root prefix is unknown, so assume that conda-standalone is
+        # inside the root prefix.
+        menuinst_root_prefix = str(Path(sys.executable).parent)
+    else:
+        menuinst_root_prefix = str(root_prefix)
     for prefix in reversed(prefixes):
-        # menuinst must be run separately because conda remove --all does not remove all shortcut.
-        # This is because some placeholders depend on conda's context.root_prefix, which is set to
-        # the extraction directory of conda-standalone.
-        _constructor_menuinst(str(prefix), root_prefix=str(root_prefix), remove=True)
-        conda_main("remove", "-y", "-p", str(prefix), "--all")
+        prefix_str = str(prefix)
+        _constructor_menuinst(prefix_str, root_prefix=menuinst_root_prefix, remove=True)
+        conda_main("remove", "-y", "-p", prefix_str, "--all")
     if root_prefix.exists():
         delete_root_prefix = True
         for file in root_prefix.iterdir():
-            if not file.name.suffix == ".conda_trash":
+            if (
+                not file.suffix == ".conda_trash"
+                and not file.name == ENVS_DIR_MAGIC_FILE
+            ):
                 delete_root_prefix = False
                 break
         if delete_root_prefix:
