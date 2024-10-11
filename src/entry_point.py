@@ -302,7 +302,7 @@ def _is_subdir(directory: Path, root: Path) -> bool:
 
 
 def _get_init_reverse_plan(
-    root_prefix,
+    uninstall_prefix,
     prefixes: List[Path],
     for_user: bool,
     for_system: bool,
@@ -333,7 +333,7 @@ def _get_init_reverse_plan(
         # Make plan for each shell individually because
         # not every plan includes the shell name
         plan = make_initialize_plan(
-            root_prefix,
+            uninstall_prefix,
             [shell],
             for_user,
             for_system,
@@ -355,9 +355,11 @@ def _get_init_reverse_plan(
                         break
             else:
                 target_path = Path(target_path)
-                # Only reverse for paths that are outside the root prefix
-                # since paths inside the root prefix will be deleted anyway
-                if not target_path.exists() or _is_subdir(target_path, root_prefix):
+                # Only reverse for paths that are outside the uninstall prefix
+                # since paths inside the uninstall prefix will be deleted anyway
+                if not target_path.exists() or _is_subdir(
+                    target_path, uninstall_prefix
+                ):
                     continue
                 rc_content = target_path.read_text()
                 if shell == "powershell":
@@ -439,16 +441,15 @@ def _uninstall_subcommand():
 
     ENVS_DIR_MAGIC_FILE = ".conda_envs_dir_test"
 
-    root_prefix = Path(args.prefix).expanduser().resolve()
+    uninstall_prefix = Path(args.prefix).expanduser().resolve()
     if (
-        not (root_prefix / PREFIX_MAGIC_FILE).exists()
-        and not (root_prefix / ENVS_DIR_MAGIC_FILE).exists()
+        not (uninstall_prefix / PREFIX_MAGIC_FILE).exists()
+        and not (uninstall_prefix / ENVS_DIR_MAGIC_FILE).exists()
     ):
         raise OSError(
-            f"{root_prefix} is not a valid conda environment or environments directory."
+            f"{uninstall_prefix} is not a valid conda environment or environments directory."
         )
 
-    import pdb
     from shutil import rmtree
 
     from conda.base.context import context
@@ -503,10 +504,10 @@ def _uninstall_subcommand():
         except PermissionError:
             pass
 
-    print(f"Uninstalling conda installation in {root_prefix}...")
+    print(f"Uninstalling conda installation in {uninstall_prefix}...")
     prefixes = [
         file.parent.parent.resolve()
-        for file in root_prefix.glob(f"**/{PREFIX_MAGIC_FILE}")
+        for file in uninstall_prefix.glob(f"**/{PREFIX_MAGIC_FILE}")
     ]
     # Sort by path depth. This will place the root prefix first
     # Since it is more likely that profiles contain the root prefix,
@@ -525,7 +526,7 @@ def _uninstall_subcommand():
         for_system = not for_user
         anaconda_prompt = False
         plan = _get_init_reverse_plan(
-            root_prefix, prefixes, for_user, for_system, anaconda_prompt
+            uninstall_prefix, prefixes, for_user, for_system, anaconda_prompt
         )
         # Do not call conda.core.initialize() because it will always run make_install_plan.
         # That function will search for activation scripts in sys.prefix which do no exist
@@ -540,35 +541,47 @@ def _uninstall_subcommand():
             if target_path.exists() and not target_path.read_text().strip():
                 _remove_config_file_and_parents(target_path)
 
+    # menuinst must be run separately because conda remove --all does not remove all shortcut.
+    # This is because some placeholders depend on conda's context.root_prefix, which is set to
+    # the extraction directory of conda-standalone. The base prefix must be determined separately
+    # since the uninstallation may be pointed to an environments directory or an extra environment
+    # outside of the uninstall prefix.
+    menuinst_base_prefix = None
+    if conda_root_prefix := os.environ.get("MENUINST_BASE_PREFIX"):
+        menuinst_base_prefix = Path(conda_root_prefix)
+    # If not set by the user, assume that conda-standalone is in the base environment.
+    if not menuinst_base_prefix:
+        standalone_path = Path(sys.executable).parent
+        if (standalone_path / PREFIX_MAGIC_FILE).exists():
+            menuinst_base_prefix = standalone_path
+    # Fallback: use the uninstallation directory as root_prefix
+    if not menuinst_base_prefix:
+        menuinst_base_prefix = uninstall_prefix
+    menuinst_base_prefix = str(menuinst_base_prefix)
+
+    print("Removing environments...")
     # Uninstalling environments must be performed with the deepest environment first.
     # Otherwise, parent environments will delete the environment directory and
     # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
-    # menuinst must be run separately because conda remove --all does not remove all shortcut.
-    # This is because some placeholders depend on conda's context.root_prefix, which is set to
-    # the extraction directory of conda-standalone.
-    print("Removing environments...")
-    if (root_prefix / ENVS_DIR_MAGIC_FILE).exists():
-        # If the uninstaller is pointed towards an environments directory,
-        # the root prefix is unknown, so assume that conda-standalone is
-        # inside the root prefix.
-        menuinst_root_prefix = str(Path(sys.executable).parent)
-    else:
-        menuinst_root_prefix = str(root_prefix)
     for prefix in reversed(prefixes):
         prefix_str = str(prefix)
-        _constructor_menuinst(prefix_str, root_prefix=menuinst_root_prefix, remove=True)
+        _constructor_menuinst(prefix_str, root_prefix=menuinst_base_prefix, remove=True)
         conda_main("remove", "-y", "-p", prefix_str, "--all")
-    if root_prefix.exists():
-        delete_root_prefix = True
-        for file in root_prefix.iterdir():
-            if (
-                not file.suffix == ".conda_trash"
-                and not file.name == ENVS_DIR_MAGIC_FILE
-            ):
-                delete_root_prefix = False
+
+    if uninstall_prefix.exists():
+        # If the uninstall prefix is an environments directory,
+        # it should only contain the magic file.
+        # On Windows, the directory might still exist if conda-standalone
+        # tries to delete itself (it gets renamed to a .conda_trash file).
+        # In that case, the directory cannot be deleted - this needs to be
+        # done by the uninstaller.
+        delete_uninstall_prefix = True
+        for file in uninstall_prefix.iterdir():
+            if not file.name == ENVS_DIR_MAGIC_FILE:
+                delete_uninstall_prefix = False
                 break
-        if delete_root_prefix:
-            _remove_file_directory(root_prefix)
+        if delete_uninstall_prefix:
+            _remove_file_directory(uninstall_prefix)
 
     if args.conda_clean:
         conda_main("clean", "--all", "-y")
