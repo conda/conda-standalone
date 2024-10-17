@@ -452,7 +452,7 @@ def _uninstall_subcommand():
 
     from shutil import rmtree
 
-    from conda.base.context import context
+    from conda.base.context import context, reset_context
     from conda.cli.main import main as conda_main
     from conda.core.initialize import print_plan_results, run_plan, run_plan_elevated
 
@@ -541,14 +541,15 @@ def _uninstall_subcommand():
             if target_path.exists() and not target_path.read_text().strip():
                 _remove_config_file_and_parents(target_path)
 
-    # menuinst must be run separately because conda remove --all does not remove all shortcut.
+    # menuinst must be run separately because conda remove --all does not remove all shortcuts.
     # This is because some placeholders depend on conda's context.root_prefix, which is set to
     # the extraction directory of conda-standalone. The base prefix must be determined separately
     # since the uninstallation may be pointed to an environments directory or an extra environment
     # outside of the uninstall prefix.
     menuinst_base_prefix = None
-    if conda_root_prefix := os.environ.get("MENUINST_BASE_PREFIX"):
-        menuinst_base_prefix = Path(conda_root_prefix)
+    if conda_root_prefix := os.environ.get("CONDA_ROOT_PREFIX"):
+        conda_root_prefix = Path(conda_root_prefix).resolve()
+        menuinst_base_prefix = conda_root_prefix
     # If not set by the user, assume that conda-standalone is in the base environment.
     if not menuinst_base_prefix:
         standalone_path = Path(sys.executable).parent
@@ -566,7 +567,15 @@ def _uninstall_subcommand():
     for prefix in reversed(prefixes):
         prefix_str = str(prefix)
         _constructor_menuinst(prefix_str, root_prefix=menuinst_base_prefix, remove=True)
+        # If conda_root_prefix is the same as prefix, conda remove will not be able
+        # to remove that environment, so temporarily unset it.
+        if conda_root_prefix and conda_root_prefix == prefix:
+            del os.environ["CONDA_ROOT_PREFIX"]
+            reset_context()
         conda_main("remove", "-y", "-p", prefix_str, "--all")
+        if conda_root_prefix and conda_root_prefix == prefix:
+            os.environ["CONDA_ROOT_PREFIX"] = str(conda_root_prefix)
+            reset_context()
 
     if uninstall_prefix.exists():
         # If the uninstall prefix is an environments directory,
