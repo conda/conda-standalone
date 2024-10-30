@@ -25,9 +25,6 @@ Remember to update the hyperlinks at the bottom.
 
 * @jaimergp
 * @marcoesters
-* @conda-bot
-* @dependabot[bot]
-* @pre-commit-ci[bot]
 
 
 
