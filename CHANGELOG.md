@@ -18,7 +18,7 @@ Remember to update the hyperlinks at the bottom.
 ### Enhancements
 
 * Bump to conda 24.9.2, python 3.12.7, conda-libmamba-version 24.9.0, constructor 3.9.3, libmambapy 1.5.10. (#107)
-* Configure conda-standalone binaries with .condarc files. (#97 via #99)
+* Configure conda-standalone binaries with `.condarc` files. (#97 via #99)
 * Add environment variable `CONDA_RESTRICT_RC_SEARCH_PATH` and CLI option `--no-rc` to only load `.condarc` file delivered by `conda-standalone` bundle or `CONDARC` environment variable. (#99)
 
 ### Contributors
