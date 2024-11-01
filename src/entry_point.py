@@ -517,8 +517,6 @@ def _uninstall_subcommand():
     # this makes loops more efficient.
     prefixes.sort(key=lambda x: len(x.parts))
 
-    homedir = Path("~").expanduser()
-
     # Run conda --init reverse for the shells
     # that contain a prefix that is being uninstalled
     anaconda_prompt = False
@@ -550,7 +548,7 @@ def _uninstall_subcommand():
     # since the uninstallation may be pointed to an environments directory or an extra environment
     # outside of the uninstall prefix.
     menuinst_base_prefix = None
-    if conda_root_prefix := os.environ.get("MENUINST_BASE_PREFIX"):
+    if conda_root_prefix := os.environ.get("CONDA_ROOT_PREFIX"):
         menuinst_base_prefix = Path(conda_root_prefix)
     # If not set by the user, assume that conda-standalone is in the base environment.
     if not menuinst_base_prefix:
@@ -602,11 +600,11 @@ def _uninstall_subcommand():
         print("Removing .condarc files...")
         for config_file in context.config_files:
             if args.remove_condarcs == "user" and not _is_subdir(
-                config_file.parent, homedir
+                config_file.parent, Path.home()
             ):
                 continue
             elif args.remove_condarcs == "system" and _is_subdir(
-                config_file.parent, homedir
+                config_file.parent, Path.home()
             ):
                 continue
             _remove_config_file_and_parents(config_file)
@@ -621,8 +619,9 @@ def _uninstall_subcommand():
         cache_data_directories = (
             "~/.conda",
             _get_binstar_token_directory(),
-            user_data_dir(APP_NAME),
+            get_notices_cache_dir(),
             user_cache_dir(APP_NAME),
+            user_data_dir(APP_NAME),
         )
         for cache_data_directory in cache_data_directories:
             directory = Path(cache_data_directory).expanduser()
