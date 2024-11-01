@@ -1,9 +1,9 @@
-{% set conda_version = "24.7.1" %}
-{% set conda_libmamba_solver_version = "24.7.0" %}
-{% set libmambapy_version = "1.5.8" %}
-{% set constructor_version = "3.9.2" %}
+{% set conda_version = "24.9.2" %}
+{% set conda_libmamba_solver_version = "24.9.0" %}
+{% set libmambapy_version = "1.5.10" %}
+{% set constructor_version = "3.9.3" %}
 {% set menuinst_lower_bound = "2.1.2" %}
-{% set python_version = "3.11.9" %}
+{% set python_version = "3.12.7" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
 package:
@@ -14,14 +14,15 @@ source:
   - path: ../
 
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 8590451bc4527ec6a2ca48242c940f2e6d5ea60972702d5671ac2299fab63e6f
+    sha256: 7323ed0ae876f9d86f04c61ae01f53095adc570df27d9c375266df2745d51b8b
     folder: conda_src
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
+      - ../src/conda_patches/0003-Restrict-search-paths.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: 0ea4f6d563a53ebb03475dc6d2d88d3ab01be4e9d291fd276c79315aa92e5114  # [win]
+    sha256: c88640ca1dcb93784cf754a16c53a098633808653aa52965c909a967b84815b9  # [win]
     folder: constructor_src  # [win]
 
 build:
@@ -29,6 +30,8 @@ build:
   string: "g{{ GIT_FULL_HASH[:7] }}_py{{ pyver }}_{{ PKG_BUILDNUM }}"
   ignore_run_exports:
     - '*'
+  script_env:
+    - PYINSTALLER_CONDARC_DIR={{ RECIPE_DIR }}
 
 requirements:
   build:
@@ -48,6 +51,7 @@ test:
   requires:
     - pytest
     - menuinst >={{ menuinst_lower_bound }}
+    - ruamel.yaml
   source_files:
     - tests
   commands:

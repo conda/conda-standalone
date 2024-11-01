@@ -1,2 +1,3 @@
 pytest
 menuinst>=2
+ruamel.yaml
