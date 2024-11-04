@@ -320,9 +320,9 @@ def _get_init_reverse_plan(
     """
     import re
 
-    from conda.activate import native_path_to_unix
     from conda.base.constants import COMPATIBLE_SHELLS
     from conda.common.compat import on_win
+    from conda.common.path import win_path_to_unix
     from conda.core.initialize import (
         CONDA_INITIALIZE_PS_RE_BLOCK,
         CONDA_INITIALIZE_RE_BLOCK,
@@ -377,7 +377,7 @@ def _get_init_reverse_plan(
                     # Ignore .exe suffix to make the logic simpler
                     sentinel_str = str(prefix / BIN_DIRECTORY / "conda")
                     if shell != "powershell":
-                        sentinel_str = native_path_to_unix(sentinel_str)
+                        sentinel_str = win_path_to_unix(sentinel_str)
                         # Remove /cygdrive to make the path shell-independent
                         if sentinel_str.startswith("/cygdrive"):
                             sentinel_str = sentinel_str[9:]
