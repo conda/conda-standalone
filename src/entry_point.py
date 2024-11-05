@@ -438,7 +438,7 @@ def _uninstall_subcommand():
         ),
     )
 
-    args, args_unknown = p.parse_known_args()
+    args, _ = p.parse_known_args()
 
     from conda.base.constants import PREFIX_MAGIC_FILE
 
@@ -457,7 +457,7 @@ def _uninstall_subcommand():
 
     from conda.base.context import context
     from conda.cli.main import main as conda_main
-    from conda.core.initialize import print_plan_results, run_plan, run_plan_elevated
+    from conda.core.initialize import print_plan_results, run_plan
 
     def _remove_file_directory(file: Path):
         """
@@ -475,6 +475,15 @@ def _uninstall_subcommand():
         except PermissionError:
             pass
 
+    def _remove_file_and_parents(file: Path):
+        if not file.exists():
+            return
+        _remove_file_directory(file)
+        parent = file.parent
+        while parent.is_dir() and not next(parent.iterdir(), None):
+            _remove_file_directory(parent)
+            parent = parent.parent
+
     def _remove_config_file_and_parents(file: Path):
         """
         Remove a configuration file and empty parent directories.
@@ -483,6 +492,8 @@ def _uninstall_subcommand():
         For that reason, search only for specific subdirectories
         and search backwards to be conservative about what is deleted.
         """
+        if not file.exists():
+            return
         try:
             _remove_file_directory(file)
             rootdir = None
@@ -494,16 +505,12 @@ def _uninstall_subcommand():
                     break
                 except ValueError:
                     pass
-            if not rootdir:
+            if not rootdir or not rootdir.exists():
                 return
             directory = file.resolve().parent
-            while directory != rootdir:
-                try:
-                    next(directory.iterdir())
-                    return
-                except StopIteration:
-                    _remove_file_directory(directory)
-                    directory = directory.resolve().parent
+            while directory != rootdir and not next(directory.iterdir(), None):
+                _remove_file_directory(directory)
+                directory = directory.resolve().parent
         except PermissionError:
             pass
 
@@ -589,11 +596,8 @@ def _uninstall_subcommand():
         # Delete empty package cache directories
         for directory in context.pkgs_dirs:
             pkgs_dir = Path(directory)
-            try:
-                next(pkgs_dir.iterdir())
-            except FileNotFoundError:
-                pass
-            except StopIteration:
+            _remove_file_and_parents(pkgs_dir)
+            if pkgs_dir.is_dir() and not next(pkgs_dir.iterdir(), None):
                 _remove_file_directory(pkgs_dir)
 
     if args.remove_condarcs:
@@ -610,22 +614,19 @@ def _uninstall_subcommand():
             _remove_config_file_and_parents(config_file)
 
     if args.remove_caches:
-        from conda.base.constants import APP_NAME
         from conda.gateways.anaconda_client import _get_binstar_token_directory
         from conda.notices.cache import get_notices_cache_dir
-        from platformdirs import user_cache_dir, user_data_dir
 
         print("Removing config and cache directories...")
+        _remove_file_directory(Path("~/.conda").expanduser())
+
+        # For data and cache directories, also remove empty parents
         cache_data_directories = (
-            "~/.conda",
             _get_binstar_token_directory(),
             get_notices_cache_dir(),
-            user_cache_dir(APP_NAME),
-            user_data_dir(APP_NAME),
         )
         for cache_data_directory in cache_data_directories:
-            directory = Path(cache_data_directory).expanduser()
-            _remove_file_directory(directory)
+            _remove_file_and_parents(Path(cache_data_directory).expanduser())
 
     return 0
 
