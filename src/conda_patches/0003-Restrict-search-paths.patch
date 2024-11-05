@@ -1,0 +1,91 @@
+diff --git a/conda/base/constants.py b/conda/base/constants.py
+index d38502a48..b56724933 100644
+--- a/conda/base/constants.py
++++ b/conda/base/constants.py
+@@ -10,6 +10,7 @@ Another important source of "static" configuration is conda/models/enums.py.
+ 
+ import struct
+ from enum import Enum, EnumMeta
++from os import environ
+ from os.path import join
+ 
+ from ..common.compat import on_win
+@@ -25,42 +26,47 @@ machine_bits = 8 * struct.calcsize("P")
+ 
+ APP_NAME = "conda"
+ 
+-if on_win:  # pragma: no cover
++if "CONDA_RESTRICT_RC_SEARCH_PATH" in environ:
+     SEARCH_PATH = (
+-        "C:/ProgramData/conda/.condarc",
+-        "C:/ProgramData/conda/condarc",
+-        "C:/ProgramData/conda/condarc.d",
++        "$CONDARC",
+     )
+ else:
+-    SEARCH_PATH = (
+-        "/etc/conda/.condarc",
+-        "/etc/conda/condarc",
+-        "/etc/conda/condarc.d/",
+-        "/var/lib/conda/.condarc",
+-        "/var/lib/conda/condarc",
+-        "/var/lib/conda/condarc.d/",
++    if on_win:  # pragma: no cover
++        SEARCH_PATH = (
++            "C:/ProgramData/conda/.condarc",
++            "C:/ProgramData/conda/condarc",
++            "C:/ProgramData/conda/condarc.d",
++        )
++    else:
++        SEARCH_PATH = (
++            "/etc/conda/.condarc",
++            "/etc/conda/condarc",
++            "/etc/conda/condarc.d/",
++            "/var/lib/conda/.condarc",
++            "/var/lib/conda/condarc",
++            "/var/lib/conda/condarc.d/",
++        )
++
++    SEARCH_PATH += (
++        "$CONDA_ROOT/.condarc",
++        "$CONDA_ROOT/condarc",
++        "$CONDA_ROOT/condarc.d/",
++        "$XDG_CONFIG_HOME/conda/.condarc",
++        "$XDG_CONFIG_HOME/conda/condarc",
++        "$XDG_CONFIG_HOME/conda/condarc.d/",
++        "~/.config/conda/.condarc",
++        "~/.config/conda/condarc",
++        "~/.config/conda/condarc.d/",
++        "~/.conda/.condarc",
++        "~/.conda/condarc",
++        "~/.conda/condarc.d/",
++        "~/.condarc",
++        "$CONDA_PREFIX/.condarc",
++        "$CONDA_PREFIX/condarc",
++        "$CONDA_PREFIX/condarc.d/",
++        "$CONDARC",
+     )
+ 
+-SEARCH_PATH += (
+-    "$CONDA_ROOT/.condarc",
+-    "$CONDA_ROOT/condarc",
+-    "$CONDA_ROOT/condarc.d/",
+-    "$XDG_CONFIG_HOME/conda/.condarc",
+-    "$XDG_CONFIG_HOME/conda/condarc",
+-    "$XDG_CONFIG_HOME/conda/condarc.d/",
+-    "~/.config/conda/.condarc",
+-    "~/.config/conda/condarc",
+-    "~/.config/conda/condarc.d/",
+-    "~/.conda/.condarc",
+-    "~/.conda/condarc",
+-    "~/.conda/condarc.d/",
+-    "~/.condarc",
+-    "$CONDA_PREFIX/.condarc",
+-    "$CONDA_PREFIX/condarc",
+-    "$CONDA_PREFIX/condarc.d/",
+-    "$CONDARC",
+-)
+-
+ DEFAULT_CHANNEL_ALIAS = "https://conda.anaconda.org"
+ CONDA_HOMEPAGE_URL = "https://conda.io"
+ ERROR_UPLOAD_URL = "https://conda.io/conda-post/unexpected-error"

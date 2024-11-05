@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import shutil
 import stat
@@ -8,6 +9,7 @@ import tarfile
 from pathlib import Path
 
 import pytest
+from ruamel.yaml import YAML
 
 # TIP: You can debug the tests with this setup:
 # CONDA_STANDALONE=src/entry_point.py pytest ...
@@ -65,6 +67,75 @@ def test_new_environment(tmp_path, solver):
 
 def test_constructor():
     run_conda("constructor", "--help", check=True)
+
+
+@pytest.mark.parametrize("search_paths", ("all_rcs", "--no-rc", "env_var"))
+def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
+    expected_configs = {}
+    yaml = YAML()
+    if rc_dir := os.environ.get("PYINSTALLER_CONDARC_DIR"):
+        condarc = Path(rc_dir, ".condarc")
+        if condarc.exists():
+            with open(condarc) as crc:
+                config = YAML().load(crc)
+                expected_configs["standalone"] = config.copy()
+
+    config_args = ["--show-sources", "--json"]
+    if search_paths == "env_var":
+        monkeypatch.setenv("CONDA_RESTRICT_RC_SEARCH_PATH", "1")
+    elif search_paths == "--no-rc":
+        config_args.append("--no-rc")
+    else:
+        config_path = str(tmp_path / ".condarc")
+        expected_configs[config_path] = {
+            "channels": [
+                "defaults",
+            ]
+        }
+        with open(config_path, "w") as crc:
+            yaml.dump(expected_configs[config_path], crc)
+        monkeypatch.setenv("CONDA_ROOT", str(tmp_path))
+    env = os.environ.copy()
+
+    proc = run_conda(
+        "config",
+        *config_args,
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    condarcs = json.loads(proc.stdout)
+
+    tmp_root = None
+    if rc_dir:
+        # Quick way to get the location conda-standalone is extracted into
+        proc = run_conda(
+            "python",
+            "-c",
+            "import sys; print(sys.prefix)",
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        tmp_root = str(Path(proc.stdout).parent)
+
+    conda_configs = {}
+    for filepath, config in condarcs.items():
+        if Path(filepath).exists():
+            conda_configs[filepath] = config.copy()
+        elif rc_dir and filepath.startswith(tmp_root):
+            conda_configs["standalone"] = config.copy()
+    if search_paths == "all_rcs":
+        # If the search path is restricted, there may be other .condarc
+        # files in the final config, so be less strict with assertions
+        for filepath, config in expected_configs.items():
+            assert (
+                conda_configs.get(filepath) == config
+            ), f"Incorrect config for {filepath}"
+    else:
+        assert expected_configs == conda_configs
 
 
 def test_extract_conda_pkgs(tmp_path: Path):
