@@ -72,10 +72,10 @@ def test_constructor():
 @pytest.mark.parametrize("search_paths", ("all_rcs", "--no-rc", "env_var"))
 def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
     expected_configs = {}
+    yaml = YAML()
     if rc_dir := os.environ.get("PYINSTALLER_CONDARC_DIR"):
         condarc = Path(rc_dir, ".condarc")
         if condarc.exists():
-            yaml = YAML()
             with open(condarc) as crc:
                 config = YAML().load(crc)
                 expected_configs["standalone"] = config.copy()
