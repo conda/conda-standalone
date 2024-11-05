@@ -475,12 +475,17 @@ def _uninstall_subcommand():
         except PermissionError:
             pass
 
-    def _remove_file_and_parents(file: Path):
+    def _remove_file_and_parents(file: Path, stop_at: Path = None):
+        """
+        Remove a file and its parents if empty until reaching the stop_at directory.
+        """
         if not file.exists():
             return
         _remove_file_directory(file)
         parent = file.parent
-        while parent.is_dir() and not next(parent.iterdir(), None):
+        while (
+            parent != stop_at and parent.is_dir() and not next(parent.iterdir(), None)
+        ):
             _remove_file_directory(parent)
             parent = parent.parent
 
@@ -492,27 +497,19 @@ def _uninstall_subcommand():
         For that reason, search only for specific subdirectories
         and search backwards to be conservative about what is deleted.
         """
-        if not file.exists():
-            return
-        try:
+        rootdir = None
+        parts_inverse = list(reversed(file.parts))
+        for config_dir in (".config", ".conda", "conda", "xonsh"):
+            try:
+                root_index = parts_inverse.index(config_dir) + 1
+                rootdir = Path(*file.parts[:-root_index]).resolve()
+                break
+            except ValueError:
+                pass
+        if not rootdir:
             _remove_file_directory(file)
-            rootdir = None
-            parts_inverse = list(reversed(file.parts))
-            for config_dir in (".config", ".conda", "conda", "xonsh"):
-                try:
-                    root_index = parts_inverse.index(config_dir) + 1
-                    rootdir = Path(*file.parts[:-root_index]).resolve()
-                    break
-                except ValueError:
-                    pass
-            if not rootdir or not rootdir.exists():
-                return
-            directory = file.resolve().parent
-            while directory != rootdir and not next(directory.iterdir(), None):
-                _remove_file_directory(directory)
-                directory = directory.resolve().parent
-        except PermissionError:
-            pass
+        else:
+            _remove_file_and_parents(file, stop_at=rootdir)
 
     print(f"Uninstalling conda installation in {uninstall_prefix}...")
     prefixes = [
@@ -597,8 +594,6 @@ def _uninstall_subcommand():
         for directory in context.pkgs_dirs:
             pkgs_dir = Path(directory)
             _remove_file_and_parents(pkgs_dir)
-            if pkgs_dir.is_dir() and not next(pkgs_dir.iterdir(), None):
-                _remove_file_directory(pkgs_dir)
 
     if args.remove_condarcs:
         print("Removing .condarc files...")
