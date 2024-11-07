@@ -375,7 +375,10 @@ def _get_init_reverse_plan(
                     continue
                 for prefix in prefixes:
                     # Ignore .exe suffix to make the logic simpler
-                    sentinel_str = str(prefix / BIN_DIRECTORY / "conda")
+                    if shell in ("csh", "tcsh"):
+                        sentinel_str = str(prefix / "etc" / "profile.d" / "conda.csh")
+                    else:
+                        sentinel_str = str(prefix / BIN_DIRECTORY / "conda")
                     if sys.platform == "win32" and shell != "powershell":
                         sentinel_str = win_path_to_unix(sentinel_str)
                         # Remove /cygdrive to make the path shell-independent
