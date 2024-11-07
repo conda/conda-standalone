@@ -376,7 +376,7 @@ def _get_init_reverse_plan(
                 for prefix in prefixes:
                     # Ignore .exe suffix to make the logic simpler
                     sentinel_str = str(prefix / BIN_DIRECTORY / "conda")
-                    if shell != "powershell":
+                    if sys.platform == "win32" and shell != "powershell":
                         sentinel_str = win_path_to_unix(sentinel_str)
                         # Remove /cygdrive to make the path shell-independent
                         if sentinel_str.startswith("/cygdrive"):
@@ -438,7 +438,7 @@ def _uninstall_subcommand():
         ),
     )
 
-    args, _ = p.parse_known_args()
+    args = p.parse_args()
 
     from conda.base.constants import PREFIX_MAGIC_FILE
 
@@ -475,7 +475,7 @@ def _uninstall_subcommand():
         except PermissionError:
             pass
 
-    def _remove_file_and_parents(file: Path, stop_at: Path = None):
+    def _remove_file_and_parents(file: Path, stop_at: Path | None = None):
         """
         Remove a file and its parents if empty until reaching the stop_at directory.
         """
