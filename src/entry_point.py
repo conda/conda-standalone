@@ -596,7 +596,11 @@ def _uninstall_subcommand():
         # Delete empty package cache directories
         for directory in context.pkgs_dirs:
             pkgs_dir = Path(directory)
-            _remove_file_and_parents(pkgs_dir)
+            if not pkgs_dir.exists():
+                continue
+            expected_files = [pkgs_dir / "urls", pkgs_dir / "urls.txt"]
+            if all(file in expected_files for file in pkgs_dir.iterdir()):
+                _remove_file_and_parents(pkgs_dir)
 
     if args.remove_condarcs:
         print("Removing .condarc files...")
