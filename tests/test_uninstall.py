@@ -188,7 +188,13 @@ def test_uninstallation_init_reverse(
         assert _find_in_config(init_env, plan["kwargs"]["target_path"])
     run_conda("uninstall", str(mock_system_paths["baseenv"]))
     for plan in initialize_plan:
-        assert _find_in_config(init_env, plan["kwargs"]["target_path"]) != reverse
+        target_path = plan["kwargs"]["target_path"]
+        assert _find_in_config(init_env, target_path) != reverse
+        if not reverse:
+            continue
+        parent = Path(target_path).parent
+        if parent.name in (".config", ".conda", "conda", "xonsh"):
+            assert not parent.exists()
 
 
 def test_uninstallation_menuinst(
