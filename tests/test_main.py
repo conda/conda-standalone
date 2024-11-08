@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import shutil
 import stat
@@ -8,41 +9,10 @@ import tarfile
 from pathlib import Path
 
 import pytest
+from conftest import CONDA_EXE, _get_shortcut_dirs, menuinst_pkg_specs, run_conda
+from ruamel.yaml import YAML
 
-# TIP: You can debug the tests with this setup:
-# CONDA_STANDALONE=src/entry_point.py pytest ...
-CONDA_EXE = os.environ.get(
-    "CONDA_STANDALONE",
-    os.path.join(sys.prefix, "standalone_conda", "conda.exe"),
-)
 HERE = Path(__file__).parent
-
-
-def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
-    check = kwargs.pop("check", False)
-    process = subprocess.run([CONDA_EXE, *args], **kwargs)
-    if check:
-        if kwargs.get("capture_output") and process.returncode:
-            print(process.stdout)
-            print(process.stderr, file=sys.stderr)
-        process.check_returncode()
-    return process
-
-
-def _get_shortcut_dirs():
-    if sys.platform == "win32":
-        from menuinst.platforms.win_utils.knownfolders import dirs_src as win_locations
-
-        return Path(win_locations["user"]["start"][0]), Path(
-            win_locations["system"]["start"][0]
-        )
-    if sys.platform == "darwin":
-        return Path(os.environ["HOME"], "Applications"), Path("/Applications")
-    if sys.platform == "linux":
-        return Path(os.environ["HOME"], ".local", "share", "applications"), Path(
-            "/usr/share/applications"
-        )
-    raise NotImplementedError(sys.platform)
 
 
 @pytest.mark.parametrize("solver", ["classic", "libmamba"])
@@ -65,6 +35,75 @@ def test_new_environment(tmp_path, solver):
 
 def test_constructor():
     run_conda("constructor", "--help", check=True)
+
+
+@pytest.mark.parametrize("search_paths", ("all_rcs", "--no-rc", "env_var"))
+def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
+    expected_configs = {}
+    yaml = YAML()
+    if rc_dir := os.environ.get("PYINSTALLER_CONDARC_DIR"):
+        condarc = Path(rc_dir, ".condarc")
+        if condarc.exists():
+            with open(condarc) as crc:
+                config = YAML().load(crc)
+                expected_configs["standalone"] = config.copy()
+
+    config_args = ["--show-sources", "--json"]
+    if search_paths == "env_var":
+        monkeypatch.setenv("CONDA_RESTRICT_RC_SEARCH_PATH", "1")
+    elif search_paths == "--no-rc":
+        config_args.append("--no-rc")
+    else:
+        config_path = str(tmp_path / ".condarc")
+        expected_configs[config_path] = {
+            "channels": [
+                "defaults",
+            ]
+        }
+        with open(config_path, "w") as crc:
+            yaml.dump(expected_configs[config_path], crc)
+        monkeypatch.setenv("CONDA_ROOT", str(tmp_path))
+    env = os.environ.copy()
+
+    proc = run_conda(
+        "config",
+        *config_args,
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    condarcs = json.loads(proc.stdout)
+
+    tmp_root = None
+    if rc_dir:
+        # Quick way to get the location conda-standalone is extracted into
+        proc = run_conda(
+            "python",
+            "-c",
+            "import sys; print(sys.prefix)",
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        tmp_root = str(Path(proc.stdout).parent)
+
+    conda_configs = {}
+    for filepath, config in condarcs.items():
+        if Path(filepath).exists():
+            conda_configs[filepath] = config.copy()
+        elif rc_dir and filepath.startswith(tmp_root):
+            conda_configs["standalone"] = config.copy()
+    if search_paths == "all_rcs":
+        # If the search path is restricted, there may be other .condarc
+        # files in the final config, so be less strict with assertions
+        for filepath, config in expected_configs.items():
+            assert (
+                conda_configs.get(filepath) == config
+            ), f"Incorrect config for {filepath}"
+    else:
+        assert expected_configs == conda_configs
 
 
 def test_extract_conda_pkgs(tmp_path: Path):
@@ -118,28 +157,13 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path):
     )
 
 
-_pkg_specs = [
-    (
-        "conda-test/label/menuinst-tests::package_1",
-        {
-            "win32": "Package 1/A.lnk",
-            "darwin": "A.app/Contents/MacOS/a",
-            "linux": "package-1_a.desktop",
-        },
-    ),
-]
-if os.name == "nt":
-    _pkg_specs.append(
-        (
-            "conda-forge::miniforge_console_shortcut",
-            {"win32": "{base}/{base} Prompt ({name}).lnk"},
-        ),
-    )
-_pkg_specs_params = pytest.mark.parametrize("pkg_spec, shortcut_path", _pkg_specs)
+_pkg_specs_params = pytest.mark.parametrize(
+    "pkg_spec, shortcut_path", menuinst_pkg_specs
+)
 
 
 @_pkg_specs_params
-def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: str):
+def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: dict[str, str]):
     "Check 'regular' conda can process menuinst JSONs"
     env = os.environ.copy()
     env["CONDA_ROOT_PREFIX"] = sys.prefix

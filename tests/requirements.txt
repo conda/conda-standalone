@@ -1,2 +1,4 @@
-pytest
+conda
 menuinst>=2
+pytest
+ruamel.yaml
