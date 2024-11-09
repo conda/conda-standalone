@@ -201,26 +201,47 @@ def test_uninstallation_menuinst(
     mock_system_paths: dict[str, Path],
     monkeypatch,
 ):
-    def _shortcuts_found() -> list:
+    def _shortcuts_found(shortcut_env: Path) -> list:
         variables = {
             "base": mock_system_paths["baseenv"].name,
-            "name": mock_system_paths["baseenv"].name,
+            "name": shortcut_env.name,
         }
+        if ON_WIN:
+            # For Windows, menuinst installed via conda does not pick up on the monkeypatched
+            # environment variables, so hard-code the directory. They do get patched for
+            # conda-standalone though.
+            programs = "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs"
+            shortcut_dirs = [mock_system_paths["home"] / programs]
+        else:
+            shortcut_dirs = _get_shortcut_dirs()
         return [
             package[0]
             for package in menuinst_pkg_specs
             if any(
                 (folder / package[1][sys.platform].format(**variables)).is_file()
-                for folder in _get_shortcut_dirs()
+                for folder in shortcut_dirs
             )
         ]
 
+    if ON_WIN:
+        # menuinst will error out if the directories it installs into do not exist.
+        for subdir in (
+            "Desktop",
+            "Documents",
+            "AppData\\Local",
+            "AppData\\Roaming\\Microsoft\\Internet Explorer\\Quick Launch",
+            "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs",
+        ):
+            (mock_system_paths["home"] / subdir).mkdir(parents=True)
     monkeypatch.setenv("CONDA_ROOT_PREFIX", str(mock_system_paths["baseenv"]))
+    create_env(prefix=mock_system_paths["baseenv"])
+    (mock_system_paths["baseenv"] / ".nonadmin").touch()
+    shortcut_env = mock_system_paths["baseenv"] / "envs" / "shortcutenv"
     shortcuts = [package[0] for package in menuinst_pkg_specs]
-    create_env(prefix=mock_system_paths["baseenv"], packages=shortcuts)
-    assert _shortcuts_found() == shortcuts
+    create_env(prefix=shortcut_env, packages=shortcuts)
+    assert _shortcuts_found(shortcut_env) == shortcuts
     run_conda("uninstall", str(mock_system_paths["baseenv"]))
-    assert _shortcuts_found() == []
+    assert _shortcuts_found(shortcut_env) == []
 
 
 @pytest.mark.parametrize(
