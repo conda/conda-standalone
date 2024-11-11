@@ -41,17 +41,22 @@ def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
     return process
 
 
-def _get_shortcut_dirs():
+def _get_shortcut_dirs() -> list[Path]:
     if sys.platform == "win32":
         from menuinst.platforms.win_utils.knownfolders import dirs_src as win_locations
 
-        return Path(win_locations["user"]["start"][0]), Path(
-            win_locations["system"]["start"][0]
-        )
+        return [
+            Path(win_locations["user"]["start"][0]),
+            Path(win_locations["system"]["start"][0]),
+        ]
     if sys.platform == "darwin":
-        return Path(os.environ["HOME"], "Applications"), Path("/Applications")
+        return [
+            Path(os.environ["HOME"], "Applications"),
+            Path("/Applications"),
+        ]
     if sys.platform == "linux":
-        return Path(os.environ["HOME"], ".local", "share", "applications"), Path(
-            "/usr/share/applications"
-        )
+        return [
+            Path(os.environ["HOME"], ".local", "share", "applications"),
+            Path("/usr/share/applications"),
+        ]
     raise NotImplementedError(sys.platform)

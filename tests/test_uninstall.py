@@ -30,7 +30,7 @@ def mock_system_paths(
         monkeypatch.setenv("USERPROFILE", str(homedir))
         # Monkeypatching LOCALAPPDATA will not help because user_cache_dir
         # typically does not use environment variables
-        cachehome = Path(os.environ["LOCALAPPDATA"])
+        cachehome = homedir / "AppData" / "Local"
     elif ON_MAC:
         homedir = tmp_path / "Users" / "user"
         cachehome = homedir / "Library" / "Caches"
@@ -206,14 +206,14 @@ def test_uninstallation_menuinst(
             "base": mock_system_paths["baseenv"].name,
             "name": shortcut_env.name,
         }
+        shortcut_dirs = _get_shortcut_dirs()
         if ON_WIN:
             # For Windows, menuinst installed via conda does not pick up on the monkeypatched
-            # environment variables, so hard-code the directory. They do get patched for
-            # conda-standalone though.
+            # environment variables, so add the hard-coded patched directory.
+            # They do get patched for conda-standalone though.
             programs = "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs"
-            shortcut_dirs = [mock_system_paths["home"] / programs]
-        else:
-            shortcut_dirs = _get_shortcut_dirs()
+            shortcut_dirs.append(mock_system_paths["home"] / programs)
+
         return [
             package[0]
             for package in menuinst_pkg_specs
@@ -232,7 +232,7 @@ def test_uninstallation_menuinst(
             "AppData\\Roaming\\Microsoft\\Internet Explorer\\Quick Launch",
             "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs",
         ):
-            (mock_system_paths["home"] / subdir).mkdir(parents=True)
+            (mock_system_paths["home"] / subdir).mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("CONDA_ROOT_PREFIX", str(mock_system_paths["baseenv"]))
     create_env(prefix=mock_system_paths["baseenv"])
     (mock_system_paths["baseenv"] / ".nonadmin").touch()
@@ -279,18 +279,18 @@ def test_uninstallation_remove_caches(
     mock_system_paths: dict[str, Path],
 ):
     if ON_WIN:
+        try:
+            import ctypes
+
+            if not hasattr(ctypes, "windll"):
+                pytest.skip("Test requires windll.ctypes for mocked locations to work.")
+        except ImportError:
+            pytest.skip("Test requires ctypes for mocked locations to work.")
         notices_dir = Path(
             mock_system_paths["cachehome"], "conda", "conda", "Cache", "notices"
         )
     else:
         notices_dir = Path(mock_system_paths["cachehome"], "conda", "notices")
-    if (
-        ON_WIN
-        and not ON_CI
-        and notices_dir.exists()
-        and next(notices_dir.iterdir(), None)
-    ):
-        pytest.skip("CI only - cache directory already exists and is not empty")
     notices_dir.mkdir(parents=True, exist_ok=True)
     (notices_dir / "notices.cache").touch()
 
