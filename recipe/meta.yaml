@@ -49,8 +49,9 @@ requirements:
 
 test:
   requires:
-    - pytest
+    - conda
     - menuinst >={{ menuinst_lower_bound }}
+    - pytest
     - ruamel.yaml
   source_files:
     - tests
