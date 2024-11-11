@@ -375,7 +375,7 @@ def _get_init_reverse_plan(
                     continue
                 for prefix in prefixes:
                     # Ignore .exe suffix to make the logic simpler
-                    if shell in ("csh", "tcsh"):
+                    if shell in ("csh", "tcsh") and sys.platform != "win32":
                         sentinel_str = str(prefix / "etc" / "profile.d" / "conda.csh")
                     else:
                         sentinel_str = str(prefix / BIN_DIRECTORY / "conda")

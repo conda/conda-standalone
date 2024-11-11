@@ -158,8 +158,8 @@ def test_uninstallation_init_reverse(
             if not config_file.exists():
                 return False
             content = config_file.read_text()
-            if sys.platform == "win32" and target_path.endswith(".ps1"):
-                directory = win_path_to_unix(content)
+            if sys.platform == "win32" and not target_path.endswith(".ps1"):
+                directory = win_path_to_unix(directory)
                 if directory.startswith("/cygdrive"):
                     directory = directory[9:]
             return directory in content
@@ -183,6 +183,12 @@ def test_uninstallation_init_reverse(
         anaconda_prompt,
         reverse=False,
     )
+    # Filter out the LongPathsEnabled target since conda init --reverse does not remove it
+    initialize_plan = [
+        plan
+        for plan in initialize_plan
+        if not plan["kwargs"]["target_path"].endswith("LongPathsEnabled")
+    ]
     run_plan(initialize_plan)
     for plan in initialize_plan:
         assert _find_in_config(init_env, plan["kwargs"]["target_path"])
