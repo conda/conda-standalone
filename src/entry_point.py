@@ -11,7 +11,6 @@ import os
 import sys
 from multiprocessing import freeze_support
 from pathlib import Path
-from typing import List
 
 if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
     # This causes a crash with requests 2.32+ on Windows
@@ -306,11 +305,11 @@ def _is_subdir(directory: Path, root: Path) -> bool:
 
 def _get_init_reverse_plan(
     uninstall_prefix,
-    prefixes: List[Path],
+    prefixes: list[Path],
     for_user: bool,
     for_system: bool,
     anaconda_prompt: bool,
-) -> List[dict]:
+) -> list[dict]:
     """
     Prepare conda init --reverse runs for the uninstallation.
 
