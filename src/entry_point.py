@@ -414,7 +414,7 @@ def _uninstall_subcommand():
         help=(
             "Remove all .condarc files."
             " `user` removes the files inside the current user's"
-            " home directory and `system` all files outside."
+            " home directory and `system` removes all files outside of that directory."
             " Not recommended when multiple conda installations are on the system"
             " or when running on an environments directory."
         ),
