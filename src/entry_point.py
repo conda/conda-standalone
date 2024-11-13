@@ -248,7 +248,8 @@ def _python_subcommand():
     - stdin: run the passed input as if it was '-c'
     """
 
-    del sys.argv[1]  # remove the 'python' argument
+    if sys.argv[1] == "python":
+        del sys.argv[1]
     first_arg = sys.argv[1] if len(sys.argv) > 1 else None
 
     if first_arg is None:
@@ -459,7 +460,7 @@ def _uninstall_subcommand():
 
     from conda.base.context import context, reset_context
     from conda.cli.main import main as conda_main
-    from conda.core.initialize import print_plan_results, run_plan
+    from conda.core.initialize import print_plan_results, run_plan, run_plan_elevated
 
     def _remove_file_directory(file: Path):
         """
@@ -539,6 +540,7 @@ def _uninstall_subcommand():
         # That function will search for activation scripts in sys.prefix which do no exist
         # in the extraction directory of conda-standalone.
         run_plan(plan)
+        run_plan_elevated(plan)
         print_plan_results(plan)
         for initializer in plan:
             target_path = initializer["kwargs"]["target_path"]
@@ -660,7 +662,9 @@ def main():
     if len(sys.argv) > 1:
         if sys.argv[1] == "constructor":
             return _constructor_subcommand()
-        elif sys.argv[1] == "python":
+        # Some parts of conda call `sys.executable -m`, so conda-standalone needs to
+        # interpret `conda.exe -m` as `conda.exe python -m`.
+        elif sys.argv[1] == "python" or sys.argv[1] == "-m":
             return _python_subcommand()
         elif sys.argv[1] == "uninstall":
             del sys.argv[1]

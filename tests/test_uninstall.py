@@ -8,7 +8,12 @@ from typing import Generator
 import pytest
 from conda.base.constants import COMPATIBLE_SHELLS
 from conda.common.path import win_path_to_unix
-from conda.core.initialize import _read_windows_registry, make_initialize_plan, run_plan
+from conda.core.initialize import (
+    _read_windows_registry,
+    make_initialize_plan,
+    run_plan,
+    run_plan_elevated,
+)
 from conftest import _get_shortcut_dirs, menuinst_pkg_specs, run_conda
 from ruamel.yaml import YAML
 
@@ -190,6 +195,7 @@ def test_uninstallation_init_reverse(
         if not plan["kwargs"]["target_path"].endswith("LongPathsEnabled")
     ]
     run_plan(initialize_plan)
+    run_plan_elevated(initialize_plan)
     for plan in initialize_plan:
         assert _find_in_config(init_env, plan["kwargs"]["target_path"])
     run_conda("uninstall", str(mock_system_paths["baseenv"]))
