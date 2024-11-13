@@ -66,8 +66,11 @@ def _get_shortcut_dirs() -> list[Path]:
             Path("/Applications"),
         ]
     if sys.platform == "linux":
-        return [
+        paths = [
             Path(os.environ["HOME"], ".local", "share", "applications"),
             Path("/usr/share/applications"),
         ]
+        if xdg_data_home := os.environ.get("XDG_DATA_HOME"):
+            paths.append(Path(xdg_data_home, "applications"))
+        return paths
     raise NotImplementedError(sys.platform)
