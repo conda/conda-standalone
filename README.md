@@ -110,6 +110,12 @@ usage: conda.exe [-h] [--remove-condarcs {user,system,all}] [--remove-caches] [-
                      directory. This is only useful when `pkgs_dirs` is set in a `.condarc` file.
                      Not recommended with multiple conda installations when softlinks are enabled.
 
+> [!IMPORTANT]
+> Some files may be left behind when running this command with `sudo` (e.g., to remove system
+> configuration files).
+> `conda` relies on environment variables like `HOME` and `XDG_CONFIG_HOME` when detecting
+> configuration files, which may be overwritten with `sudo`.
+
 ## Build status
 
 | [![Build status](https://github.com/conda/conda-standalone/actions/workflows/tests.yml/badge.svg)](https://github.com/conda/conda-standalone/actions/workflows/tests.yml) [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/conda/conda-standalone/main.svg)](https://results.pre-commit.ci/latest/github/conda/conda-standalone/main)  | [![Anaconda-Server Badge](https://anaconda.org/conda-canary/conda-standalone/badges/latest_release_date.svg)](https://anaconda.org/conda-canary/conda-standalone) |
