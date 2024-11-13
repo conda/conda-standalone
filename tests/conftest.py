@@ -32,7 +32,18 @@ if os.name == "nt":
 
 def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
     check = kwargs.pop("check", False)
-    process = subprocess.run([CONDA_EXE, *args], **kwargs)
+    sudo = None
+    if "needs_sudo" in kwargs:
+        if kwargs["needs_sudo"]:
+            if sys.platform == "win32":
+                raise NotImplementedError(
+                    "Calling run_conda with elevated privileged is not available on Windows"
+                )
+            sudo = ["sudo"]
+        del kwargs["needs_sudo"]
+    cmd = [*sudo, CONDA_EXE] if sudo else [CONDA_EXE]
+
+    process = subprocess.run([*cmd, *args], **kwargs)
     if check:
         if kwargs.get("capture_output"):
             print(process.stdout)
