@@ -336,7 +336,7 @@ def _get_init_reverse_plan(
         # Make plan for each shell individually because
         # not every plan includes the shell name
         plan = make_initialize_plan(
-            uninstall_prefix,
+            str(uninstall_prefix),
             [shell],
             for_user,
             for_system,

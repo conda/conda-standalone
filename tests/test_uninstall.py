@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 from shutil import rmtree
 from subprocess import SubprocessError
-from typing import Generator
 
 import pytest
 from conda.base.constants import COMPATIBLE_SHELLS
@@ -28,7 +27,7 @@ CONDA_CHANNEL = os.environ.get("CONDA_STANDALONE_TEST_CHANNEL", "conda-forge")
 def mock_system_paths(
     monkeypatch,
     tmp_path: Path,
-) -> Generator[dict[str, Path], None, None]:
+) -> dict[str, Path]:
     paths = {}
     if ON_WIN:
         homedir = tmp_path / "Users" / "user"
@@ -61,23 +60,7 @@ def mock_system_paths(
     monkeypatch.setenv("XDG_DATA_HOME", str(paths["datahome"]))
     monkeypatch.setenv("BINSTAR_CONFIG_DIR", str(paths["binstar"]))
 
-    yield paths
-
-    if ON_CI:
-        if ON_WIN:
-            system_conda_dir = Path("C:/ProgramData/conda/")
-        else:
-            system_conda_dir = Path("/etc/conda/")
-        if system_conda_dir.exists():
-            try:
-                rmtree(system_conda_dir)
-            except PermissionError:
-                run_conda(
-                    "python",
-                    "-c",
-                    f"from shutil import rmtree; rmtree('{system_conda_dir}')",
-                    needs_sudo=True,
-                )
+    return paths
 
 
 def create_env(
