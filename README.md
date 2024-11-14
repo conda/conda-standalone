@@ -111,10 +111,10 @@ usage: conda.exe [-h] [--remove-condarcs {user,system,all}] [--remove-caches] [-
                      Not recommended with multiple conda installations when softlinks are enabled.
 
 > [!IMPORTANT]
-> Some files may be left behind when running this command with `sudo` (e.g., to remove system
-> configuration files).
+> Use `sudo -E` if removing system-level configuration files requires superuser privileges.
 > `conda` relies on environment variables like `HOME` and `XDG_CONFIG_HOME` when detecting
-> configuration files, which may be overwritten with `sudo`.
+> configuration files, which may be overwritten with just `sudo`.
+> This can cause files to be left behind.
 
 ## Build status
 
