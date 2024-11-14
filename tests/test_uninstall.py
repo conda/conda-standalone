@@ -80,14 +80,14 @@ def run_uninstaller(
     remove_caches: bool = False,
     needs_sudo: bool = False,
 ):
-    args = [str(prefix)]
+    args = ["--prefix", str(prefix)]
     if conda_clean:
         args.append("--conda-clean")
     if remove_condarcs:
         args.extend(["--remove-condarcs", remove_condarcs])
     if remove_caches:
         args.append("--remove-caches")
-    run_conda("uninstall", *args, needs_sudo=needs_sudo, check=True)
+    run_conda("constructor", "uninstall", *args, needs_sudo=needs_sudo, check=True)
 
 
 def test_uninstallation(

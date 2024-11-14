@@ -50,20 +50,60 @@ It also adds new subcommands not available on the regular `conda`:
 This subcommand is mainly used by the installers generated with `constructor`.
 
 ```bash
-$ conda.exe constructor --help
-usage: conda.exe constructor [-h] --prefix PREFIX [--extract-conda-pkgs] [--extract-tarball] [--make-menus [PKG_NAME ...]] [--rm-menus]
+usage: conda.exe constructor [-h] [--prefix PREFIX] [--num-processors N]
+                             [--extract-conda-pkgs | --extract-tarball | --make-menus [PKG_NAME ...] | --rm-menus]
+                             {uninstall} ...
 
 constructor helper subcommand
 
-optional arguments:
+positional arguments:
+  {uninstall}
+
+options:
   -h, --help            show this help message and exit
   --prefix PREFIX       path to the conda environment to operate on
+  --num-processors N    Number of processors to use with --extract-conda-pkgs. Value must be int between 0 (auto) and the
+                        number of processors. Defaults to 3.
   --extract-conda-pkgs  extract conda packages found in prefix/pkgs
   --extract-tarball     extract tarball from stdin
   --make-menus [PKG_NAME ...]
-                        create menu items for the given packages; if none are given, create menu items for all packages in the environment specified by --prefix
+                        create menu items for the given packages; if none are given, create menu items for all packages
+                        in the environment specified by --prefix
   --rm-menus            remove menu items for all packages in the environment specified by --prefix
 ```
+
+### `conda.exe constructor uninstall`
+
+This subcommand can be used to uninstall a base environment and all sub-environments, including
+entire Miniconda/Miniforge installations.
+It is also possible to remove environments directories created by `conda create`. This feature is
+useful if `envs_dirs` is set inside `.condarc` file.
+
+There are several options to remove configuration and cache files:
+
+```bash
+$ conda.exe constructor uninstall [-h] --prefix PREFIX [--conda-clean] [--remove-condarcs {user,system,all}]
+                                  [--remove-caches]
+```
+
+- `--prefix` (required): Path to the conda directory to uninstall.
+- `--remove-condarcs {user,system,all}`: Remove all .condarc files. `user` removes the files
+                                         inside the current user's home directory and
+                                         `system` removes all files outside of that directory.
+                                         Not recommended when multiple conda installations are on
+                                         the system or when running on an environments directory.
+- `--remove-caches`: Remove all cache directories created by conda. This includes the `.conda`
+                     directory inside `HOME`/`USERPROFILE`. Not recommended when multiple conda
+                     installations are on the system or when running on an environments directory.
+- `--conda-clean`:   Run `conda --clean --all` to remove package caches outside the installation
+                     directory. This is only useful when `pkgs_dirs` is set in a `.condarc` file.
+                     Not recommended with multiple conda installations when softlinks are enabled.
+
+> [!IMPORTANT]
+> Use `sudo -E` if removing system-level configuration files requires superuser privileges.
+> `conda` relies on environment variables like `HOME` and `XDG_CONFIG_HOME` when detecting
+> configuration files, which may be overwritten with just `sudo`.
+> This can cause files to be left behind.
 
 ### `conda.exe python`
 
@@ -83,38 +123,6 @@ Usage: conda.exe python [-V] [-c cmd | -m mod | file] [arg] ...
 - `-V`, `--version`: Print the Python version number and exit.
 - _No options_: Enter interactive mode. Very useful for debugging.
   You can import all the packages bundled in the binary.
-
-### `conda.exe uninstall`
-
-This subcommand can be used to uninstall a base environment and all sub-environments, including
-entire Miniconda/Miniforge installations.
-It is also possible to remove environments directories created by `conda create`. This feature is
-useful if `envs_dirs` is set inside `.condarc` file.
-
-There are several options to remove configuration and cache files:
-
-```bash
-$ conda.exe uninstall --help
-usage: conda.exe [-h] [--remove-condarcs {user,system,all}] [--remove-caches] [--conda-clean] prefix
-```
-
-- `--remove-condarcs {user,system,all}`: Remove all .condarc files. `user` removes the files
-                                         inside the current user's home directory and
-                                         `system` removes all files outside of that directory.
-                                         Not recommended when multiple conda installations are on
-                                         the system or when running on an environments directory.
-- `--remove-caches`: Remove all cache directories created by conda. This includes the `.conda`
-                     directory inside `HOME`/`USERPROFILE`. Not recommended when multiple conda
-                     installations are on the system or when running on an environments directory.
-- `--conda-clean`:   Run `conda --clean --all` to remove package caches outside the installation
-                     directory. This is only useful when `pkgs_dirs` is set in a `.condarc` file.
-                     Not recommended with multiple conda installations when softlinks are enabled.
-
-> [!IMPORTANT]
-> Use `sudo -E` if removing system-level configuration files requires superuser privileges.
-> `conda` relies on environment variables like `HOME` and `XDG_CONFIG_HOME` when detecting
-> configuration files, which may be overwritten with just `sudo`.
-> This can cause files to be left behind.
 
 ## Build status
 

@@ -85,11 +85,17 @@ def _constructor_parse_cli():
                 num = None  # let the multiprocessing module decide
             setattr(namespace, self.dest, num)
 
-    p = argparse.ArgumentParser(description="constructor helper subcommand")
+    # Remove "constructor" so that it does not clash with the uninstall subcommand
+    del sys.argv[1]
+    p = argparse.ArgumentParser(
+        prog="conda.exe constructor", description="constructor helper subcommand"
+    )
+    # Cannot make this a required argument or `conda.exe constructor uninstall --prefix`
+    # will not work (would have to be `conda constructor --prefix uninstall`)
     p.add_argument(
         "--prefix",
         action="store",
-        required=True,
+        required=False,
         help="path to the conda environment to operate on",
     )
     # We can't add this option yet because micromamba doesn't support it
@@ -110,7 +116,7 @@ def _constructor_parse_cli():
         f"Defaults to {DEFAULT_NUM_PROCESSORS}.",
     )
 
-    g = p.add_mutually_exclusive_group(required=True)
+    g = p.add_mutually_exclusive_group()
     g.add_argument(
         "--extract-conda-pkgs",
         action="store_true",
@@ -136,9 +142,58 @@ def _constructor_parse_cli():
         "in the environment specified by --prefix",
     )
 
+    subcommands = p.add_subparsers(dest="command")
+    uninstall_subcommand = subcommands.add_parser(
+        "uninstall",
+        description="Uninstalls a conda directory and all environments inside the directory.",
+    )
+    uninstall_subcommand.add_argument(
+        "--prefix",
+        action="store",
+        required=True,
+        help="Path to the conda directory to uninstall.",
+    )
+    uninstall_subcommand.add_argument(
+        "--conda-clean",
+        action="store_true",
+        required=False,
+        help=(
+            "Run conda --clean --all to remove package caches outside the installation directory."
+            " This is only useful when pkgs_dirs is set in a .condarc file."
+            " Not recommended with multiple conda installations when softlinks are enabled."
+        ),
+    )
+    uninstall_subcommand.add_argument(
+        "--remove-condarcs",
+        choices=["user", "system", "all"],
+        default=None,
+        required=False,
+        help=(
+            "Remove all .condarc files."
+            " `user` removes the files inside the current user's"
+            " home directory and `system` removes all files outside of that directory."
+            " Not recommended when multiple conda installations are on the system"
+            " or when running on an environments directory."
+        ),
+    )
+    uninstall_subcommand.add_argument(
+        "--remove-caches",
+        action="store_true",
+        required=False,
+        help=(
+            "Remove all cache directories created by conda."
+            " This includes the .conda directory inside HOME/USERPROFILE."
+            " Not recommended when multiple conda installations are on the system"
+            " or when running on an environments directory."
+        ),
+    )
+
     args, args_unknown = p.parse_known_args()
 
-    args.prefix = os.path.abspath(args.prefix)
+    if args.prefix is None:
+        raise argparse.ArgumentError("the following arguments are required: --prefix")
+
+    args.prefix = os.path.abspath(os.path.expanduser(args.prefix))
     args.root_prefix = os.path.abspath(os.environ.get("CONDA_ROOT_PREFIX", args.prefix))
 
     if "--num-processors" in sys.argv and not args.extract_conda_pkgs:
@@ -199,100 +254,6 @@ def _constructor_menuinst(prefix, pkg_names=None, root_prefix=None, remove=False
         if pkg_names and json_path.stem not in pkg_names:
             continue
         install(str(json_path), remove=remove, prefix=prefix, root_prefix=root_prefix)
-
-
-def _constructor_subcommand():
-    r"""
-    This is the entry point for the `conda constructor` subcommand. This subcommand
-    only exists in conda-standalone for now. constructor uses it to:
-
-    - extract conda packages
-    - extract the tarball payload contained in the shell installers
-    - invoke menuinst to create and remove menu items on Windows
-    """
-    args, _ = _constructor_parse_cli()
-    os.chdir(args.prefix)
-
-    if args.extract_conda_pkgs:
-        _constructor_extract_conda_pkgs(args.prefix, max_workers=args.num_processors)
-
-    elif args.extract_tarball:
-        _constructor_extract_tarball()
-
-    # when called with --make-menus and no package names, the value is an empty list
-    # hence the explicit check for None
-    elif (args.make_menus is not None) or args.rm_menus:
-        _constructor_menuinst(
-            prefix=args.prefix,
-            pkg_names=args.make_menus,
-            remove=args.rm_menus,
-            root_prefix=args.root_prefix,
-        )
-
-
-def _python_subcommand():
-    """
-    Since conda-standalone is actually packaging a full Python interpreter,
-    we can leverage it by exposing an entry point that mimics its CLI.
-    This can become useful while debugging.
-
-    We don't use argparse because it might absorb some of the arguments.
-    We are only trying to mimic a subset of the Python CLI, so it can be done
-    by hand. Options we support are:
-
-    - -V/--version: print the version
-    - a path: run the file or directory/__main__.py
-    - -c: run the command
-    - -m: run the module
-    - no arguments: start an interactive session
-    - stdin: run the passed input as if it was '-c'
-    """
-
-    if sys.argv[1] == "python":
-        del sys.argv[1]
-    first_arg = sys.argv[1] if len(sys.argv) > 1 else None
-
-    if first_arg is None:
-        if sys.stdin.isatty():  # interactive
-            from code import InteractiveConsole
-
-            class CondaStandaloneConsole(InteractiveConsole):
-                pass
-
-            return CondaStandaloneConsole().interact(exitmsg="")
-        else:  # piped stuff
-            for line in sys.stdin:
-                exec(line)
-            return
-
-    if first_arg in ("-V", "--version"):
-        print("Python " + ".".join([str(x) for x in sys.version_info[:3]]))
-        return
-
-    import runpy
-
-    if os.path.exists(first_arg):
-        runpy.run_path(first_arg, run_name="__main__")
-        return
-
-    if len(sys.argv) > 2:
-        if first_arg == "-m":
-            del sys.argv[1]  # delete '-m'
-            mod_name = sys.argv[1]  # save the actual module name
-            del sys.argv[1]  # delete the module name
-            runpy.run_module(mod_name, alter_sys=True, run_name="__main__")
-            return
-        elif first_arg == "-c":
-            del sys.argv[0]  # remove the executable, but keep '-c' in sys.argv
-            cmd = sys.argv[1]  # save the actual command
-            del sys.argv[1]  # remove the passed command
-            exec(cmd)  # the extra arguments are still in sys.argv
-            return
-
-    print("Usage: conda.exe python [-V] [-c cmd | -m mod | file] [arg] ...")
-    if first_arg in ("-h", "--help"):
-        return
-    return 1
 
 
 def _is_subdir(directory: Path, root: Path) -> bool:
@@ -390,64 +351,23 @@ def _get_init_reverse_plan(
     return reverse_plan
 
 
-def _uninstall_subcommand():
+def _constructor_uninstall_subcommand(
+    uninstall_dir: str,
+    conda_clean: bool = False,
+    remove_condarcs: str | None = None,
+    remove_caches: bool = False,
+):
     """
     Remove a conda prefix or a directory containing conda environments.
 
     This command also provides options to remove various cache and configuration
     files to fully remove a conda installation.
     """
-    import argparse
-
-    p = argparse.ArgumentParser(
-        description="Uninstalls a conda directory and all environments inside."
-    )
-    p.add_argument(
-        "prefix",
-        help="Path to the conda directory to uninstall.",
-    )
-    p.add_argument(
-        "--remove-condarcs",
-        choices=["user", "system", "all"],
-        default=None,
-        required=False,
-        help=(
-            "Remove all .condarc files."
-            " `user` removes the files inside the current user's"
-            " home directory and `system` removes all files outside of that directory."
-            " Not recommended when multiple conda installations are on the system"
-            " or when running on an environments directory."
-        ),
-    )
-    p.add_argument(
-        "--remove-caches",
-        action="store_true",
-        required=False,
-        help=(
-            "Remove all cache directories created by conda."
-            " This includes the .conda directory inside HOME/USERPROFILE."
-            " Not recommended when multiple conda installations are on the system"
-            " or when running on an environments directory."
-        ),
-    )
-    p.add_argument(
-        "--conda-clean",
-        action="store_true",
-        required=False,
-        help=(
-            "Run conda --clean --all to remove package caches outside the installation directory."
-            " This is only useful when pkgs_dirs is set in a .condarc file."
-            " Not recommended with multiple conda installations when softlinks are enabled."
-        ),
-    )
-
-    args = p.parse_args()
-
     from conda.base.constants import PREFIX_MAGIC_FILE
 
     ENVS_DIR_MAGIC_FILE = ".conda_envs_dir_test"
 
-    uninstall_prefix = Path(args.prefix).expanduser().resolve()
+    uninstall_prefix = Path(uninstall_dir).expanduser().resolve()
     if (
         not (uninstall_prefix / PREFIX_MAGIC_FILE).exists()
         and not (uninstall_prefix / ENVS_DIR_MAGIC_FILE).exists()
@@ -601,7 +521,7 @@ def _uninstall_subcommand():
         if delete_uninstall_prefix:
             _remove_file_directory(uninstall_prefix)
 
-    if args.conda_clean:
+    if conda_clean:
         conda_main("clean", "--all", "-y")
         # Delete empty package cache directories
         for directory in context.pkgs_dirs:
@@ -612,20 +532,20 @@ def _uninstall_subcommand():
             if all(file in expected_files for file in pkgs_dir.iterdir()):
                 _remove_file_and_parents(pkgs_dir)
 
-    if args.remove_condarcs:
+    if remove_condarcs:
         print("Removing .condarc files...")
         for config_file in context.config_files:
-            if args.remove_condarcs == "user" and not _is_subdir(
+            if remove_condarcs == "user" and not _is_subdir(
                 config_file.parent, Path.home()
             ):
                 continue
-            elif args.remove_condarcs == "system" and _is_subdir(
+            elif remove_condarcs == "system" and _is_subdir(
                 config_file.parent, Path.home()
             ):
                 continue
             _remove_config_file_and_parents(config_file)
 
-    if args.remove_caches:
+    if remove_caches:
         from conda.gateways.anaconda_client import _get_binstar_token_directory
         from conda.notices.cache import get_notices_cache_dir
 
@@ -640,7 +560,108 @@ def _uninstall_subcommand():
         for cache_data_directory in cache_data_directories:
             _remove_file_and_parents(Path(cache_data_directory).expanduser())
 
-    return 0
+
+def _constructor_subcommand():
+    r"""
+    This is the entry point for the `conda constructor` subcommand. This subcommand
+    only exists in conda-standalone for now. constructor uses it to:
+
+    - extract conda packages
+    - extract the tarball payload contained in the shell installers
+    - invoke menuinst to create and remove menu items on Windows
+    """
+    args, _ = _constructor_parse_cli()
+
+    if args.command == "uninstall":
+        _constructor_uninstall_subcommand(
+            args.prefix,
+            conda_clean=args.conda_clean,
+            remove_condarcs=args.remove_condarcs,
+            remove_caches=args.remove_caches,
+        )
+        # os.chdir will break conda --clean, so return early
+        return
+    os.chdir(args.prefix)
+    if args.extract_conda_pkgs:
+        _constructor_extract_conda_pkgs(args.prefix, max_workers=args.num_processors)
+
+    elif args.extract_tarball:
+        _constructor_extract_tarball()
+
+    # when called with --make-menus and no package names, the value is an empty list
+    # hence the explicit check for None
+    elif (args.make_menus is not None) or args.rm_menus:
+        _constructor_menuinst(
+            prefix=args.prefix,
+            pkg_names=args.make_menus,
+            remove=args.rm_menus,
+            root_prefix=args.root_prefix,
+        )
+
+
+def _python_subcommand():
+    """
+    Since conda-standalone is actually packaging a full Python interpreter,
+    we can leverage it by exposing an entry point that mimics its CLI.
+    This can become useful while debugging.
+
+    We don't use argparse because it might absorb some of the arguments.
+    We are only trying to mimic a subset of the Python CLI, so it can be done
+    by hand. Options we support are:
+
+    - -V/--version: print the version
+    - a path: run the file or directory/__main__.py
+    - -c: run the command
+    - -m: run the module
+    - no arguments: start an interactive session
+    - stdin: run the passed input as if it was '-c'
+    """
+
+    if sys.argv[1] == "python":
+        del sys.argv[1]
+    first_arg = sys.argv[1] if len(sys.argv) > 1 else None
+
+    if first_arg is None:
+        if sys.stdin.isatty():  # interactive
+            from code import InteractiveConsole
+
+            class CondaStandaloneConsole(InteractiveConsole):
+                pass
+
+            return CondaStandaloneConsole().interact(exitmsg="")
+        else:  # piped stuff
+            for line in sys.stdin:
+                exec(line)
+            return
+
+    if first_arg in ("-V", "--version"):
+        print("Python " + ".".join([str(x) for x in sys.version_info[:3]]))
+        return
+
+    import runpy
+
+    if os.path.exists(first_arg):
+        runpy.run_path(first_arg, run_name="__main__")
+        return
+
+    if len(sys.argv) > 2:
+        if first_arg == "-m":
+            del sys.argv[1]  # delete '-m'
+            mod_name = sys.argv[1]  # save the actual module name
+            del sys.argv[1]  # delete the module name
+            runpy.run_module(mod_name, alter_sys=True, run_name="__main__")
+            return
+        elif first_arg == "-c":
+            del sys.argv[0]  # remove the executable, but keep '-c' in sys.argv
+            cmd = sys.argv[1]  # save the actual command
+            del sys.argv[1]  # remove the passed command
+            exec(cmd)  # the extra arguments are still in sys.argv
+            return
+
+    print("Usage: conda.exe python [-V] [-c cmd | -m mod | file] [arg] ...")
+    if first_arg in ("-h", "--help"):
+        return
+    return 1
 
 
 def _conda_main():
@@ -666,9 +687,6 @@ def main():
         # interpret `conda.exe -m` as `conda.exe python -m`.
         elif sys.argv[1] == "python" or sys.argv[1] == "-m":
             return _python_subcommand()
-        elif sys.argv[1] == "uninstall":
-            del sys.argv[1]
-            return _uninstall_subcommand()
 
     return _conda_main()
 
