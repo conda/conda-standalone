@@ -73,6 +73,23 @@ def create_env(
         run_conda("create", "-y", "-n", name, "-c", CONDA_CHANNEL, *packages)
 
 
+def run_uninstaller(
+    prefix: Path,
+    conda_clean: bool = False,
+    remove_condarcs: str | None = None,
+    remove_caches: bool = False,
+    needs_sudo: bool = False,
+):
+    args = [str(prefix)]
+    if conda_clean:
+        args.append("--conda-clean")
+    if remove_condarcs:
+        args.extend(["--remove-condarcs", remove_condarcs])
+    if remove_caches:
+        args.append("--remove-caches")
+    run_conda("uninstall", *args, needs_sudo=needs_sudo, check=True)
+
+
 def test_uninstallation(
     mock_system_paths: dict[str, Path],
 ):
@@ -86,7 +103,7 @@ def test_uninstallation(
         str(mock_system_paths["baseenv"]) in environments
         and str(second_env) in environments
     )
-    run_conda("uninstall", mock_system_paths["baseenv"])
+    run_uninstaller(mock_system_paths["baseenv"])
     assert not mock_system_paths["baseenv"].exists()
     assert mock_system_paths
     environments = environments_txt.read_text().splitlines()
@@ -120,7 +137,7 @@ def test_uninstallation_envs_dirs(
     # if it finds other files than the magic file.
     if not remove:
         (envs_dir / "some_other_file").touch()
-    run_conda("uninstall", envs_dir)
+    run_uninstaller(envs_dir)
     assert envs_dir.exists() != remove
 
 
@@ -189,7 +206,7 @@ def test_uninstallation_init_reverse(
     run_plan_elevated(initialize_plan)
     for plan in initialize_plan:
         assert _find_in_config(init_env, plan["kwargs"]["target_path"])
-    run_conda("uninstall", str(mock_system_paths["baseenv"]))
+    run_uninstaller(mock_system_paths["baseenv"])
     for plan in initialize_plan:
         target_path = plan["kwargs"]["target_path"]
         assert _find_in_config(init_env, target_path) != reverse
@@ -243,7 +260,7 @@ def test_uninstallation_menuinst(
     shortcuts = [package[0] for package in menuinst_pkg_specs]
     create_env(prefix=shortcut_env, packages=shortcuts)
     assert _shortcuts_found(shortcut_env) == shortcuts
-    run_conda("uninstall", str(mock_system_paths["baseenv"]))
+    run_uninstaller(mock_system_paths["baseenv"])
     assert _shortcuts_found(shortcut_env) == []
 
 
@@ -271,7 +288,7 @@ def test_uninstallation_conda_clean(
     assert pkgs_dir.exists()
     assert list(pkgs_dir.glob("constructor*")) != []
     assert list(pkgs_dir.glob("python*")) != []
-    run_conda("uninstall", str(mock_system_paths["baseenv"]), "--conda-clean")
+    run_uninstaller(mock_system_paths["baseenv"], conda_clean=True)
     assert pkgs_dir.exists() == shared_pkgs
     if shared_pkgs:
         assert list(pkgs_dir.glob("constructor*")) == []
@@ -304,7 +321,7 @@ def test_uninstallation_remove_caches(
     create_env(prefix=mock_system_paths["baseenv"])
     dot_conda_dir = mock_system_paths["home"] / ".conda"
     assert dot_conda_dir.exists()
-    run_conda("uninstall", str(mock_system_paths["baseenv"]), "--remove-caches")
+    run_uninstaller(mock_system_paths["baseenv"], remove_caches=True)
     assert not dot_conda_dir.exists()
     assert not mock_system_paths["binstar"].exists()
     assert not notices_dir.exists()
@@ -364,11 +381,8 @@ def test_uninstallation_remove_condarcs(
             with open(condarc_file, "w") as crc:
                 yaml.dump(condarc, crc)
     create_env(prefix=mock_system_paths["baseenv"])
-    run_conda(
-        "uninstall",
-        str(mock_system_paths["baseenv"]),
-        f"--remove-condarcs={remove}",
-        needs_sudo=needs_sudo,
+    run_uninstaller(
+        mock_system_paths["baseenv"], remove_condarcs=remove, needs_sudo=needs_sudo
     )
     try:
         assert user_condarc.exists() != remove_user
@@ -388,4 +402,4 @@ def test_uninstallation_remove_condarcs(
 
 def test_uninstallation_invalid_directory(tmp_path: Path):
     with pytest.raises(SubprocessError):
-        run_conda("uninstall", str(tmp_path), check=True)
+        run_uninstaller(tmp_path)
