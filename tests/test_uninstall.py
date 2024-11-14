@@ -329,7 +329,7 @@ def test_uninstallation_remove_condarcs(
     else:
         system_condarc = Path("/etc/conda/.condarc")
         try:
-            system_condarc.parent.mkdir(exist_ok=True)
+            system_condarc.parent.mkdir(parents=True, exist_ok=True)
         except PermissionError:
             needs_sudo = True
 
@@ -360,7 +360,7 @@ def test_uninstallation_remove_condarcs(
             # Since datahome is the temporary location since
             # it is not used in this test.
             tmp_condarc_dir = mock_system_paths["datahome"] / ".tmp_condarc"
-            tmp_condarc_dir.mkdir(parents=True)
+            tmp_condarc_dir.mkdir(parents=True, exist_ok=True)
             tmp_condarc_file = tmp_condarc_dir / ".condarc"
             with open(tmp_condarc_file, "w") as crc:
                 yaml.dump(condarc, crc)
@@ -370,7 +370,7 @@ def test_uninstallation_remove_condarcs(
                 from shutil import copyfile
 
                 condarc_file = Path("{condarc_file}")
-                condarc_file.parent.mkdir(exist_ok=True)
+                condarc_file.parent.mkdir(parents=True, exist_ok=True)
                 copyfile("{tmp_condarc_file}", condarc_file)
                 """
             )
@@ -379,7 +379,7 @@ def test_uninstallation_remove_condarcs(
             run_conda("python", script_file, needs_sudo=True)
             rmtree(tmp_condarc_dir)
         else:
-            condarc_file.parent.mkdir(exist_ok=True)
+            condarc_file.parent.mkdir(parents=True, exist_ok=True)
             with open(condarc_file, "w") as crc:
                 yaml.dump(condarc, crc)
     create_env(prefix=mock_system_paths["baseenv"])
