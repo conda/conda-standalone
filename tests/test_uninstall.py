@@ -323,6 +323,7 @@ def test_uninstallation_remove_condarcs(
         "channels": [CONDA_CHANNEL],
     }
     needs_sudo = False
+    user_condarc = mock_system_paths["confighome"] / "conda" / ".condarc"
     if ON_WIN:
         system_condarc = Path("C:/ProgramData/conda/.condarc")
     else:
@@ -347,7 +348,8 @@ def test_uninstallation_remove_condarcs(
                 text=True,
             )
             mock_system_paths["confighome"] = Path(proc.stdout.strip())
-    user_condarc = mock_system_paths["confighome"] / ".condarc"
+            user_condarc = mock_system_paths["confighome"] / ".condarc"
+
     for condarc_file in (system_condarc, user_condarc):
         if needs_sudo:
             from textwrap import dedent
@@ -391,8 +393,8 @@ def test_uninstallation_remove_condarcs(
         assert system_condarc.exists() != remove_system
     finally:
         system_conda_dirs = [system_condarc.parent]
-        if not ON_WIN:
-            system_conda_dirs = [Path("/etc/conda/"), mock_system_paths["confighome"]]
+        if needs_sudo:
+            system_conda_dirs.append(mock_system_paths["confighome"] / ".condarc")
         for system_dir in system_conda_dirs:
             if not system_dir.exists():
                 continue
