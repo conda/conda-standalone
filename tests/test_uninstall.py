@@ -323,7 +323,6 @@ def test_uninstallation_remove_condarcs(
         "channels": [CONDA_CHANNEL],
     }
     needs_sudo = False
-    user_condarc = mock_system_paths["confighome"] / "conda" / ".condarc"
     if ON_WIN:
         system_condarc = Path("C:/ProgramData/conda/.condarc")
     else:
@@ -332,27 +331,9 @@ def test_uninstallation_remove_condarcs(
             system_condarc.parent.mkdir(parents=True, exist_ok=True)
         except PermissionError:
             needs_sudo = True
-
-            # If the test needs sudo, XDG_* variables will not be available.
-            # In this case, the user .condarc file needs to be written
-            # into $HOME.
-            # Some distributions also override $HOME to be `/root`, so it
-            # cannot be mocked out.
-            proc = run_conda(
-                "python",
-                "-c",
-                "import os; print(os.environ.get('HOME', ''))",
-                needs_sudo=True,
-                capture_output=True,
-                check=True,
-                text=True,
-            )
-            homedir = Path(proc.stdout.strip())
-            mock_system_paths["confighome"] = homedir
-            user_condarc = homedir / ".config" / "conda" / ".condarc"
-
+    user_condarc = mock_system_paths["confighome"] / "conda" / ".condarc"
     for condarc_file in (system_condarc, user_condarc):
-        if needs_sudo:
+        if needs_sudo and condarc_file == system_condarc:
             from textwrap import dedent
 
             # Running shutil does not work using python -m,
@@ -393,19 +374,14 @@ def test_uninstallation_remove_condarcs(
         assert user_condarc.exists() != remove_user
         assert system_condarc.exists() != remove_system
     finally:
-        system_conda_dirs = [system_condarc.parent]
-        if needs_sudo:
-            system_conda_dirs.append(mock_system_paths["confighome"] / ".config")
-        for system_dir in system_conda_dirs:
+        if system_condarc.parent.exists():
             try:
-                if not system_dir.exists():
-                    continue
-                rmtree(system_dir)
+                rmtree(system_condarc.parent)
             except PermissionError:
                 run_conda(
                     "python",
                     "-c",
-                    f"from shutil import rmtree; rmtree('{system_dir}')",
+                    f"from shutil import rmtree; rmtree('{system_condarc.parent}')",
                     needs_sudo=True,
                 )
 

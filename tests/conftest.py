@@ -39,7 +39,7 @@ def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
                 raise NotImplementedError(
                     "Calling run_conda with elevated privileged is not available on Windows"
                 )
-            sudo = ["sudo"]
+            sudo = ["sudo", "-E"]
         del kwargs["needs_sudo"]
     cmd = [*sudo, CONDA_EXE] if sudo else [CONDA_EXE]
 
