@@ -349,7 +349,7 @@ def test_uninstallation_remove_condarcs(
             )
             homedir = Path(proc.stdout.strip())
             mock_system_paths["confighome"] = homedir
-            user_condarc = homedir / ".config" / ".conda" / ".condarc"
+            user_condarc = homedir / ".config" / "conda" / ".condarc"
 
     for condarc_file in (system_condarc, user_condarc):
         if needs_sudo:
@@ -397,9 +397,9 @@ def test_uninstallation_remove_condarcs(
         if needs_sudo:
             system_conda_dirs.append(mock_system_paths["confighome"] / ".config")
         for system_dir in system_conda_dirs:
-            if not system_dir.exists():
-                continue
             try:
+                if not system_dir.exists():
+                    continue
                 rmtree(system_dir)
             except PermissionError:
                 run_conda(
