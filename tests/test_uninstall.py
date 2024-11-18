@@ -19,7 +19,7 @@ from ruamel.yaml import YAML
 ON_WIN = sys.platform == "win32"
 ON_MAC = sys.platform == "darwin"
 ON_LINUX = not (ON_WIN or ON_MAC)
-ON_CI = bool(os.environ.get("CI"))
+ON_CI = bool(os.environ.get("CI")) and os.environ.get("CI") != "0"
 CONDA_CHANNEL = os.environ.get("CONDA_STANDALONE_TEST_CHANNEL", "conda-forge")
 
 
