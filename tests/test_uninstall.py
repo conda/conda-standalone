@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import os
 import sys
+from contextlib import nullcontext
 from pathlib import Path
 from shutil import rmtree
 from subprocess import SubprocessError
+from typing import TYPE_CHECKING
 
 import pytest
 from conda.base.constants import COMPATIBLE_SHELLS
@@ -16,16 +20,22 @@ from conda.core.initialize import (
 from conftest import _get_shortcut_dirs, menuinst_pkg_specs, run_conda
 from ruamel.yaml import YAML
 
+if TYPE_CHECKING:
+    from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
+    from pytest import MonkeyPatch
+
 ON_WIN = sys.platform == "win32"
 ON_MAC = sys.platform == "darwin"
 ON_LINUX = not (ON_WIN or ON_MAC)
 ON_CI = bool(os.environ.get("CI")) and os.environ.get("CI") != "0"
 CONDA_CHANNEL = os.environ.get("CONDA_STANDALONE_TEST_CHANNEL", "conda-forge")
 
+pytest_plugins = ["conda.testing.fixtures"]
+
 
 @pytest.fixture(scope="function")
 def mock_system_paths(
-    monkeypatch,
+    monkeypatch: MonkeyPatch,
     tmp_path: Path,
 ) -> dict[str, Path]:
     paths = {}
@@ -55,7 +65,6 @@ def mock_system_paths(
     }
     for mockdir in paths.values():
         mockdir.mkdir(parents=True, exist_ok=True)
-    paths["baseenv"] = paths["home"] / "baseenv"
 
     monkeypatch.setenv("XDG_CONFIG_HOME", str(paths["confighome"]))
     monkeypatch.setenv("XDG_CACHE_HOME", str(paths["cachehome"]))
@@ -63,16 +72,6 @@ def mock_system_paths(
     monkeypatch.setenv("BINSTAR_CONFIG_DIR", str(paths["binstar"]))
 
     return paths
-
-
-def create_env(
-    prefix: Path | None = None, name: str = "env", packages: list[str] | None = None
-):
-    packages = packages or []
-    if prefix:
-        run_conda("create", "-y", "-p", str(prefix), "-c", CONDA_CHANNEL, *packages)
-    else:
-        run_conda("create", "-y", "-n", name, "-c", CONDA_CHANNEL, *packages)
 
 
 def run_uninstaller(
@@ -94,25 +93,17 @@ def run_uninstaller(
 
 def test_uninstallation(
     mock_system_paths: dict[str, Path],
+    tmp_env: TmpEnvFixture,
 ):
-    second_env = mock_system_paths["home"] / "testenv"
     environments_txt = mock_system_paths["home"] / ".conda" / "environments.txt"
-    create_env(prefix=mock_system_paths["baseenv"])
-    create_env(prefix=second_env)
-    assert environments_txt.exists()
-    environments = environments_txt.read_text().splitlines()
-    assert (
-        str(mock_system_paths["baseenv"]) in environments
-        and str(second_env) in environments
-    )
-    run_uninstaller(mock_system_paths["baseenv"])
-    assert not mock_system_paths["baseenv"].exists()
-    assert mock_system_paths
-    environments = environments_txt.read_text().splitlines()
-    assert (
-        str(mock_system_paths["baseenv"]) not in environments
-        and str(second_env) in environments
-    )
+    with tmp_env() as base_env, tmp_env() as second_env:
+        assert environments_txt.exists()
+        environments = environments_txt.read_text().splitlines()
+        assert str(base_env) in environments and str(second_env) in environments
+        run_uninstaller(base_env)
+        assert not base_env.exists()
+        environments = environments_txt.read_text().splitlines()
+        assert str(base_env) not in environments and str(second_env) in environments
 
 
 @pytest.mark.parametrize(
@@ -120,6 +111,7 @@ def test_uninstallation(
 )
 def test_uninstallation_envs_dirs(
     mock_system_paths: dict[str, Path],
+    conda_cli: CondaCLIFixture,
     remove: bool,
 ):
     yaml = YAML()
@@ -131,7 +123,7 @@ def test_uninstallation_envs_dirs(
     }
     with open(mock_system_paths["home"] / ".condarc", "w") as crc:
         yaml.dump(condarc, crc)
-    create_env(name=testenv_name)
+    conda_cli("create", "-n", testenv_name, "-y")
     assert envs_dir.exists()
     assert envs_dir / ".conda_envs_dir_test"
     assert testenv_dir.exists()
@@ -158,7 +150,8 @@ def test_uninstallation_envs_dirs(
 )
 def test_uninstallation_init_reverse(
     mock_system_paths: dict[str, Path],
-    monkeypatch,
+    monkeypatch: MonkeyPatch,
+    tmp_env: TmpEnvFixture,
     for_user: bool,
     reverse: bool,
 ):
@@ -182,48 +175,49 @@ def test_uninstallation_init_reverse(
     monkeypatch.setattr("conda.core.initialize.make_install_plan", lambda _: [])
     if not for_user and not ON_CI:
         pytest.skip("CI only - interacts with system files")
-    create_env(prefix=mock_system_paths["baseenv"])
-    anaconda_prompt = False
-    if reverse:
-        init_env = str(mock_system_paths["baseenv"])
-    else:
-        init_env = str(mock_system_paths["home"] / "testenv")
-    initialize_plan = make_initialize_plan(
-        init_env,
-        COMPATIBLE_SHELLS,
-        for_user,
-        not for_user,
-        anaconda_prompt,
-        reverse=False,
-    )
-    # Filter out the LongPathsEnabled target since conda init --reverse does not remove it
-    initialize_plan = [
-        plan
-        for plan in initialize_plan
-        if not plan["kwargs"]["target_path"].endswith("LongPathsEnabled")
-    ]
-    run_plan(initialize_plan)
-    run_plan_elevated(initialize_plan)
-    for plan in initialize_plan:
-        assert _find_in_config(init_env, plan["kwargs"]["target_path"])
-    run_uninstaller(mock_system_paths["baseenv"])
-    for plan in initialize_plan:
-        target_path = plan["kwargs"]["target_path"]
-        assert _find_in_config(init_env, target_path) != reverse
-        if not reverse:
-            continue
-        parent = Path(target_path).parent
-        if parent.name in (".config", ".conda", "conda", "xonsh"):
-            assert not parent.exists()
+    with tmp_env() as base_env:
+        anaconda_prompt = False
+        if reverse:
+            init_env = str(base_env)
+        else:
+            init_env = str(mock_system_paths["home"] / "testenv")
+        initialize_plan = make_initialize_plan(
+            init_env,
+            COMPATIBLE_SHELLS,
+            for_user,
+            not for_user,
+            anaconda_prompt,
+            reverse=False,
+        )
+        # Filter out the LongPathsEnabled target since conda init --reverse does not remove it
+        initialize_plan = [
+            plan
+            for plan in initialize_plan
+            if not plan["kwargs"]["target_path"].endswith("LongPathsEnabled")
+        ]
+        run_plan(initialize_plan)
+        run_plan_elevated(initialize_plan)
+        for plan in initialize_plan:
+            assert _find_in_config(init_env, plan["kwargs"]["target_path"])
+        run_uninstaller(base_env)
+        for plan in initialize_plan:
+            target_path = plan["kwargs"]["target_path"]
+            assert _find_in_config(init_env, target_path) != reverse
+            if not reverse:
+                continue
+            parent = Path(target_path).parent
+            if parent.name in (".config", ".conda", "conda", "xonsh"):
+                assert not parent.exists()
 
 
 def test_uninstallation_menuinst(
     mock_system_paths: dict[str, Path],
-    monkeypatch,
+    monkeypatch: MonkeyPatch,
+    tmp_env: TmpEnvFixture,
 ):
     def _shortcuts_found(shortcut_env: Path) -> list:
         variables = {
-            "base": mock_system_paths["baseenv"].name,
+            "base": base_env.name,
             "name": shortcut_env.name,
         }
         shortcut_dirs = _get_shortcut_dirs()
@@ -253,15 +247,15 @@ def test_uninstallation_menuinst(
             "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs",
         ):
             (mock_system_paths["home"] / subdir).mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("CONDA_ROOT_PREFIX", str(mock_system_paths["baseenv"]))
-    create_env(prefix=mock_system_paths["baseenv"])
-    (mock_system_paths["baseenv"] / ".nonadmin").touch()
-    shortcut_env = mock_system_paths["baseenv"] / "envs" / "shortcutenv"
-    shortcuts = [package[0] for package in menuinst_pkg_specs]
-    create_env(prefix=shortcut_env, packages=shortcuts)
-    assert _shortcuts_found(shortcut_env) == shortcuts
-    run_uninstaller(mock_system_paths["baseenv"])
-    assert _shortcuts_found(shortcut_env) == []
+    with tmp_env() as base_env:
+        monkeypatch.setenv("CONDA_ROOT_PREFIX", str(base_env))
+        shortcuts = [package[0] for package in menuinst_pkg_specs]
+        (base_env / ".nonadmin").touch()
+        shortcut_env = base_env / "envs" / "shortcutenv"
+        with tmp_env(*shortcuts) as shortcut_env:
+            assert _shortcuts_found(shortcut_env) == shortcuts
+            run_uninstaller(shortcut_env)
+            assert _shortcuts_found(shortcut_env) == []
 
 
 @pytest.mark.parametrize(
@@ -271,6 +265,7 @@ def test_uninstallation_menuinst(
 )
 def test_uninstallation_conda_clean(
     mock_system_paths: dict[str, Path],
+    tmp_env: TmpEnvFixture,
     shared_pkgs: bool,
 ):
     yaml = YAML()
@@ -282,21 +277,24 @@ def test_uninstallation_conda_clean(
     with open(mock_system_paths["home"] / ".condarc", "w") as crc:
         yaml.dump(condarc, crc)
 
-    create_env(prefix=mock_system_paths["baseenv"], packages=["constructor"])
-    if shared_pkgs:
-        create_env(prefix=(mock_system_paths["home"] / "otherenv"), packages=["python"])
-    assert pkgs_dir.exists()
-    assert list(pkgs_dir.glob("constructor*")) != []
-    assert list(pkgs_dir.glob("python*")) != []
-    run_uninstaller(mock_system_paths["baseenv"], conda_clean=True)
-    assert pkgs_dir.exists() == shared_pkgs
-    if shared_pkgs:
-        assert list(pkgs_dir.glob("constructor*")) == []
+    other_env = tmp_env("python") if shared_pkgs else nullcontext()
+    with (
+        tmp_env("constructor") as base_env,
+        other_env as _,
+    ):
+        assert pkgs_dir.exists()
+        assert list(pkgs_dir.glob("constructor*")) != []
         assert list(pkgs_dir.glob("python*")) != []
+        run_uninstaller(base_env, conda_clean=True)
+        assert pkgs_dir.exists() == shared_pkgs
+        if shared_pkgs:
+            assert list(pkgs_dir.glob("constructor*")) == []
+            assert list(pkgs_dir.glob("python*")) != []
 
 
 def test_uninstallation_remove_caches(
     mock_system_paths: dict[str, Path],
+    tmp_env: TmpEnvFixture,
 ):
     if ON_WIN:
         try:
@@ -318,19 +316,20 @@ def test_uninstallation_remove_caches(
     binstar_dir.mkdir(parents=True, exist_ok=True)
     (binstar_dir / "token").touch()
 
-    create_env(prefix=mock_system_paths["baseenv"])
-    dot_conda_dir = mock_system_paths["home"] / ".conda"
-    assert dot_conda_dir.exists()
-    run_uninstaller(mock_system_paths["baseenv"], remove_caches=True)
-    assert not dot_conda_dir.exists()
-    assert not mock_system_paths["binstar"].exists()
-    assert not notices_dir.exists()
+    with tmp_env() as base_env:
+        dot_conda_dir = mock_system_paths["home"] / ".conda"
+        assert dot_conda_dir.exists()
+        run_uninstaller(base_env, remove_caches=True)
+        assert not dot_conda_dir.exists()
+        assert not mock_system_paths["binstar"].exists()
+        assert not notices_dir.exists()
 
 
 @pytest.mark.parametrize("remove", ("user", "system", "all"))
 @pytest.mark.skipif(not ON_CI, reason="CI only - Writes to system files")
 def test_uninstallation_remove_condarcs(
     mock_system_paths: dict[str, Path],
+    tmp_env: TmpEnvFixture,
     remove: str,
 ):
     yaml = YAML()
@@ -380,24 +379,22 @@ def test_uninstallation_remove_condarcs(
             condarc_file.parent.mkdir(parents=True, exist_ok=True)
             with open(condarc_file, "w") as crc:
                 yaml.dump(condarc, crc)
-    create_env(prefix=mock_system_paths["baseenv"])
-    run_uninstaller(
-        mock_system_paths["baseenv"], remove_condarcs=remove, needs_sudo=needs_sudo
-    )
-    try:
-        assert user_condarc.exists() != remove_user
-        assert system_condarc.exists() != remove_system
-    finally:
-        if system_condarc.parent.exists():
-            try:
-                rmtree(system_condarc.parent)
-            except PermissionError:
-                run_conda(
-                    "python",
-                    "-c",
-                    f"from shutil import rmtree; rmtree('{system_condarc.parent}')",
-                    needs_sudo=True,
-                )
+    with tmp_env() as base_env:
+        run_uninstaller(base_env, remove_condarcs=remove, needs_sudo=needs_sudo)
+        try:
+            assert user_condarc.exists() != remove_user
+            assert system_condarc.exists() != remove_system
+        finally:
+            if system_condarc.parent.exists():
+                try:
+                    rmtree(system_condarc.parent)
+                except PermissionError:
+                    run_conda(
+                        "python",
+                        "-c",
+                        f"from shutil import rmtree; rmtree('{system_condarc.parent}')",
+                        needs_sudo=True,
+                    )
 
 
 def test_uninstallation_invalid_directory(tmp_path: Path):
