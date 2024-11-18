@@ -32,6 +32,8 @@ def mock_system_paths(
     if ON_WIN:
         homedir = tmp_path / "Users" / "user"
         monkeypatch.setenv("USERPROFILE", str(homedir))
+        monkeypatch.setenv("HOMEDRIVE", homedir.anchor[:-1])
+        monkeypatch.setenv("HOMEPATH", f"\\{homedir.relative_to(homedir.anchor)}")
         # Monkeypatching LOCALAPPDATA will not help because user_cache_dir
         # typically does not use environment variables
         cachehome = homedir / "AppData" / "Local"
