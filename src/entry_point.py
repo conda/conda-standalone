@@ -365,6 +365,7 @@ def _constructor_uninstall_subcommand(
     """
     from conda.base.constants import PREFIX_MAGIC_FILE
 
+    # See: https://github.com/conda/conda/blob/475e6acbdc98122fcbef4733eb8cb8689324c1c8/conda/gateways/disk/create.py#L482-L488 # noqa
     ENVS_DIR_MAGIC_FILE = ".conda_envs_dir_test"
 
     uninstall_prefix = Path(uninstall_dir).expanduser().resolve()
@@ -391,10 +392,10 @@ def _constructor_uninstall_subcommand(
         try:
             if not file.exists():
                 return
-            if file.is_symlink() or file.is_file():
-                file.unlink()
-            elif file.is_dir():
+            if file.is_dir():
                 rmtree(file)
+            elif file.is_symlink() or file.is_file():
+                file.unlink()
         except PermissionError:
             pass
 
