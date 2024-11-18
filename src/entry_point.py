@@ -403,6 +403,8 @@ def _constructor_uninstall_subcommand(
         """
         Remove a file and its parents if empty until reaching the stop_at directory.
         """
+        if stop_at and not _is_subdir(file, stop_at):
+            raise RuntimeError(f"{file} must be a subdirectory of {stop_at}.")
         if not file.exists():
             return
         _remove_file_directory(file)

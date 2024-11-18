@@ -210,6 +210,38 @@ def test_uninstallation_init_reverse(
                 assert not parent.exists()
 
 
+def test_uninstallation_keep_config_dir(
+    mock_system_paths: dict[str, Path],
+    monkeypatch: MonkeyPatch,
+    tmp_env: TmpEnvFixture,
+):
+    config_dir = mock_system_paths["home"] / ".config"
+    fish_config_dir = config_dir / "fish"
+    other_config_dir = config_dir / "other"
+    other_config_dir.mkdir(parents=True)
+    # Patch out make_install_plan since it won't be used for uninstallation
+    # and breaks for conda-standalone
+    monkeypatch.setattr("conda.core.initialize.make_install_plan", lambda _: [])
+    for_user = True
+    for_system = False
+    anaconda_prompt = False
+    shells = ["fish"]
+    with tmp_env() as base_env:
+        initialize_plan = make_initialize_plan(
+            base_env,
+            shells,
+            for_user,
+            for_system,
+            anaconda_prompt,
+            reverse=False,
+        )
+        run_plan(initialize_plan)
+        assert fish_config_dir.exists()
+        run_uninstaller(base_env)
+        assert not fish_config_dir.exists()
+        assert other_config_dir.exists()
+
+
 def test_uninstallation_menuinst(
     mock_system_paths: dict[str, Path],
     monkeypatch: MonkeyPatch,
