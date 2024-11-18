@@ -172,9 +172,7 @@ def test_uninstallation_init_reverse(
                 return False
             content = config_file.read_text()
             if sys.platform == "win32" and not target_path.endswith(".ps1"):
-                directory = win_path_to_unix(directory)
-                if directory.startswith("/cygdrive"):
-                    directory = directory[9:]
+                directory = win_path_to_unix(directory).removeprefix("/cygdrive")
             return directory in content
 
     # Patch out make_install_plan since it won't be used for uninstallation

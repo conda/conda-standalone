@@ -1,7 +1,7 @@
 ### Enhancements
 
 * Add `uninstall` subcommand, which uninstalls all environments inside a prefix and reverses
-  `conda init` commands. It also for deleting chache directories and configuration files. (#112)
+  `conda init` commands. It also for deleting cache directories and configuration files. (#112)
 
 ### Bug fixes
 

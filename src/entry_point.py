@@ -341,10 +341,10 @@ def _get_init_reverse_plan(
                     else:
                         sentinel_str = str(prefix / BIN_DIRECTORY / "conda")
                     if sys.platform == "win32" and shell != "powershell":
-                        sentinel_str = win_path_to_unix(sentinel_str)
                         # Remove /cygdrive to make the path shell-independent
-                        if sentinel_str.startswith("/cygdrive"):
-                            sentinel_str = sentinel_str[9:]
+                        sentinel_str = win_path_to_unix(sentinel_str).removeprefix(
+                            "/cygdrive"
+                        )
                     if any(sentinel_str in match for match in matches):
                         reverse_plan.append(initializer)
                         break
