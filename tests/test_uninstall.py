@@ -245,7 +245,6 @@ def test_uninstallation_keep_config_dir(
 def test_uninstallation_menuinst(
     mock_system_paths: dict[str, Path],
     monkeypatch: MonkeyPatch,
-    tmp_env: TmpEnvFixture,
 ):
     def _shortcuts_found(shortcut_env: Path) -> list:
         variables = {
@@ -279,16 +278,18 @@ def test_uninstallation_menuinst(
             "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs",
         ):
             (mock_system_paths["home"] / subdir).mkdir(parents=True, exist_ok=True)
-    with tmp_env() as base_env:
-        monkeypatch.setenv("CONDA_ROOT_PREFIX", str(base_env))
-        monkeypatch.setenv("MENUINST_BASE_PREFIX", str(base_env))
-        shortcuts = [package[0] for package in menuinst_pkg_specs]
-        (base_env / ".nonadmin").touch()
-        shortcut_env_path = base_env / "envs" / "shortcutenv"
-        with tmp_env(*shortcuts, prefix=shortcut_env_path) as shortcut_env:
-            assert _shortcuts_found(shortcut_env) == shortcuts
-            run_uninstaller(base_env)
-            assert _shortcuts_found(shortcut_env) == []
+    base_env = mock_system_paths["home"] / "baseenv"
+    monkeypatch.setenv("CONDA_ROOT_PREFIX", str(base_env))
+    # Conda test fixtures cannot be used here because menuinst
+    # will not use monkeypatched paths.
+    run_conda("create", "-y", "-p", str(base_env))
+    (base_env / ".nonadmin").touch()
+    shortcuts = [package[0] for package in menuinst_pkg_specs]
+    shortcut_env = base_env / "envs" / "shortcutenv"
+    run_conda("create", "-y", "-p", str(shortcut_env), *shortcuts)
+    assert _shortcuts_found(shortcut_env) == shortcuts
+    run_uninstaller(base_env)
+    assert _shortcuts_found(shortcut_env) == []
 
 
 @pytest.mark.parametrize(
