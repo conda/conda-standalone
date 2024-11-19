@@ -409,22 +409,6 @@ def _constructor_uninstall_subcommand(
         except PermissionError:
             pass
 
-    def _remove_file_and_parents(file: Path, stop_at: Path | None = None):
-        """
-        Remove a file and its parents if empty until reaching the stop_at directory.
-        """
-        if stop_at and not _is_subdir(file, stop_at):
-            raise RuntimeError(f"{file} must be a subdirectory of {stop_at}.")
-        if not file.exists():
-            return
-        _remove_file_directory(file)
-        parent = file.parent
-        while (
-            parent != stop_at and parent.is_dir() and not next(parent.iterdir(), None)
-        ):
-            _remove_file_directory(parent)
-            parent = parent.parent
-
     def _remove_config_file_and_parents(file: Path):
         """
         Remove a configuration file and empty parent directories.
@@ -434,18 +418,20 @@ def _constructor_uninstall_subcommand(
         and search backwards to be conservative about what is deleted.
         """
         rootdir = None
-        parts_inverse = list(reversed(file.parts))
-        for config_dir in (".config", ".conda", "conda", "xonsh"):
-            try:
-                root_index = parts_inverse.index(config_dir) + 1
-                rootdir = Path(*file.parts[:-root_index])
-                break
-            except ValueError:
-                pass
-        if not rootdir:
-            _remove_file_directory(file)
-        else:
-            _remove_file_and_parents(file, stop_at=rootdir)
+        # Directories that may have been created by conda that are okay
+        # to be removed if they are empty.
+        if file.parent.parts[-1] in (".conda", "conda", "xonsh", "fish"):
+            rootdir = file.parent
+        # Covers directories like ~/.config/conda/
+        if rootdir and rootdir.parts[-1] in (".config", "conda"):
+            rootdir = rootdir.parent
+        _remove_file_directory(file)
+        print(file, rootdir, Path.home())
+        if rootdir and rootdir != Path.home():
+            parent = file.parent
+            while parent != rootdir.parent and not next(parent.iterdir(), None):
+                _remove_file_directory(parent)
+                parent = parent.parent
 
     print(f"Uninstalling conda installation in {uninstall_prefix}...")
     prefixes = [
@@ -543,7 +529,7 @@ def _constructor_uninstall_subcommand(
                 continue
             expected_files = [pkgs_dir / "urls", pkgs_dir / "urls.txt"]
             if all(file in expected_files for file in pkgs_dir.iterdir()):
-                _remove_file_and_parents(pkgs_dir)
+                _remove_file_directory(pkgs_dir)
 
     if remove_condarcs:
         print("Removing .condarc files...")
@@ -564,14 +550,17 @@ def _constructor_uninstall_subcommand(
 
         print("Removing config and cache directories...")
         _remove_file_directory(Path("~/.conda").expanduser())
+        # The binstar token is either `$BINSTAR_TOKEN_DIR/data`,
+        # or `binstar/ContinuumIO` (Windows) or `binstar` inside the
+        # user cache directory
+        binstar_token_dir = Path(_get_binstar_token_directory())
+        if "BINSTAR_TOKEN_DIR" not in os.environ or sys.platform == "win32":
+            _remove_file_directory(binstar_token_dir.parent)
+        else:
+            _remove_file_directory(binstar_token_dir)
 
-        # For data and cache directories, also remove empty parents
-        cache_data_directories = (
-            _get_binstar_token_directory(),
-            get_notices_cache_dir(),
-        )
-        for cache_data_directory in cache_data_directories:
-            _remove_file_and_parents(Path(cache_data_directory).expanduser())
+        notices_dir = Path(get_notices_cache_dir()).expanduser()
+        _remove_config_file_and_parents(notices_dir)
 
 
 def _constructor_subcommand():

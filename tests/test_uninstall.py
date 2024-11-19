@@ -40,7 +40,7 @@ def mock_system_paths(
 ) -> dict[str, Path]:
     paths = {}
     if ON_WIN:
-        homedir = tmp_path / "Users" / "user"
+        homedir = tmp_path / "Users" / "conda"
         monkeypatch.setenv("USERPROFILE", str(homedir))
         monkeypatch.setenv("HOMEDRIVE", homedir.anchor[:-1])
         monkeypatch.setenv("HOMEPATH", f"\\{homedir.relative_to(homedir.anchor)}")
@@ -48,11 +48,11 @@ def mock_system_paths(
         # typically does not use environment variables
         cachehome = homedir / "AppData" / "Local"
     elif ON_MAC:
-        homedir = tmp_path / "Users" / "user"
+        homedir = tmp_path / "Users" / "conda"
         cachehome = homedir / "Library" / "Caches"
         monkeypatch.setenv("HOME", str(homedir))
     else:
-        homedir = tmp_path / "home" / "users"
+        homedir = tmp_path / "home" / "conda"
         monkeypatch.setenv("HOME", str(homedir))
         cachehome = homedir / "cache"
 
@@ -206,7 +206,9 @@ def test_uninstallation_init_reverse(
             if not reverse:
                 continue
             parent = Path(target_path).parent
-            if parent.name in (".config", ".conda", "conda", "xonsh"):
+            if parent == mock_system_paths["home"]:
+                assert parent.exists()
+            elif parent.name in ("fish", ".conda", "conda", "xonsh"):
                 assert not parent.exists()
 
 
@@ -225,7 +227,7 @@ def test_uninstallation_keep_config_dir(
     for_user = True
     for_system = False
     anaconda_prompt = False
-    shells = ["fish"]
+    shells = ["bash", "fish"]
     with tmp_env() as base_env:
         initialize_plan = make_initialize_plan(
             base_env,
@@ -238,6 +240,7 @@ def test_uninstallation_keep_config_dir(
         run_plan(initialize_plan)
         assert fish_config_dir.exists()
         run_uninstaller(base_env)
+        assert mock_system_paths["home"].exists()
         assert not fish_config_dir.exists()
         assert other_config_dir.exists()
 
