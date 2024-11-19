@@ -281,12 +281,13 @@ def test_uninstallation_menuinst(
             (mock_system_paths["home"] / subdir).mkdir(parents=True, exist_ok=True)
     with tmp_env() as base_env:
         monkeypatch.setenv("CONDA_ROOT_PREFIX", str(base_env))
+        monkeypatch.setenv("MENUINST_BASE_PREFIX", str(base_env))
         shortcuts = [package[0] for package in menuinst_pkg_specs]
         (base_env / ".nonadmin").touch()
-        shortcut_env = base_env / "envs" / "shortcutenv"
-        with tmp_env(*shortcuts) as shortcut_env:
+        shortcut_env_path = base_env / "envs" / "shortcutenv"
+        with tmp_env(*shortcuts, prefix=shortcut_env_path) as shortcut_env:
             assert _shortcuts_found(shortcut_env) == shortcuts
-            run_uninstaller(shortcut_env)
+            run_uninstaller(base_env)
             assert _shortcuts_found(shortcut_env) == []
 
 
