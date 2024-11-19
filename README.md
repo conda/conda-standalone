@@ -105,6 +105,9 @@ $ conda.exe constructor uninstall [-h] --prefix PREFIX [--conda-clean] [--remove
 > configuration files, which may be overwritten with just `sudo`.
 > This can cause files to be left behind.
 
+> [!WARNING]
+> Support for softlinks is still limited.
+
 ### `conda.exe python`
 
 This subcommand provides access to the Python interpreter bundled in the conda-standalone
