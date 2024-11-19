@@ -90,8 +90,10 @@ def _constructor_parse_cli():
     p = argparse.ArgumentParser(
         prog="conda.exe constructor", description="constructor helper subcommand"
     )
-    # Cannot make this a required argument or `conda.exe constructor uninstall --prefix`
-    # will not work (would have to be `conda constructor --prefix uninstall`)
+    # Cannot use argparse to make this a required argument
+    # or `conda.exe constructor uninstall --prefix`
+    # will not work (would have to be `conda constructor --prefix uninstall`).
+    # Requiring `--prefix` will be enforced manually later.
     p.add_argument(
         "--prefix",
         action="store",
