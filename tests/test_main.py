@@ -37,6 +37,18 @@ def test_constructor():
     run_conda("constructor", "--help", check=True)
 
 
+@pytest.mark.parametrize(
+    "args",
+    (
+        pytest.param(["--prefix", "path"], id="missing command"),
+        pytest.param(["--extract-conda-pkgs"], id="missing prefix"),
+    ),
+)
+def test_constructor_missing_arguments(args: list[str]):
+    with pytest.raises(subprocess.CalledProcessError):
+        run_conda("constructor", *args, check=True)
+
+
 @pytest.mark.parametrize("search_paths", ("all_rcs", "--no-rc", "env_var"))
 def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
     expected_configs = {}

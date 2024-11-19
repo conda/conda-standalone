@@ -190,6 +190,14 @@ def _constructor_parse_cli():
 
     args, args_unknown = p.parse_known_args()
 
+    if args.command != "uninstall":
+        group_args = getattr(g, "_group_actions")
+        if all(getattr(args, arg.dest) is None for arg in group_args):
+            required_args = [arg.option_strings[0] for arg in group_args]
+            raise argparse.ArgumentError(
+                f"one of the following arguments are required: {'/'.join(required_args)}"
+            )
+
     if args.prefix is None:
         raise argparse.ArgumentError("the following arguments are required: --prefix")
 
