@@ -262,7 +262,7 @@ def _is_subdir(directory: Path, root: Path) -> bool:
 
     Rely on Path objects rather than string comparison to be portable.
     """
-    return directory == root or any(root == parent for parent in directory.parents)
+    return directory == root or root in directory.parents
 
 
 def _get_init_reverse_plan(
