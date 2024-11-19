@@ -106,7 +106,8 @@ $ conda.exe constructor uninstall [-h] --prefix PREFIX [--conda-clean] [--remove
 > This can cause files to be left behind.
 
 > [!WARNING]
-> Support for softlinks is still limited.
+> Support for softlinks is still untested.
+> The uninstaller will only perform unlink operations and not delete any files the links point to.
 
 ### `conda.exe python`
 
