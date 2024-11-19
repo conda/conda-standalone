@@ -193,7 +193,7 @@ def _constructor_parse_cli():
     if args.prefix is None:
         raise argparse.ArgumentError("the following arguments are required: --prefix")
 
-    args.prefix = os.path.abspath(os.path.expanduser(args.prefix))
+    args.prefix = os.path.abspath(os.path.expanduser(os.path.expandvars(args.prefix)))
     args.root_prefix = os.path.abspath(os.environ.get("CONDA_ROOT_PREFIX", args.prefix))
 
     if "--num-processors" in sys.argv and not args.extract_conda_pkgs:
@@ -368,7 +368,7 @@ def _constructor_uninstall_subcommand(
     # See: https://github.com/conda/conda/blob/475e6acbdc98122fcbef4733eb8cb8689324c1c8/conda/gateways/disk/create.py#L482-L488 # noqa
     ENVS_DIR_MAGIC_FILE = ".conda_envs_dir_test"
 
-    uninstall_prefix = Path(uninstall_dir).expanduser().resolve()
+    uninstall_prefix = Path(uninstall_dir).resolve()
     if (
         not (uninstall_prefix / PREFIX_MAGIC_FILE).exists()
         and not (uninstall_prefix / ENVS_DIR_MAGIC_FILE).exists()
