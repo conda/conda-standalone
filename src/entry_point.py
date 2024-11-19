@@ -428,7 +428,7 @@ def _constructor_uninstall_subcommand(
         for config_dir in (".config", ".conda", "conda", "xonsh"):
             try:
                 root_index = parts_inverse.index(config_dir) + 1
-                rootdir = Path(*file.parts[:-root_index]).resolve()
+                rootdir = Path(*file.parts[:-root_index])
                 break
             except ValueError:
                 pass

@@ -413,8 +413,8 @@ def test_uninstallation_remove_condarcs(
             with open(condarc_file, "w") as crc:
                 yaml.dump(condarc, crc)
     with tmp_env() as base_env:
-        run_uninstaller(base_env, remove_condarcs=remove, needs_sudo=needs_sudo)
         try:
+            run_uninstaller(base_env, remove_condarcs=remove, needs_sudo=needs_sudo)
             assert user_condarc.exists() != remove_user
             assert system_condarc.exists() != remove_system
         finally:
