@@ -177,12 +177,12 @@ def _constructor_parse_cli():
         ),
     )
     uninstall_subcommand.add_argument(
-        "--remove-caches",
+        "--remove-conda-caches",
         action="store_true",
         required=False,
         help=(
             "Remove all cache directories created by conda."
-            " This includes the .conda directory inside HOME/USERPROFILE."
+            " This includes the ~/.conda directory, the notice chache, and anaconda-client data."
             " Not recommended when multiple conda installations are on the system"
             " or when running on an environments directory."
         ),
@@ -355,7 +355,7 @@ def _constructor_uninstall_subcommand(
     uninstall_dir: str,
     conda_clean: bool = False,
     remove_condarcs: str | None = None,
-    remove_caches: bool = False,
+    remove_conda_caches: bool = False,
 ):
     """
     Remove a conda prefix or a directory containing conda environments.
@@ -548,7 +548,7 @@ def _constructor_uninstall_subcommand(
                 continue
             _remove_config_file_and_parents(config_file)
 
-    if remove_caches:
+    if remove_conda_caches:
         from conda.gateways.anaconda_client import _get_binstar_token_directory
         from conda.notices.cache import get_notices_cache_dir
 
@@ -580,7 +580,7 @@ def _constructor_subcommand():
             args.prefix,
             conda_clean=args.conda_clean,
             remove_condarcs=args.remove_condarcs,
-            remove_caches=args.remove_caches,
+            remove_conda_caches=args.remove_conda_caches,
         )
         # os.chdir will break conda --clean, so return early
         return

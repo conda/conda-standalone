@@ -83,7 +83,7 @@ There are several options to remove configuration and cache files:
 
 ```bash
 $ conda.exe constructor uninstall [-h] --prefix PREFIX [--conda-clean] [--remove-condarcs {user,system,all}]
-                                  [--remove-caches]
+                                  [--remove-conda-caches]
 ```
 
 - `--prefix` (required): Path to the conda directory to uninstall.
@@ -92,9 +92,10 @@ $ conda.exe constructor uninstall [-h] --prefix PREFIX [--conda-clean] [--remove
                                          `system` removes all files outside of that directory.
                                          Not recommended when multiple conda installations are on
                                          the system or when running on an environments directory.
-- `--remove-caches`: Remove all cache directories created by conda. This includes the `.conda`
-                     directory inside `HOME`/`USERPROFILE`. Not recommended when multiple conda
-                     installations are on the system or when running on an environments directory.
+- `--remove-conda-caches`: Remove all cache directories created by conda.
+                           This includes the ~/.conda directory, the notice chache, and
+                           anaconda-client data. Not recommended when multiple conda installations
+                           are on the system or when running on an environments directory.
 - `--conda-clean`:   Run `conda --clean --all` to remove package caches outside the installation
                      directory. This is only useful when `pkgs_dirs` is set in a `.condarc` file.
                      Not recommended with multiple conda installations when softlinks are enabled.

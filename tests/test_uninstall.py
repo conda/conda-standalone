@@ -78,7 +78,7 @@ def run_uninstaller(
     prefix: Path,
     conda_clean: bool = False,
     remove_condarcs: str | None = None,
-    remove_caches: bool = False,
+    remove_conda_caches: bool = False,
     needs_sudo: bool = False,
 ):
     args = ["--prefix", str(prefix)]
@@ -86,8 +86,8 @@ def run_uninstaller(
         args.append("--conda-clean")
     if remove_condarcs:
         args.extend(["--remove-condarcs", remove_condarcs])
-    if remove_caches:
-        args.append("--remove-caches")
+    if remove_conda_caches:
+        args.append("--remove-conda-caches")
     run_conda("constructor", "uninstall", *args, needs_sudo=needs_sudo, check=True)
 
 
@@ -326,7 +326,7 @@ def test_uninstallation_conda_clean(
             assert list(pkgs_dir.glob("python*")) != []
 
 
-def test_uninstallation_remove_caches(
+def test_uninstallation_remove_conda_caches(
     mock_system_paths: dict[str, Path],
     tmp_env: TmpEnvFixture,
 ):
@@ -353,7 +353,7 @@ def test_uninstallation_remove_caches(
     with tmp_env() as base_env:
         dot_conda_dir = mock_system_paths["home"] / ".conda"
         assert dot_conda_dir.exists()
-        run_uninstaller(base_env, remove_caches=True)
+        run_uninstaller(base_env, remove_conda_caches=True)
         assert not dot_conda_dir.exists()
         assert not mock_system_paths["binstar"].exists()
         assert not notices_dir.exists()
