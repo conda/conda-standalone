@@ -418,20 +418,23 @@ def _constructor_uninstall_subcommand(
         and search backwards to be conservative about what is deleted.
         """
         rootdir = None
+        _remove_file_directory(file)
         # Directories that may have been created by conda that are okay
         # to be removed if they are empty.
         if file.parent.parts[-1] in (".conda", "conda", "xonsh", "fish"):
             rootdir = file.parent
+        # rootdir may be $HOME/%USERPROFILE% if the username is conda, etc.
+        if not rootdir or rootdir == Path.home():
+            return
         # Covers directories like ~/.config/conda/
-        if rootdir and rootdir.parts[-1] in (".config", "conda"):
+        if rootdir.parts[-1] in (".config", "conda"):
             rootdir = rootdir.parent
-        _remove_file_directory(file)
-        print(file, rootdir, Path.home())
-        if rootdir and rootdir != Path.home():
-            parent = file.parent
-            while parent != rootdir.parent and not next(parent.iterdir(), None):
-                _remove_file_directory(parent)
-                parent = parent.parent
+        if rootdir == Path.home():
+            return
+        parent = file.parent
+        while parent != rootdir.parent and not next(parent.iterdir(), None):
+            _remove_file_directory(parent)
+            parent = parent.parent
 
     print(f"Uninstalling conda installation in {uninstall_prefix}...")
     prefixes = [
