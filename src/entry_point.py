@@ -378,7 +378,7 @@ def _constructor_uninstall_subcommand(
     # See: https://github.com/conda/conda/blob/475e6acbdc98122fcbef4733eb8cb8689324c1c8/conda/gateways/disk/create.py#L482-L488 # noqa
     ENVS_DIR_MAGIC_FILE = ".conda_envs_dir_test"
 
-    uninstall_prefix = Path(uninstall_dir).resolve()
+    uninstall_prefix = Path(uninstall_dir)
     if (
         not (uninstall_prefix / PREFIX_MAGIC_FILE).exists()
         and not (uninstall_prefix / ENVS_DIR_MAGIC_FILE).exists()
