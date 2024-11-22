@@ -70,24 +70,23 @@ def mock_system_paths(
     monkeypatch.setenv("XDG_CACHE_HOME", str(paths["cachehome"]))
     monkeypatch.setenv("XDG_DATA_HOME", str(paths["datahome"]))
     monkeypatch.setenv("BINSTAR_CONFIG_DIR", str(paths["binstar"]))
-
     return paths
 
 
 def run_uninstaller(
     prefix: Path,
-    conda_clean: bool = False,
+    clean_caches: bool = False,
     remove_condarcs: str | None = None,
-    remove_conda_caches: bool = False,
+    remove_user_data: bool = False,
     needs_sudo: bool = False,
 ):
     args = ["--prefix", str(prefix)]
-    if conda_clean:
-        args.append("--conda-clean")
+    if clean_caches:
+        args.append("--clean-caches")
     if remove_condarcs:
         args.extend(["--remove-condarcs", remove_condarcs])
-    if remove_conda_caches:
-        args.append("--remove-conda-caches")
+    if remove_user_data:
+        args.append("--remove-user-data")
     run_conda("constructor", "uninstall", *args, needs_sudo=needs_sudo, check=True)
 
 
@@ -300,11 +299,28 @@ def test_uninstallation_menuinst(
     (True, False),
     ids=("shared pkgs", "remove pkgs"),
 )
-def test_uninstallation_conda_clean(
+def test_uninstallation_clean_caches(
     mock_system_paths: dict[str, Path],
     tmp_env: TmpEnvFixture,
     shared_pkgs: bool,
 ):
+    # Set up notices
+    if ON_WIN:
+        try:
+            import ctypes
+
+            if not hasattr(ctypes, "windll"):
+                pytest.skip("Test requires windll.ctypes for mocked locations to work.")
+        except ImportError:
+            pytest.skip("Test requires ctypes for mocked locations to work.")
+        notices_dir = Path(
+            mock_system_paths["cachehome"], "conda", "conda", "Cache", "notices"
+        )
+    else:
+        notices_dir = Path(mock_system_paths["cachehome"], "conda", "notices")
+    notices_dir.mkdir(parents=True, exist_ok=True)
+    (notices_dir / "notices.cache").touch()
+
     yaml = YAML()
     pkgs_dir = mock_system_paths["home"] / "pkgs"
     condarc = {
@@ -322,33 +338,18 @@ def test_uninstallation_conda_clean(
         assert pkgs_dir.exists()
         assert list(pkgs_dir.glob("constructor*")) != []
         assert list(pkgs_dir.glob("python*")) != []
-        run_uninstaller(base_env, conda_clean=True)
+        run_uninstaller(base_env, clean_caches=True)
         assert pkgs_dir.exists() == shared_pkgs
         if shared_pkgs:
             assert list(pkgs_dir.glob("constructor*")) == []
             assert list(pkgs_dir.glob("python*")) != []
+        assert not notices_dir.exists()
 
 
-def test_uninstallation_remove_conda_caches(
+def test_uninstallation_remove_user_data(
     mock_system_paths: dict[str, Path],
     tmp_env: TmpEnvFixture,
 ):
-    if ON_WIN:
-        try:
-            import ctypes
-
-            if not hasattr(ctypes, "windll"):
-                pytest.skip("Test requires windll.ctypes for mocked locations to work.")
-        except ImportError:
-            pytest.skip("Test requires ctypes for mocked locations to work.")
-        notices_dir = Path(
-            mock_system_paths["cachehome"], "conda", "conda", "Cache", "notices"
-        )
-    else:
-        notices_dir = Path(mock_system_paths["cachehome"], "conda", "notices")
-    notices_dir.mkdir(parents=True, exist_ok=True)
-    (notices_dir / "notices.cache").touch()
-
     binstar_dir = mock_system_paths["binstar"] / "data"
     binstar_dir.mkdir(parents=True, exist_ok=True)
     (binstar_dir / "token").touch()
@@ -356,10 +357,9 @@ def test_uninstallation_remove_conda_caches(
     with tmp_env() as base_env:
         dot_conda_dir = mock_system_paths["home"] / ".conda"
         assert dot_conda_dir.exists()
-        run_uninstaller(base_env, remove_conda_caches=True)
+        run_uninstaller(base_env, remove_user_data=True)
         assert not dot_conda_dir.exists()
         assert not mock_system_paths["binstar"].exists()
-        assert not notices_dir.exists()
 
 
 @pytest.mark.parametrize("remove", ("user", "system", "all"))
