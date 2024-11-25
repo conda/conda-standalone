@@ -93,7 +93,7 @@ $ conda.exe constructor uninstall [-h] --prefix PREFIX [--conda-clean] [--remove
   Not recommended with multiple conda installations when softlinks are enabled.
 - `--remove-config-files {user,system,all}`:
    Removes all .condarc files. `user` removes the files inside the current user's home directory
-   and `system` removes all files outside of that directory.Not recommended when multiple conda
+   and `system` removes all files outside of that directory. Not recommended when multiple conda
    installations are on the system or when running on an environments directory.
 - `--remove-user-data`:
   Removes the ~/.conda directory. Not recommended when multiple conda installations are installed
