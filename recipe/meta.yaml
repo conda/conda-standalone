@@ -2,7 +2,7 @@
 {% set conda_libmamba_solver_version = "24.9.0" %}
 {% set libmambapy_version = "1.5.11" %}
 {% set constructor_version = "3.10.0" %}
-{% set menuinst_lower_bound = "2.1.2" %}
+{% set menuinst_lower_bound = "2.2.0" %}
 {% set python_version = "3.12.7" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
