@@ -58,7 +58,6 @@ def mock_system_paths(
 
     paths = {
         "home": homedir,
-        "binstar": homedir / "ContinuumIO" / "binstar",
         "cachehome": cachehome,
         "confighome": homedir / "config",
         "datahome": homedir / "data",
@@ -69,22 +68,21 @@ def mock_system_paths(
     monkeypatch.setenv("XDG_CONFIG_HOME", str(paths["confighome"]))
     monkeypatch.setenv("XDG_CACHE_HOME", str(paths["cachehome"]))
     monkeypatch.setenv("XDG_DATA_HOME", str(paths["datahome"]))
-    monkeypatch.setenv("BINSTAR_CONFIG_DIR", str(paths["binstar"]))
     return paths
 
 
 def run_uninstaller(
     prefix: Path,
-    clean_caches: bool = False,
-    remove_condarcs: str | None = None,
+    remove_caches: bool = False,
+    remove_config_files: str | None = None,
     remove_user_data: bool = False,
     needs_sudo: bool = False,
 ):
     args = ["--prefix", str(prefix)]
-    if clean_caches:
-        args.append("--clean-caches")
-    if remove_condarcs:
-        args.extend(["--remove-condarcs", remove_condarcs])
+    if remove_caches:
+        args.append("--remove-caches")
+    if remove_config_files:
+        args.extend(["--remove-config-files", remove_config_files])
     if remove_user_data:
         args.append("--remove-user-data")
     run_conda("constructor", "uninstall", *args, needs_sudo=needs_sudo, check=True)
@@ -299,7 +297,7 @@ def test_uninstallation_menuinst(
     (True, False),
     ids=("shared pkgs", "remove pkgs"),
 )
-def test_uninstallation_clean_caches(
+def test_uninstallation_remove_caches(
     mock_system_paths: dict[str, Path],
     tmp_env: TmpEnvFixture,
     shared_pkgs: bool,
@@ -338,7 +336,7 @@ def test_uninstallation_clean_caches(
         assert pkgs_dir.exists()
         assert list(pkgs_dir.glob("constructor*")) != []
         assert list(pkgs_dir.glob("python*")) != []
-        run_uninstaller(base_env, clean_caches=True)
+        run_uninstaller(base_env, remove_caches=True)
         assert pkgs_dir.exists() == shared_pkgs
         if shared_pkgs:
             assert list(pkgs_dir.glob("constructor*")) == []
@@ -350,21 +348,16 @@ def test_uninstallation_remove_user_data(
     mock_system_paths: dict[str, Path],
     tmp_env: TmpEnvFixture,
 ):
-    binstar_dir = mock_system_paths["binstar"] / "data"
-    binstar_dir.mkdir(parents=True, exist_ok=True)
-    (binstar_dir / "token").touch()
-
     with tmp_env() as base_env:
         dot_conda_dir = mock_system_paths["home"] / ".conda"
         assert dot_conda_dir.exists()
         run_uninstaller(base_env, remove_user_data=True)
         assert not dot_conda_dir.exists()
-        assert not mock_system_paths["binstar"].exists()
 
 
 @pytest.mark.parametrize("remove", ("user", "system", "all"))
 @pytest.mark.skipif(not ON_CI, reason="CI only - Writes to system files")
-def test_uninstallation_remove_condarcs(
+def test_uninstallation_remove_config_files(
     mock_system_paths: dict[str, Path],
     tmp_env: TmpEnvFixture,
     remove: str,
@@ -418,7 +411,7 @@ def test_uninstallation_remove_condarcs(
                 yaml.dump(condarc, crc)
     with tmp_env() as base_env:
         try:
-            run_uninstaller(base_env, remove_condarcs=remove, needs_sudo=needs_sudo)
+            run_uninstaller(base_env, remove_config_files=remove, needs_sudo=needs_sudo)
             assert user_condarc.exists() != remove_user
             assert system_condarc.exists() != remove_system
         finally:

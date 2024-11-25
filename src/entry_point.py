@@ -156,7 +156,7 @@ def _constructor_parse_cli():
         help="Path to the conda directory to uninstall.",
     )
     uninstall_subcommand.add_argument(
-        "--clean-caches",
+        "--remove-caches",
         action="store_true",
         required=False,
         help=(
@@ -167,12 +167,12 @@ def _constructor_parse_cli():
         ),
     )
     uninstall_subcommand.add_argument(
-        "--remove-condarcs",
+        "--remove-config-files",
         choices=["user", "system", "all"],
         default=None,
         required=False,
         help=(
-            "Remove all .condarc files."
+            "Removes all .condarc files."
             " `user` removes the files inside the current user's"
             " home directory and `system` removes all files outside of that directory."
             " Not recommended when multiple conda installations are on the system"
@@ -184,8 +184,7 @@ def _constructor_parse_cli():
         action="store_true",
         required=False,
         help=(
-            "Removes all non-cache directories created by conda."
-            " This includes the ~/.conda directory and anaconda-client data."
+            "Removes the ~/.conda directory."
             " Not recommended when multiple conda installations are on the system"
             " or when running on an environments directory."
         ),
@@ -364,8 +363,8 @@ def _get_init_reverse_plan(
 
 def _constructor_uninstall_subcommand(
     uninstall_dir: str,
-    clean_caches: bool = False,
-    remove_condarcs: str | None = None,
+    remove_caches: bool = False,
+    remove_config_files: str | None = None,
     remove_user_data: bool = False,
 ):
     """
@@ -524,7 +523,7 @@ def _constructor_uninstall_subcommand(
         if delete_uninstall_prefix:
             _remove_file_directory(uninstall_prefix)
 
-    if clean_caches:
+    if remove_caches:
         print("Cleaning cache directories.")
         from conda.notices.cache import get_notices_cache_dir
         conda_main("clean", "--all", "-y")
@@ -540,32 +539,22 @@ def _constructor_uninstall_subcommand(
         notices_dir = Path(get_notices_cache_dir()).expanduser()
         _remove_config_file_and_parents(notices_dir)
 
-    if remove_condarcs:
+    if remove_config_files:
         print("Removing .condarc files...")
         for config_file in context.config_files:
-            if remove_condarcs == "user" and not _is_subdir(
+            if remove_config_files == "user" and not _is_subdir(
                 config_file.parent, Path.home()
             ):
                 continue
-            elif remove_condarcs == "system" and _is_subdir(
+            elif remove_config_files == "system" and _is_subdir(
                 config_file.parent, Path.home()
             ):
                 continue
             _remove_config_file_and_parents(config_file)
 
     if remove_user_data:
-        from conda.gateways.anaconda_client import _get_binstar_token_directory
-
         print("Removing user data...")
         _remove_file_directory(Path("~/.conda").expanduser())
-        # The binstar token is either `$BINSTAR_TOKEN_DIR/data`,
-        # or `binstar/ContinuumIO` (Windows) or `binstar` inside the
-        # user cache directory
-        binstar_token_dir = Path(_get_binstar_token_directory())
-        if "BINSTAR_CONFIG_DIR" in os.environ or sys.platform == "win32":
-            _remove_file_directory(binstar_token_dir.parent)
-        else:
-            _remove_file_directory(binstar_token_dir)
 
 
 def _constructor_subcommand():
@@ -582,8 +571,8 @@ def _constructor_subcommand():
     if args.command == "uninstall":
         _constructor_uninstall_subcommand(
             args.prefix,
-            clean_caches=args.clean_caches,
-            remove_condarcs=args.remove_condarcs,
+            remove_caches=args.remove_caches,
+            remove_config_files=args.remove_config_files,
             remove_user_data=args.remove_user_data,
         )
         # os.chdir will break conda --clean, so return early
