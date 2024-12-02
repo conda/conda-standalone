@@ -13,6 +13,24 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 24.11.0 (2024-12-02)
+
+### Enhancements
+
+* Add `uninstall` subcommand, which uninstalls all environments inside a prefix and reverses
+  `conda init` commands. It's also useful for deleting cache directories and configuration files. (#112)
+* Bump to conda 24.11.0, libmambapy 1.5.11, constructor 3.10.0, menuinst 2.2.0. (#114)
+
+### Bug fixes
+
+* Prevent unbound error in `test_conda_standalone_config`. (#110)
+
+### Contributors
+
+* @marcoesters
+
+
+
 ## 24.9.2 (2024-10-30)
 
 ### Enhancements
