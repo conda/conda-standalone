@@ -28,8 +28,6 @@ Remember to update the hyperlinks at the bottom.
 ### Contributors
 
 * @marcoesters
-* @conda-bot
-* @dependabot[bot]
 
 
 
