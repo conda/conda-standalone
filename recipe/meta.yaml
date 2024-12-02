@@ -1,8 +1,8 @@
-{% set conda_version = "24.9.2" %}
+{% set conda_version = "24.11.0" %}
 {% set conda_libmamba_solver_version = "24.9.0" %}
-{% set libmambapy_version = "1.5.10" %}
-{% set constructor_version = "3.9.3" %}
-{% set menuinst_lower_bound = "2.1.2" %}
+{% set libmambapy_version = "1.5.11" %}
+{% set constructor_version = "3.10.0" %}
+{% set menuinst_lower_bound = "2.2.0" %}
 {% set python_version = "3.12.7" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
@@ -14,7 +14,7 @@ source:
   - path: ../
 
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 7323ed0ae876f9d86f04c61ae01f53095adc570df27d9c375266df2745d51b8b
+    sha256: 781cfe0d1bcc8d6f0249ea58a7f9655a5089a8a6eeab1511ab556e6a8e742e23
     folder: conda_src
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
@@ -22,7 +22,7 @@ source:
       - ../src/conda_patches/0003-Restrict-search-paths.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: c88640ca1dcb93784cf754a16c53a098633808653aa52965c909a967b84815b9  # [win]
+    sha256: cfb77a5e64b5b2b44fdb5c3d04adbb652c1249a86ea2e88f9b293e367a809caf  # [win]
     folder: constructor_src  # [win]
 
 build:
