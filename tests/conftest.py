@@ -16,7 +16,7 @@ menuinst_pkg_specs = [
         "conda-test/label/menuinst-tests::package_1",
         {
             "win32": "Package 1/A.lnk",
-            "darwin": "A.app/Contents/MacOS/a",
+            "darwin": "A.app",
             "linux": "package-1_a.desktop",
         },
     ),

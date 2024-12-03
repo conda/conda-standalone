@@ -177,6 +177,16 @@ _pkg_specs_params = pytest.mark.parametrize(
 @_pkg_specs_params
 def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: dict[str, str]):
     "Check 'regular' conda can process menuinst JSONs"
+
+    # If the test app already exists, this test will fail,
+    # so clean up before and after the run.
+    def _clean_macos_apps(shortcuts: list[Path]):
+        if not sys.platform == "darwin":
+            return
+        for shortcut in shortcuts:
+            if shortcut.exists():
+                shutil.rmtree(shortcut)
+
     env = os.environ.copy()
     env["CONDA_ROOT_PREFIX"] = sys.prefix
     # The shortcut will take 'root_prefix' as the base, but conda-standalone
@@ -184,52 +194,69 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: dict[str, 
     # self-extraction. We override it via 'CONDA_ROOT_PREFIX' in the same
     # way 'constructor' will do it.
     variables = {"base": Path(sys.prefix).name, "name": tmp_path.name}
-    process = run_conda(
-        "create",
-        "-vvv",
-        "-p",
-        tmp_path,
-        "-y",
-        pkg_spec,
-        "--no-deps",
-        env=env,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    print(process.stdout)
-    print(process.stderr, file=sys.stderr)
-    assert "menuinst Exception" not in process.stdout
-    assert list(tmp_path.glob("Menu/*.json"))
-    assert any(
-        (folder / shortcut_path[sys.platform].format(**variables)).is_file()
+    shortcuts = [
+        folder / shortcut_path[sys.platform].format(**variables)
         for folder in _get_shortcut_dirs()
-    )
-    process = run_conda(
-        "remove",
-        "-vvv",
-        "-p",
-        tmp_path,
-        "-y",
-        pkg_spec.split("::")[-1],
-        env=env,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    print(process.stdout)
-    print(process.stderr, file=sys.stderr)
-    assert all(
-        not (folder / shortcut_path[sys.platform].format(**variables)).is_file()
-        for folder in _get_shortcut_dirs()
-    )
+    ]
+    _clean_macos_apps(shortcuts)
+    try:
+        process = run_conda(
+            "create",
+            "-vvv",
+            "-p",
+            tmp_path,
+            "-y",
+            pkg_spec,
+            "--no-deps",
+            env=env,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        print(process.stdout)
+        print(process.stderr, file=sys.stderr)
+        assert "menuinst Exception" not in process.stdout
+        assert list(tmp_path.glob("Menu/*.json"))
+        assert not any(shortcut.exists() for shortcut in shortcuts)
+        process = run_conda(
+            "remove",
+            "-vvv",
+            "-p",
+            tmp_path,
+            "-y",
+            pkg_spec.split("::")[-1],
+            env=env,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        print(process.stdout)
+        print(process.stderr, file=sys.stderr)
+        assert not any(shortcut.exists() for shortcut in shortcuts)
+    finally:
+        _clean_macos_apps(shortcuts)
 
 
 @_pkg_specs_params
 def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str):
     "The constructor helper should also be able to process menuinst JSONs"
+
+    # If the test app already exists, this test will fail,
+    # so clean up before and after the run.
+    def _clean_macos_apps(shortcuts: list[Path]):
+        if not sys.platform == "darwin":
+            return
+        for shortcut in shortcuts:
+            if shortcut.exists():
+                shutil.rmtree(shortcut)
+
     run_kwargs = dict(capture_output=True, text=True, check=True)
     variables = {"base": Path(sys.prefix).name, "name": tmp_path.name}
+    shortcuts = [
+        folder / shortcut_path[sys.platform].format(**variables)
+        for folder in _get_shortcut_dirs()
+    ]
+    _clean_macos_apps(shortcuts)
     process = run_conda(
         "create",
         "-vvv",
@@ -247,43 +274,40 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
 
     env = os.environ.copy()
     env["CONDA_ROOT_PREFIX"] = sys.prefix
-    process = run_conda(
-        "constructor",
-        # Not supported in micromamba's interface yet
-        # use CONDA_ROOT_PREFIX instead
-        # "--root-prefix",
-        # sys.prefix,
-        "--prefix",
-        tmp_path,
-        "--make-menus",
-        **run_kwargs,
-        env=env,
-    )
-    print(process.stdout)
-    print(process.stderr, file=sys.stderr)
-    assert any(
-        (folder / shortcut_path[sys.platform].format(**variables)).is_file()
-        for folder in _get_shortcut_dirs()
-    )
+    try:
+        process = run_conda(
+            "constructor",
+            # Not supported in micromamba's interface yet
+            # use CONDA_ROOT_PREFIX instead
+            # "--root-prefix",
+            # sys.prefix,
+            "--prefix",
+            tmp_path,
+            "--make-menus",
+            **run_kwargs,
+            env=env,
+        )
+        print(process.stdout)
+        print(process.stderr, file=sys.stderr)
+        assert not any(shortcut.exists() for shortcut in shortcuts)
 
-    process = run_conda(
-        "constructor",
-        # Not supported in micromamba's interface yet
-        # use CONDA_ROOT_PREFIX instead
-        # "--root-prefix",
-        # sys.prefix,
-        "--prefix",
-        tmp_path,
-        "--rm-menus",
-        **run_kwargs,
-        env=env,
-    )
-    print(process.stdout)
-    print(process.stderr, file=sys.stderr)
-    assert all(
-        not (folder / shortcut_path[sys.platform].format(**variables)).is_file()
-        for folder in _get_shortcut_dirs()
-    )
+        process = run_conda(
+            "constructor",
+            # Not supported in micromamba's interface yet
+            # use CONDA_ROOT_PREFIX instead
+            # "--root-prefix",
+            # sys.prefix,
+            "--prefix",
+            tmp_path,
+            "--rm-menus",
+            **run_kwargs,
+            env=env,
+        )
+        print(process.stdout)
+        print(process.stderr, file=sys.stderr)
+        assert not any(shortcut.exists() for shortcut in shortcuts)
+    finally:
+        _clean_macos_apps(shortcuts)
 
 
 def test_python():

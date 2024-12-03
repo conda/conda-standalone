@@ -263,7 +263,7 @@ def test_uninstallation_menuinst(
             package[0]
             for package in menuinst_pkg_specs
             if any(
-                (folder / package[1][sys.platform].format(**variables)).is_file()
+                (folder / package[1][sys.platform].format(**variables)).exists()
                 for folder in shortcut_dirs
             )
         ]
