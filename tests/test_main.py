@@ -217,7 +217,7 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: dict[str, 
         print(process.stderr, file=sys.stderr)
         assert "menuinst Exception" not in process.stdout
         assert list(tmp_path.glob("Menu/*.json"))
-        assert not any(shortcut.exists() for shortcut in shortcuts)
+        assert any(shortcut.exists() for shortcut in shortcuts)
         process = run_conda(
             "remove",
             "-vvv",
@@ -289,7 +289,7 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
         )
         print(process.stdout)
         print(process.stderr, file=sys.stderr)
-        assert not any(shortcut.exists() for shortcut in shortcuts)
+        assert any(shortcut.exists() for shortcut in shortcuts)
 
         process = run_conda(
             "constructor",
