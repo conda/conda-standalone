@@ -297,6 +297,7 @@ def test_uninstallation_menuinst(
     (True, False),
     ids=("shared pkgs", "remove pkgs"),
 )
+@pytest.mark.skipif(not ON_CI, reason="CI only - may remove shared caches")
 def test_uninstallation_remove_caches(
     mock_system_paths: dict[str, Path],
     tmp_env: TmpEnvFixture,
