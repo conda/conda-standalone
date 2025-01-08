@@ -660,6 +660,12 @@ def _python_subcommand():
     return 1
 
 
+def _patch_root_prefix():
+    root_prefix = str(Path(sys.executable).parent)
+    os.environ.setdefault("CONDA_ROOT", root_prefix)
+    os.environ.setdefault("CONDA_ROOT_PREFIX", root_prefix)
+
+
 def _conda_main():
     from conda.cli import main
 
@@ -684,6 +690,7 @@ def main():
         elif sys.argv[1] == "python" or sys.argv[1] == "-m":
             return _python_subcommand()
 
+    _patch_root_prefix()
     return _conda_main()
 
 
