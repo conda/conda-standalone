@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import os
+import shutil
+import subprocess
 import sys
 from contextlib import nullcontext
 from pathlib import Path
-from shutil import rmtree
-from subprocess import SubprocessError
 from typing import TYPE_CHECKING
 
 import pytest
 from conda.base.constants import COMPATIBLE_SHELLS
 from conda.common.path import win_path_to_unix
 from conda.core.initialize import (
+    Result,
     _read_windows_registry,
     make_initialize_plan,
     run_plan,
@@ -31,6 +32,16 @@ ON_CI = bool(os.environ.get("CI")) and os.environ.get("CI") != "0"
 CONDA_CHANNEL = os.environ.get("CONDA_STANDALONE_TEST_CHANNEL", "conda-forge")
 
 pytest_plugins = ["conda.testing.fixtures"]
+
+
+def can_use_sudo() -> bool:
+    if not shutil.which("sudo"):
+        return False
+    try:
+        subprocess.run(["sudo", "-v"], check=True)
+    except subprocess.CalledProcessError:
+        return False
+    return True
 
 
 @pytest.fixture(scope="function")
@@ -193,6 +204,19 @@ def test_uninstallation_init_reverse(
             if not plan["kwargs"]["target_path"].endswith("LongPathsEnabled")
         ]
         run_plan(initialize_plan)
+        if any(step["result"] == Result.NEEDS_SUDO for step in initialize_plan):
+            if not can_use_sudo():
+                # Revert previous initialization before skipping
+                initialize_plan = make_initialize_plan(
+                    init_env,
+                    COMPATIBLE_SHELLS,
+                    for_user,
+                    not for_user,
+                    anaconda_prompt,
+                    reverse=True,
+                )
+                run_plan(initialize_plan)
+                pytest.skip("Requires sudo.")
         run_plan_elevated(initialize_plan)
         for plan in initialize_plan:
             assert _find_in_config(init_env, plan["kwargs"]["target_path"])
@@ -379,6 +403,8 @@ def test_uninstallation_remove_config_files(
         try:
             system_condarc.parent.mkdir(parents=True, exist_ok=True)
         except PermissionError:
+            if not can_use_sudo():
+                pytest.skip("Test requires sudo.")
             needs_sudo = True
     user_condarc = mock_system_paths["confighome"] / "conda" / ".condarc"
     for condarc_file in (system_condarc, user_condarc):
@@ -407,7 +433,7 @@ def test_uninstallation_remove_config_files(
             script_file = tmp_condarc_dir / "copy_condarc.py"
             script_file.write_text(script)
             run_conda("python", script_file, needs_sudo=True)
-            rmtree(tmp_condarc_dir)
+            shutil.rmtree(tmp_condarc_dir)
         else:
             condarc_file.parent.mkdir(parents=True, exist_ok=True)
             with open(condarc_file, "w") as crc:
@@ -420,7 +446,7 @@ def test_uninstallation_remove_config_files(
         finally:
             if system_condarc.parent.exists():
                 try:
-                    rmtree(system_condarc.parent)
+                    shutil.rmtree(system_condarc.parent)
                 except PermissionError:
                     run_conda(
                         "python",
@@ -431,5 +457,5 @@ def test_uninstallation_remove_config_files(
 
 
 def test_uninstallation_invalid_directory(tmp_path: Path):
-    with pytest.raises(SubprocessError):
+    with pytest.raises(subprocess.SubprocessError):
         run_uninstaller(tmp_path)
