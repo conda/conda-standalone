@@ -18,8 +18,8 @@ from conda.core.initialize import (
     run_plan,
     run_plan_elevated,
 )
-from conftest import _get_shortcut_dirs, menuinst_pkg_specs, run_conda
 from ruamel.yaml import YAML
+from utils import _get_shortcut_dirs, run_conda
 
 if TYPE_CHECKING:
     from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
@@ -269,8 +269,9 @@ def test_uninstallation_keep_config_dir(
 def test_uninstallation_menuinst(
     mock_system_paths: dict[str, Path],
     monkeypatch: MonkeyPatch,
+    menuinst_pkg_specs: list[tuple[str, dict[str, str]]],
 ):
-    def _shortcuts_found(shortcut_env: Path) -> list:
+    def _shortcuts_found(base_env: Path, shortcut_env: Path) -> list:
         variables = {
             "base": base_env.name,
             "name": shortcut_env.name,
@@ -287,7 +288,7 @@ def test_uninstallation_menuinst(
             package[0]
             for package in menuinst_pkg_specs
             if any(
-                (folder / package[1][sys.platform].format(**variables)).is_file()
+                (folder / package[1][sys.platform].format(**variables)).exists()
                 for folder in shortcut_dirs
             )
         ]
@@ -311,9 +312,9 @@ def test_uninstallation_menuinst(
     shortcuts = [package[0] for package in menuinst_pkg_specs]
     shortcut_env = base_env / "envs" / "shortcutenv"
     run_conda("create", "-y", "-p", str(shortcut_env), *shortcuts)
-    assert _shortcuts_found(shortcut_env) == shortcuts
+    assert _shortcuts_found(base_env, shortcut_env) == shortcuts
     run_uninstaller(base_env)
-    assert _shortcuts_found(shortcut_env) == []
+    assert _shortcuts_found(base_env, shortcut_env) == []
 
 
 @pytest.mark.parametrize(

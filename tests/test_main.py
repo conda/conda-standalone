@@ -9,8 +9,8 @@ import tarfile
 from pathlib import Path
 
 import pytest
-from conftest import CONDA_EXE, _get_shortcut_dirs, menuinst_pkg_specs, run_conda
 from ruamel.yaml import YAML
+from utils import CONDA_EXE, run_conda
 
 HERE = Path(__file__).parent
 
@@ -169,28 +169,18 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path):
     )
 
 
-_pkg_specs_params = pytest.mark.parametrize(
-    "pkg_spec, shortcut_path", menuinst_pkg_specs
-)
-
-
-@_pkg_specs_params
-def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: dict[str, str]):
+def test_menuinst_conda(tmp_path: Path, clean_shortcuts: dict[str, list[Path]]):
     "Check 'regular' conda can process menuinst JSONs"
+
     env = os.environ.copy()
     env["CONDA_ROOT_PREFIX"] = sys.prefix
-    # The shortcut will take 'root_prefix' as the base, but conda-standalone
-    # sets that to its temporary 'sys.prefix' as provided by the pyinstaller
-    # self-extraction. We override it via 'CONDA_ROOT_PREFIX' in the same
-    # way 'constructor' will do it.
-    variables = {"base": Path(sys.prefix).name, "name": tmp_path.name}
     process = run_conda(
         "create",
         "-vvv",
         "-p",
         tmp_path,
         "-y",
-        pkg_spec,
+        *clean_shortcuts.keys(),
         "--no-deps",
         env=env,
         capture_output=True,
@@ -201,17 +191,19 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: dict[str, 
     print(process.stderr, file=sys.stderr)
     assert "menuinst Exception" not in process.stdout
     assert list(tmp_path.glob("Menu/*.json"))
-    assert any(
-        (folder / shortcut_path[sys.platform].format(**variables)).is_file()
-        for folder in _get_shortcut_dirs()
-    )
+    shortcuts_found = [
+        package
+        for package, shortcuts in clean_shortcuts.items()
+        if any(shortcut.exists() for shortcut in shortcuts)
+    ]
+    assert sorted(shortcuts_found) == sorted(clean_shortcuts.keys())
     process = run_conda(
         "remove",
         "-vvv",
         "-p",
         tmp_path,
         "-y",
-        pkg_spec.split("::")[-1],
+        *[pkg_spec.split("::")[-1] for pkg_spec in clean_shortcuts.keys()],
         env=env,
         capture_output=True,
         text=True,
@@ -219,24 +211,24 @@ def test_menuinst_conda(tmp_path: Path, pkg_spec: str, shortcut_path: dict[str, 
     )
     print(process.stdout)
     print(process.stderr, file=sys.stderr)
-    assert all(
-        not (folder / shortcut_path[sys.platform].format(**variables)).is_file()
-        for folder in _get_shortcut_dirs()
-    )
+    shortcuts_found = [
+        package
+        for package, shortcuts in clean_shortcuts.items()
+        if any(shortcut.exists() for shortcut in shortcuts)
+    ]
+    assert shortcuts_found == []
 
 
-@_pkg_specs_params
-def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str):
+def test_menuinst_constructor(tmp_path: Path, clean_shortcuts: dict[str, list[Path]]):
     "The constructor helper should also be able to process menuinst JSONs"
     run_kwargs = dict(capture_output=True, text=True, check=True)
-    variables = {"base": Path(sys.prefix).name, "name": tmp_path.name}
     process = run_conda(
         "create",
         "-vvv",
         "-p",
         tmp_path,
         "-y",
-        pkg_spec,
+        *clean_shortcuts.keys(),
         "--no-deps",
         "--no-shortcuts",
         **run_kwargs,
@@ -261,10 +253,12 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     )
     print(process.stdout)
     print(process.stderr, file=sys.stderr)
-    assert any(
-        (folder / shortcut_path[sys.platform].format(**variables)).is_file()
-        for folder in _get_shortcut_dirs()
-    )
+    shortcuts_found = [
+        package
+        for package, shortcuts in clean_shortcuts.items()
+        if any(shortcut.exists() for shortcut in shortcuts)
+    ]
+    assert sorted(shortcuts_found) == sorted(clean_shortcuts.keys())
 
     process = run_conda(
         "constructor",
@@ -280,10 +274,12 @@ def test_menuinst_constructor(tmp_path: Path, pkg_spec: str, shortcut_path: str)
     )
     print(process.stdout)
     print(process.stderr, file=sys.stderr)
-    assert all(
-        not (folder / shortcut_path[sys.platform].format(**variables)).is_file()
-        for folder in _get_shortcut_dirs()
-    )
+    shortcuts_found = [
+        package
+        for package, shortcuts in clean_shortcuts.items()
+        if any(shortcut.exists() for shortcut in shortcuts)
+    ]
+    assert shortcuts_found == []
 
 
 def test_python():
