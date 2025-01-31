@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Bump to conda 25.1.0, python 3.12.8, libmambapy 2.0.5, conda-libmamba-solver 25.1.0, constructor 3.11.1. (#127)
+* Bump to conda 25.1.1, python 3.12.8, libmambapy 2.0.5, conda-libmamba-solver 25.1.1, constructor 3.11.1. (#127)
 
 ### Bug fixes
 
