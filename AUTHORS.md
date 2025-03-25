@@ -6,12 +6,8 @@ Authors are sorted alphabetically.
 * Hadrien Mary
 * Isuru Fernando
 * Jaime Rodríguez-Guerra
+* Marco Esters
 * Matthew R. Becker
 * Mike Sarahan
 * Nehal J Wani
 * SC426
-* conda-bot
-* conda-forge-admin
-* dependabot[bot]
-* pre-commit-ci[bot]
-* regro-cf-autotick-bot

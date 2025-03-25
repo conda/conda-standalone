@@ -6,6 +6,8 @@ RENAME "%SP_DIR%\conda\utils.py" utils.py.bak || goto :error
 COPY conda_src\conda\utils.py "%SP_DIR%\conda\utils.py" || goto :error
 RENAME "%SP_DIR%\conda\deprecations.py" deprecations.py.bak || goto :error
 COPY conda_src\conda\deprecations.py "%SP_DIR%\conda\deprecations.py" || goto :error
+RENAME "%SP_DIR%\conda\base\constants.py" constants.py.bak || goto :error
+COPY conda_src\conda\base\constants.py "%SP_DIR%\conda\base\constants.py" || goto :error
 
 :: we need these for noarch packages with entry points to work on windows
 COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error

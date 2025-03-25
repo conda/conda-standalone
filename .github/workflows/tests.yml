@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - .github/workflows/upload-releases.yml
   schedule:
     - cron: '30 6 * * *'
 
@@ -38,11 +40,11 @@ jobs:
     env:
       PYTHONUNBUFFERED: "1"
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: conda-incubator/setup-miniconda@505e6394dae86d6a5c7fbb6e3fb8938e3e863830 # v3.1.1
         with:
           auto-activate-base: true
-          activate-environment: ""
+          activate-environment: "test"
           run-post: false
 
       - name: Install dependencies
@@ -55,7 +57,7 @@ jobs:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
         run: conda build recipe --override-channels -c conda-forge
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         if: github.event_name == 'pull_request'
         with:
           name: conda-standalone-${{ matrix.subdir }}

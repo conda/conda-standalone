@@ -3,7 +3,7 @@ ci:
     autofix_prs: false
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       # standard end of line/end of file cleanup
       - id: mixed-line-ending
@@ -17,12 +17,12 @@ repos:
       # catch git merge/rebase problems
       - id: check-merge-conflict
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.17.0
+    rev: v3.19.1
     hooks:
       - id: pyupgrade
         args: ["--py37-plus"]
   - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+    rev: 6.0.1
     hooks:
       - id: isort
   - repo: https://github.com/akaihola/darker
@@ -31,7 +31,7 @@ repos:
       - id: darker
         additional_dependencies: [black==22.10.0]
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.1.1
+    rev: 7.1.2
     hooks:
       - id: flake8
 exclude: "^src/conda_patches/.*patch$"
