@@ -92,7 +92,6 @@ else:
 exe = EXE(pyz,
           a.scripts,
           *variant_args,
-          exclude_binaries=True,
           name='conda.exe',
           icon=os.path.join(HERE, "icon.ico"),
           debug=False,
