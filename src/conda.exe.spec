@@ -75,8 +75,16 @@ a = Analysis(['entry_point.py', 'imports.py'],
              noarchive=False)
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
+
+if os.environ.get("variant", "") == "onedir":
+    variant_args = ()
+    extra_exe_kwargs["exclude_binaries"] = True
+else:
+    variant_args = (a.binaries, a.zipfiles, a.datas, [])
+
 exe = EXE(pyz,
           a.scripts,
+          *variant_args,
           exclude_binaries=True,
           name='conda.exe',
           icon=os.path.join(HERE, "icon.ico"),
@@ -87,9 +95,12 @@ exe = EXE(pyz,
           upx_exclude=[],
           runtime_tmpdir=None,
           console=True,
+          **variant_kwargs
           **extra_exe_kwargs)
 
-coll = COLLECT(exe,
+if os.environ.get("variant", "") == "onedir":
+
+    coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
                a.datas,

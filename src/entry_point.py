@@ -292,9 +292,10 @@ def _python_subcommand():
 
 
 def _patch_root_prefix():
-    root_prefix = str(Path(sys.executable).parent)
-    os.environ.setdefault("CONDA_ROOT", root_prefix)
-    os.environ.setdefault("CONDA_ROOT_PREFIX", root_prefix)
+    root_prefix = Path(sys.executable).parent
+    if (root_prefix / "_internal").is_dir():
+        os.environ.setdefault("CONDA_ROOT", str(root_prefix))
+        os.environ.setdefault("CONDA_ROOT_PREFIX", str(root_prefix))
 
 
 def _conda_main():
