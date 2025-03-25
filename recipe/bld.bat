@@ -19,9 +19,9 @@ COPY constructor_src\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py" || goto :
 pyinstaller --clean --log-level=DEBUG src\conda.exe.spec || goto :error
 set "variant=%variant%"
 if "%variant%" == "onedir" (
-  MKDIR "%PREFIX%" || goto :error
+  MKDIR "%PREFIX%"
 ) else (
-  MKDIR "%PREFIX%\standalone_conda" || goto :error
+  MKDIR "%PREFIX%\standalone_conda"
 )
 MOVE dist\conda.exe "%PREFIX%\standalone_conda" || goto :error
 
