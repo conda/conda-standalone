@@ -13,6 +13,28 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 25.1.1 (2025-03-24)
+
+### Enhancements
+
+* Bump to conda 25.1.1, python 3.12.9, libmambapy 2.0.5, conda-libmamba-solver 25.3.0, constructor 3.11.3. (#127)
+
+### Bug fixes
+
+* Remove macOS apps before and after menuinst tests. (#117)
+* Skip `test_uninstallation_remove_caches` if not on CI or if `CONDA_PKGS_DIRS` is set. (#118)
+* Skip uninstallation tests that require `sudo` when `sudo` is unavailable. (#126)
+
+### Other
+
+* Run CI builds in a separate conda environment. (#125)
+
+### Contributors
+
+* @marcoesters
+
+
+
 ## 24.11.0 (2024-12-02)
 
 ### Enhancements
