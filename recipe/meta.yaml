@@ -28,13 +28,14 @@ source:
 build:
   number: 0
   string: "g{{ GIT_FULL_HASH[:7] }}_py{{ pyver }}_{{ PKG_BUILDNUM }}"
+  string: "g{{ GIT_FULL_HASH[:7] }}_py{{ pyver }}_onedir_{{ PKG_BUILDNUM }}"  # [variant == 'onedir']
+  detect_binary_files_with_prefix: False  # [variant == 'onedir']
   ignore_run_exports:
     - '*'
   script_env:
     - PYINSTALLER_CONDARC_DIR={{ RECIPE_DIR }}
 
 requirements:
-  detect_binary_files_with_prefix: False  # [variant == 'onedir']
   build:
     - pyinstaller
     - python ={{ python_version }}
