@@ -18,7 +18,7 @@ fi
 # -s strips executables and libraries
 export variant="$variant"
 pyinstaller --clean --log-level=DEBUG src/conda.exe.spec
-if [[ "$variant" == "onedir "]]; then
+if [[ "$variant" == "onedir" ]]; then
   mkdir -p "$PREFIX"
 else
   mkdir -p "$PREFIX/standalone_conda"
