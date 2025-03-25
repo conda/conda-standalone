@@ -102,7 +102,6 @@ exe = EXE(pyz,
           upx_exclude=[],
           runtime_tmpdir=None,
           console=True,
-          **variant_kwargs
           **extra_exe_kwargs)
 
 if os.environ.get("variant", "") == "onedir":
