@@ -34,6 +34,7 @@ build:
     - PYINSTALLER_CONDARC_DIR={{ RECIPE_DIR }}
 
 requirements:
+  detect_binary_files_with_prefix: False  # [variant == 'onedir']
   build:
     - pyinstaller
     - python ={{ python_version }}
