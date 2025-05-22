@@ -51,6 +51,7 @@ def test_constructor_missing_arguments(args: list[str]):
 
 @pytest.mark.parametrize("search_paths", ("all_rcs", "--no-rc", "env_var"))
 def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
+    variant = os.environ.get("PYINSTALLER_BUILD_VARIANT", "single-binary")
     expected_configs = {}
     yaml = YAML()
     if rc_dir := os.environ.get("PYINSTALLER_CONDARC_DIR"):
@@ -58,7 +59,18 @@ def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
         if condarc.exists():
             with open(condarc) as crc:
                 config = YAML().load(crc)
-                expected_configs["standalone"] = config.copy()
+                if variant == "single-binary":
+                    expected_configs["standalone"] = config.copy()
+                elif variant == "onedir":
+                    condarc_path = Path(
+                        os.environ["PREFIX"],
+                        "standalone_conda",
+                        "_internal",
+                        ".condarc",
+                    )
+                    expected_configs[str(condarc_path)] = config.copy()
+                else:
+                    pytest.skip(f"Unknown build variant {variant}.")
 
     config_args = ["--show-sources", "--json"]
     if search_paths == "env_var":
@@ -88,7 +100,7 @@ def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
     condarcs = json.loads(proc.stdout)
 
     tmp_root = None
-    if rc_dir:
+    if rc_dir and variant == "single-binary":
         # Quick way to get the location conda-standalone is extracted into
         proc = run_conda(
             "python",
@@ -105,7 +117,7 @@ def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
     for filepath, config in condarcs.items():
         if Path(filepath).exists():
             conda_configs[filepath] = config.copy()
-        elif rc_dir and filepath.startswith(tmp_root):
+        elif tmp_root and filepath.startswith(tmp_root):
             conda_configs["standalone"] = config.copy()
     if search_paths == "all_rcs":
         # If the search path is restricted, there may be other .condarc
