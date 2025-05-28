@@ -111,9 +111,7 @@ def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
         # If the search path is restricted, there may be other .condarc
         # files in the final config, so be less strict with assertions
         for filepath, config in expected_configs.items():
-            assert conda_configs.get(filepath) == config, (
-                f"Incorrect config for {filepath}"
-            )
+            assert conda_configs.get(filepath) == config, f"Incorrect config for {filepath}"
     else:
         assert expected_configs == conda_configs
 
