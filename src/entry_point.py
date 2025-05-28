@@ -253,7 +253,10 @@ def _constructor_extract_tarball():
     from conda_package_streaming.package_streaming import TarfileNoSameOwner
 
     t = TarfileNoSameOwner.open(mode="r|*", fileobj=sys.stdin.buffer)
-    t.extractall()
+    tar_args = {}
+    if hasattr(t, "extraction_filter"):
+        tar_args["filter"] = "fully_trusted"
+    t.extractall(**tar_args)
     t.close()
 
 
