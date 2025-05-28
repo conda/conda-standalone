@@ -111,9 +111,9 @@ def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
         # If the search path is restricted, there may be other .condarc
         # files in the final config, so be less strict with assertions
         for filepath, config in expected_configs.items():
-            assert (
-                conda_configs.get(filepath) == config
-            ), f"Incorrect config for {filepath}"
+            assert conda_configs.get(filepath) == config, (
+                f"Incorrect config for {filepath}"
+            )
     else:
         assert expected_configs == conda_configs
 
@@ -152,7 +152,8 @@ def test_extract_tarball_umask(tmp_path: Path):
     assert rc == 0
     if sys.platform != "win32":
         mode = (tmp_path / "naughty_umask").stat().st_mode
-        chmod_bits = stat.S_IMODE(mode)  # we only want the chmod bits (last three octal digits)
+        # we only want the chmod bits (last three octal digits)
+        chmod_bits = stat.S_IMODE(mode)
         expected_bits = naughty_mode & ~umask
         assert chmod_bits == expected_bits == 0o755, f"{expected_bits:o}"
 

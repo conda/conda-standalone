@@ -57,7 +57,7 @@ def _constructor_parse_cli():
     # This might be None!
     CPU_COUNT = os.cpu_count()
     # See validation results for magic number of 3
-    # https://dholth.github.io/conda-benchmarks/#extract.TimeExtract.time_extract?conda-package-handling=2.0.0a2&p-format='.conda'&p-format='.tar.bz2'&p-lang='py'  # noqa
+    # https://dholth.github.io/conda-benchmarks/#extract.TimeExtract.time_extract?conda-package-handling=2.0.0a2&p-format='.conda'&p-format='.tar.bz2'&p-lang='py'
     DEFAULT_NUM_PROCESSORS = 1 if not CPU_COUNT else min(3, CPU_COUNT)
 
     class _NumProcessorsAction(argparse.Action):
@@ -140,8 +140,7 @@ def _constructor_parse_cli():
     g.add_argument(
         "--rm-menus",
         action="store_true",
-        help="remove menu items for all packages "
-        "in the environment specified by --prefix",
+        help="remove menu items for all packages in the environment specified by --prefix",
     )
 
     subcommands = p.add_subparsers(dest="command")
@@ -221,8 +220,6 @@ def _constructor_extract_conda_pkgs(prefix, max_workers=None):
     from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
     from conda_package_handling import api
     from tqdm.auto import tqdm
-
-    executor = ProcessPoolExecutor(max_workers=max_workers)
 
     os.chdir(os.path.join(prefix, "pkgs"))
     flist = []
@@ -375,7 +372,7 @@ def _constructor_uninstall_subcommand(
     """
     from conda.base.constants import PREFIX_MAGIC_FILE
 
-    # See: https://github.com/conda/conda/blob/475e6acbdc98122fcbef4733eb8cb8689324c1c8/conda/gateways/disk/create.py#L482-L488 # noqa
+    # See: https://github.com/conda/conda/blob/475e6acbdc98122fcbef4733eb8cb8689324c1c8/conda/gateways/disk/create.py#L482-L488
     ENVS_DIR_MAGIC_FILE = ".conda_envs_dir_test"
 
     uninstall_prefix = Path(uninstall_dir)
@@ -526,6 +523,7 @@ def _constructor_uninstall_subcommand(
     if remove_caches:
         print("Cleaning cache directories.")
         from conda.notices.cache import get_notices_cache_dir
+
         conda_main("clean", "--all", "-y")
         # Delete empty package cache directories
         for directory in context.pkgs_dirs:

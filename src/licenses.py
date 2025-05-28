@@ -1,6 +1,7 @@
 """
 Collect all licenses from the target environment.
 """
+
 import argparse
 import json
 import os
