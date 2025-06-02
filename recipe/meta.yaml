@@ -30,7 +30,7 @@ build:
   string: "g{{ GIT_FULL_HASH[:7] }}_py{{ pyver }}_{{ PKG_BUILDNUM }}"  # [variant != 'onedir']
   string: "g{{ GIT_FULL_HASH[:7] }}_py{{ pyver }}_onedir_{{ PKG_BUILDNUM }}"  # [variant == 'onedir']
   detect_binary_files_with_prefix: False  # [variant == 'onedir']
-  track_features: 
+  track_features:
     - conda-standalone_onedir  # [variant == 'onedir']
   ignore_run_exports:
     - '*'
