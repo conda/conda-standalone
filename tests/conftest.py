@@ -41,9 +41,7 @@ def _clean_macos_apps(shortcuts: dict[str, list[Path]]):
 
 
 @pytest.fixture
-def clean_shortcuts(
-    tmp_path: Path, menuinst_pkg_specs: list[tuple[str, dict[str, str]]]
-):
+def clean_shortcuts(tmp_path: Path, menuinst_pkg_specs: list[tuple[str, dict[str, str]]]):
     # The shortcut will take 'root_prefix' as the base, but conda-standalone
     # sets that to its temporary 'sys.prefix' as provided by the pyinstaller
     # self-extraction. We override it via 'CONDA_ROOT_PREFIX' in the same
@@ -52,8 +50,7 @@ def clean_shortcuts(
     shortcuts = {}
     for package, spec in menuinst_pkg_specs:
         shortcuts[package] = [
-            folder / spec[sys.platform].format(**variables)
-            for folder in _get_shortcut_dirs()
+            folder / spec[sys.platform].format(**variables) for folder in _get_shortcut_dirs()
         ]
     _clean_macos_apps(shortcuts)
     yield shortcuts

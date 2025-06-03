@@ -1,6 +1,7 @@
 """
 Collect all licenses from the target environment.
 """
+
 import argparse
 import json
 import os
@@ -55,9 +56,7 @@ def dump_licenses(prefix, include_text=False, text_errors=None, output="licenses
                 license_path = os.path.join(directory, filepath)
                 license_file = {"path": license_path, "text": None}
                 if include_text:
-                    license_file["text"] = Path(license_path).read_text(
-                        errors=text_errors
-                    )
+                    license_file["text"] = Path(license_path).read_text(errors=text_errors)
                 license_files.append(license_file)
 
     with open(output, "w") as f:
@@ -66,16 +65,10 @@ def dump_licenses(prefix, include_text=False, text_errors=None, output="licenses
 
 
 def cli():
-    p = argparse.ArgumentParser(
-        description="Dump license information for a conda environment"
-    )
-    p.add_argument(
-        "--prefix", action="store", required="True", help="path to conda prefix"
-    )
+    p = argparse.ArgumentParser(description="Dump license information for a conda environment")
+    p.add_argument("--prefix", action="store", required="True", help="path to conda prefix")
     p.add_argument("--include-text", action="store_true", help="include license text")
-    p.add_argument(
-        "--text-errors", action="store", help="how to handle text decoding errors"
-    )
+    p.add_argument("--text-errors", action="store", help="how to handle text decoding errors")
     p.add_argument("--output", action="store", help="output file")
 
     args = p.parse_args()

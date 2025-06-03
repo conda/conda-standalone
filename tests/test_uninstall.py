@@ -114,9 +114,7 @@ def test_uninstallation(
         assert str(base_env) not in environments and str(second_env) in environments
 
 
-@pytest.mark.parametrize(
-    "remove", (True, False), ids=("remove directory", "keep directory")
-)
+@pytest.mark.parametrize("remove", (True, False), ids=("remove directory", "keep directory"))
 def test_uninstallation_envs_dirs(
     mock_system_paths: dict[str, Path],
     conda_cli: CondaCLIFixture,
@@ -339,9 +337,7 @@ def test_uninstallation_remove_caches(
                 pytest.skip("Test requires windll.ctypes for mocked locations to work.")
         except ImportError:
             pytest.skip("Test requires ctypes for mocked locations to work.")
-        notices_dir = Path(
-            mock_system_paths["cachehome"], "conda", "conda", "Cache", "notices"
-        )
+        notices_dir = Path(mock_system_paths["cachehome"], "conda", "conda", "Cache", "notices")
     else:
         notices_dir = Path(mock_system_paths["cachehome"], "conda", "notices")
     notices_dir.mkdir(parents=True, exist_ok=True)
