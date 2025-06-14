@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Add single-directory build variant that doesn't require auto-extraction on execution. (#93, #145)
+* Add single-directory build variant that doesn't require auto-extraction on execution. (#93, #145, #146)
 
 ### Bug fixes
 
