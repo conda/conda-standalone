@@ -40,12 +40,7 @@ def _fix_sys_path():
     Before any more imports, leave cwd out of sys.path for internal 'conda shell.*' commands.
     see https://github.com/conda/conda/issues/6549
     """
-    if (
-        len(sys.argv) > 1
-        and sys.argv[1].startswith("shell.")
-        and sys.path
-        and sys.path[0] == ""
-    ):
+    if len(sys.argv) > 1 and sys.argv[1].startswith("shell.") and sys.path and sys.path[0] == "":
         # The standard first entry in sys.path is an empty string,
         # and os.path.abspath('') expands to os.getcwd().
         del sys.path[0]
@@ -57,7 +52,7 @@ def _constructor_parse_cli():
     # This might be None!
     CPU_COUNT = os.cpu_count()
     # See validation results for magic number of 3
-    # https://dholth.github.io/conda-benchmarks/#extract.TimeExtract.time_extract?conda-package-handling=2.0.0a2&p-format='.conda'&p-format='.tar.bz2'&p-lang='py'  # noqa
+    # https://dholth.github.io/conda-benchmarks/#extract.TimeExtract.time_extract?conda-package-handling=2.0.0a2&p-format='.conda'&p-format='.tar.bz2'&p-lang='py'
     DEFAULT_NUM_PROCESSORS = 1 if not CPU_COUNT else min(3, CPU_COUNT)
 
     class _NumProcessorsAction(argparse.Action):
@@ -140,8 +135,7 @@ def _constructor_parse_cli():
     g.add_argument(
         "--rm-menus",
         action="store_true",
-        help="remove menu items for all packages "
-        "in the environment specified by --prefix",
+        help="remove menu items for all packages in the environment specified by --prefix",
     )
 
     subcommands = p.add_subparsers(dest="command")
@@ -207,9 +201,7 @@ def _constructor_parse_cli():
     args.root_prefix = os.path.abspath(os.environ.get("CONDA_ROOT_PREFIX", args.prefix))
 
     if "--num-processors" in sys.argv and not args.extract_conda_pkgs:
-        raise argparse.ArgumentError(
-            "--num-processors can only be used with --extract-conda-pkgs"
-        )
+        raise argparse.ArgumentError("--num-processors can only be used with --extract-conda-pkgs")
 
     return args, args_unknown
 
@@ -221,8 +213,6 @@ def _constructor_extract_conda_pkgs(prefix, max_workers=None):
     from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
     from conda_package_handling import api
     from tqdm.auto import tqdm
-
-    executor = ProcessPoolExecutor(max_workers=max_workers)
 
     os.chdir(os.path.join(prefix, "pkgs"))
     flist = []
@@ -334,9 +324,7 @@ def _get_init_reverse_plan(
                 target_path = Path(target_path)
                 # Only reverse for paths that are outside the uninstall prefix
                 # since paths inside the uninstall prefix will be deleted anyway
-                if not target_path.exists() or _is_subdir(
-                    target_path, uninstall_prefix
-                ):
+                if not target_path.exists() or _is_subdir(target_path, uninstall_prefix):
                     continue
                 rc_content = target_path.read_text()
                 if shell == "powershell":
@@ -355,9 +343,7 @@ def _get_init_reverse_plan(
                         sentinel_str = str(prefix / BIN_DIRECTORY / "conda")
                     if sys.platform == "win32" and shell != "powershell":
                         # Remove /cygdrive to make the path shell-independent
-                        sentinel_str = win_path_to_unix(sentinel_str).removeprefix(
-                            "/cygdrive"
-                        )
+                        sentinel_str = win_path_to_unix(sentinel_str).removeprefix("/cygdrive")
                     if any(sentinel_str in match for match in matches):
                         reverse_plan.append(initializer)
                         break
@@ -378,7 +364,7 @@ def _constructor_uninstall_subcommand(
     """
     from conda.base.constants import PREFIX_MAGIC_FILE
 
-    # See: https://github.com/conda/conda/blob/475e6acbdc98122fcbef4733eb8cb8689324c1c8/conda/gateways/disk/create.py#L482-L488 # noqa
+    # See: https://github.com/conda/conda/blob/475e6acbdc98122fcbef4733eb8cb8689324c1c8/conda/gateways/disk/create.py#L482-L488
     ENVS_DIR_MAGIC_FILE = ".conda_envs_dir_test"
 
     uninstall_prefix = Path(uninstall_dir)
@@ -441,8 +427,7 @@ def _constructor_uninstall_subcommand(
 
     print(f"Uninstalling conda installation in {uninstall_prefix}...")
     prefixes = [
-        file.parent.parent.resolve()
-        for file in uninstall_prefix.glob(f"**/{PREFIX_MAGIC_FILE}")
+        file.parent.parent.resolve() for file in uninstall_prefix.glob(f"**/{PREFIX_MAGIC_FILE}")
     ]
     # Sort by path depth. This will place the root prefix first
     # Since it is more likely that profiles contain the root prefix,
@@ -529,6 +514,7 @@ def _constructor_uninstall_subcommand(
     if remove_caches:
         print("Cleaning cache directories.")
         from conda.notices.cache import get_notices_cache_dir
+
         conda_main("clean", "--all", "-y")
         # Delete empty package cache directories
         for directory in context.pkgs_dirs:
@@ -545,13 +531,9 @@ def _constructor_uninstall_subcommand(
     if remove_config_files:
         print("Removing .condarc files...")
         for config_file in context.config_files:
-            if remove_config_files == "user" and not _is_subdir(
-                config_file.parent, Path.home()
-            ):
+            if remove_config_files == "user" and not _is_subdir(config_file.parent, Path.home()):
                 continue
-            elif remove_config_files == "system" and _is_subdir(
-                config_file.parent, Path.home()
-            ):
+            elif remove_config_files == "system" and _is_subdir(config_file.parent, Path.home()):
                 continue
             _remove_config_file_and_parents(config_file)
 
@@ -663,6 +645,13 @@ def _python_subcommand():
     return 1
 
 
+def _patch_root_prefix():
+    root_prefix = Path(sys.executable).parent
+    if (root_prefix / "_internal").is_dir():
+        os.environ.setdefault("CONDA_ROOT", str(root_prefix))
+        os.environ.setdefault("CONDA_ROOT_PREFIX", str(root_prefix))
+
+
 def _conda_main():
     from conda.cli import main
 
@@ -687,6 +676,7 @@ def main():
         elif sys.argv[1] == "python" or sys.argv[1] == "-m":
             return _python_subcommand()
 
+    _patch_root_prefix()
     return _conda_main()
 
 

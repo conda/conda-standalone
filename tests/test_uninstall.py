@@ -19,7 +19,7 @@ from conda.core.initialize import (
     run_plan_elevated,
 )
 from ruamel.yaml import YAML
-from utils import _get_shortcut_dirs, run_conda
+from utils import CONDA_EXE, _get_shortcut_dirs, run_conda
 
 if TYPE_CHECKING:
     from conda.testing.fixtures import CondaCLIFixture, TmpEnvFixture
@@ -114,9 +114,7 @@ def test_uninstallation(
         assert str(base_env) not in environments and str(second_env) in environments
 
 
-@pytest.mark.parametrize(
-    "remove", (True, False), ids=("remove directory", "keep directory")
-)
+@pytest.mark.parametrize("remove", (True, False), ids=("remove directory", "keep directory"))
 def test_uninstallation_envs_dirs(
     mock_system_paths: dict[str, Path],
     conda_cli: CondaCLIFixture,
@@ -339,9 +337,7 @@ def test_uninstallation_remove_caches(
                 pytest.skip("Test requires windll.ctypes for mocked locations to work.")
         except ImportError:
             pytest.skip("Test requires ctypes for mocked locations to work.")
-        notices_dir = Path(
-            mock_system_paths["cachehome"], "conda", "conda", "Cache", "notices"
-        )
+        notices_dir = Path(mock_system_paths["cachehome"], "conda", "conda", "Cache", "notices")
     else:
         notices_dir = Path(mock_system_paths["cachehome"], "conda", "notices")
     notices_dir.mkdir(parents=True, exist_ok=True)
@@ -455,6 +451,36 @@ def test_uninstallation_remove_config_files(
                         f"from shutil import rmtree; rmtree('{system_condarc.parent}')",
                         needs_sudo=True,
                     )
+
+
+def test_delete_self(tmp_path: Path):
+    instdir = tmp_path / "install"
+    shutil.copytree(Path(CONDA_EXE).parent, instdir)
+    # Make the path of the copied conda-standalone file(s) look like a conda environment.
+    (instdir / "conda-meta").mkdir(parents=True)
+    (instdir / "conda-meta" / "history").touch()
+    subprocess.run(
+        [
+            str(instdir / "conda.exe"),
+            "constructor",
+            "uninstall",
+            "--prefix",
+            str(instdir),
+        ],
+        check=True,
+    )
+    if not ON_WIN:
+        assert not instdir.exists()
+    else:
+        # On Windows, conda-standalone won't be able to delete itself
+        # and leaves .conda_trash files behind. Those must be manually
+        # removed by an uninstaller.
+        unexpected_files = [
+            file
+            for file in instdir.glob("*")
+            if not file.is_dir() and file.suffix != ".conda_trash"
+        ]
+        assert unexpected_files == []
 
 
 def test_uninstallation_invalid_directory(tmp_path: Path):

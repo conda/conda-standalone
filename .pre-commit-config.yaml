@@ -16,22 +16,13 @@ repos:
         exclude: ^(conda\.)?recipe/meta.yaml
       # catch git merge/rebase problems
       - id: check-merge-conflict
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.11.13
     hooks:
-      - id: pyupgrade
-        args: ["--py37-plus"]
-  - repo: https://github.com/PyCQA/isort
-    rev: 6.0.1
-    hooks:
-      - id: isort
-  - repo: https://github.com/akaihola/darker
-    rev: v2.1.1
-    hooks:
-      - id: darker
-        additional_dependencies: [black==22.10.0]
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.2.0
-    hooks:
-      - id: flake8
+      # Run the linter.
+      - id: ruff
+        args: [ --fix ]
+      # Run the formatter.
+      - id: ruff-format
 exclude: "^src/conda_patches/.*patch$"

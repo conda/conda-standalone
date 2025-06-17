@@ -13,7 +13,7 @@ plist = dict.fromkeys(
         "com.apple.security.cs.disable-library-validation",
         "com.apple.security.cs.allow-dyld-environment-variables",
     ),
-    True
+    True,
 )
 
 
