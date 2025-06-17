@@ -255,7 +255,7 @@ def _constructor_extract_tarball():
     t = TarfileNoSameOwner.open(mode="r|*", fileobj=sys.stdin.buffer)
     tar_args = {}
     if hasattr(t, "extraction_filter"):
-        tar_args["filter"] = "fully_trusted"
+        tar_args["filter"] = "data"
     t.extractall(**tar_args)
     t.close()
 
