@@ -302,6 +302,9 @@ if os.name == "nt":
     import menuinst.platforms.win_utils.registry
     import menuinst.platforms.win_utils.win_elevate
     import menuinst.platforms.win_utils.winshortcut
+    # constructor helpers
+    import _nsis
+    import _system_path
 try:
     import conda_env.__main__
 except Exception:
