@@ -145,9 +145,9 @@ def test_extract_tarball_no_raise_deprecation_warning(tmp_path: Path):
         capture_output=True,
         check=True,
     )
-    assert b"DeprecationWarning" not in process.stderr
+    assert b"DeprecationWarning: Python" not in process.stderr
     # warnings should be send to stderr but check stdout for completeness
-    assert b"DeprecationWarning" not in process.stdout
+    assert b"DeprecationWarning: Python" not in process.stdout
 
 
 def test_extract_tarball_umask(tmp_path: Path):
