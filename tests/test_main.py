@@ -133,6 +133,23 @@ def test_extract_conda_pkgs(tmp_path: Path):
     run_conda("constructor", "--prefix", tmp_path, "--extract-conda-pkgs", check=True)
 
 
+def test_extract_tarball_no_raise_deprecation_warning(tmp_path: Path):
+    # See https://github.com/conda/conda-standalone/issues/143
+    tarbytes = (HERE / "data" / "futures-compat-1.0-py3_0.tar.bz2").read_bytes()
+    process = run_conda(
+        "constructor",
+        "--prefix",
+        tmp_path,
+        "--extract-tarball",
+        input=tarbytes,
+        capture_output=True,
+        check=True,
+    )
+    assert b"DeprecationWarning: Python" not in process.stderr
+    # warnings should be send to stderr but check stdout for completeness
+    assert b"DeprecationWarning: Python" not in process.stdout
+
+
 def test_extract_tarball_umask(tmp_path: Path):
     "Ported from https://github.com/conda/conda-package-streaming/pull/65"
 
