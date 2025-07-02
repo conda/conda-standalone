@@ -47,7 +47,7 @@ datas = [
     (os.path.join(sitepackages, 'archspec', 'json', 'cpu', 'microarchitectures_schema.json'), 'archspec/json/cpu'),
     (os.path.join(sitepackages, 'archspec', 'vendor', 'cpuid', 'LICENSE'), 'archspec/vendor/cpuid'),
     (os.path.join(sitepackages, 'menuinst', 'data', f'menuinst-{SCHEMA_VERSION}.default.json'), 'menuinst/data'),
-    (os.path.join(sitepackages, 'menuinst', 'data', 'menuinst.schema.json'), 'menuinst/data'),
+    (os.path.join(sitepackages, 'menuinst', 'data', f'menuinst-{SCHEMA_VERSION}.schema.json'), 'menuinst/data'),
 ]
 if sys.platform == "win32":
     datas += [
