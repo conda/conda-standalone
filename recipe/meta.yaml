@@ -44,7 +44,7 @@ requirements:
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-package-handling >=2.3.0
-    - conda-package-streaming >=0.9.0
+    - conda-package-streaming >=0.12.0
     - menuinst >={{ menuinst_lower_bound }}
     - conda-libmamba-solver ={{ conda_libmamba_solver_version }}
     - libmambapy ={{ libmambapy_version }}
