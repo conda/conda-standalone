@@ -14,6 +14,28 @@ index 9a19a7f24..7c37da795 100644
  #: The path within which to find the conda package.
  #:
  #: If `conda` is statically installed this is the site-packages. If `conda` is an editable install
+diff --git i/conda/activate.py w/conda/activate.py
+index c011361ba..c29ab3a64 100644
+--- i/conda/activate.py
++++ w/conda/activate.py
+@@ -757,6 +757,8 @@ class _Activator(metaclass=abc.ABCMeta):
+             return ""
+ 
+     def _get_activate_scripts(self, prefix):
++        if prefix is None:
++            return ()
+         _script_extension = self.script_extension
+         se_len = -len(_script_extension)
+         try:
+@@ -771,6 +773,8 @@ class _Activator(metaclass=abc.ABCMeta):
+         )
+ 
+     def _get_deactivate_scripts(self, prefix):
++        if prefix is None:
++            return ()
+         _script_extension = self.script_extension
+         se_len = -len(_script_extension)
+         try:
 diff --git i/conda/base/context.py w/conda/base/context.py
 index 789d772ac..b4f769ff6 100644
 --- i/conda/base/context.py

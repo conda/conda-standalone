@@ -338,7 +338,26 @@ def test_python():
     assert eval(process.stdout) == ["-c", "extra-arg"]
 
 
-def test_conda_run():
-    process = run_conda("run", "echo", "hello", check=True, capture_output=True, text=True)
-    assert process.stdout.startswith("hello")
+def test_conda_run(monkeypatch):
+    for key in os.environ:
+        if key.startswith(("CONDA_", "_CONDA_", "_CE_")):
+            monkeypatch.delenv(key)
+
+    process = run_conda("run", text=True, capture_output=True)
+    assert process.returncode != 0
+    print(process.stderr, file=sys.stderr)
+    assert "ArgumentError" in process.stderr
+
+    process = run_conda(
+        "run",
+        "-p",
+        sys.prefix,
+        "python",
+        "-c",
+        "import sys;print(sys.executable)",
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    assert os.path.realpath(process.stdout.strip()) == os.path.realpath(sys.executable)
     assert not process.stderr
