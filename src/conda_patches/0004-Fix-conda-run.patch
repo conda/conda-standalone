@@ -1,0 +1,64 @@
+diff --git i/conda/__init__.py w/conda/__init__.py
+index 9a19a7f24..7c37da795 100644
+--- i/conda/__init__.py
++++ w/conda/__init__.py
+@@ -53,7 +53,10 @@ if os.getenv("CONDA_ROOT") is None:
+     os.environ["CONDA_ROOT"] = sys.prefix
+ 
+ #: The conda package directory.
+-CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
++if getattr(sys, "_MEIPASS", None):
++    CONDA_PACKAGE_ROOT = os.path.join(sys.prefix, "conda")
++else:
++    CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
+ #: The path within which to find the conda package.
+ #:
+ #: If `conda` is statically installed this is the site-packages. If `conda` is an editable install
+diff --git i/conda/base/context.py w/conda/base/context.py
+index 789d772ac..b4f769ff6 100644
+--- i/conda/base/context.py
++++ w/conda/base/context.py
+@@ -797,6 +797,8 @@ class Context(Configuration):
+         addendum="Please use `conda.base.context.context.conda_exe_vars_dict` instead",
+     )
+     def conda_exe(self):
++        if getattr(sys, "_MEIPASS", None):
++            return sys.executable
+         exe = "conda.exe" if on_win else "conda"
+         return join(self.conda_prefix, BIN_DIRECTORY, exe)
+ 
+@@ -832,9 +834,8 @@ class Context(Configuration):
+                 "CONDA_PYTHON_EXE": sys.executable,
+             }
+         else:
+-            exe = "conda.exe" if on_win else "conda"
+             return {
+-                "CONDA_EXE": os.path.join(sys.prefix, BIN_DIRECTORY, exe),
++                "CONDA_EXE": sys.executable,
+                 "_CE_M": None,
+                 "_CE_CONDA": None,
+                 "CONDA_PYTHON_EXE": sys.executable,
+diff --git i/conda/cli/main_run.py w/conda/cli/main_run.py
+index b2af91738..4c0f2fde8 100644
+--- i/conda/cli/main_run.py
++++ w/conda/cli/main_run.py
+@@ -88,11 +88,19 @@ def configure_parser(sub_parsers: _SubParsersAction, **kwargs) -> ArgumentParser
+ def execute(args: Namespace, parser: ArgumentParser) -> int:
+     from ..base.context import context
+     from ..common.compat import encode_environment
++    from ..common.path import paths_equal
++    from ..exceptions import ArgumentError
+     from ..gateways.disk.delete import rm_rf
+     from ..gateways.subprocess import subprocess_call
+     from ..utils import wrap_subprocess_call
+     from .common import validate_prefix
+ 
++    if paths_equal(context.target_prefix, sys.prefix):
++        raise ArgumentError(
++            "Cannot use 'conda run' on conda-standalone's base environment; "
++            "choose a target environment with '-n' or '-p'."
++        )
++
+     # create run script
+     script, command = wrap_subprocess_call(
+         context.root_prefix,

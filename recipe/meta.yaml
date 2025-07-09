@@ -16,11 +16,13 @@ source:
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
     sha256: bc1be5746ec00998f063917da09302ab2d7ef4ae69be8fa5189049473635e169
     folder: conda_src
+    # NOTE: All files affected by a patch need to be manually copied 
+    # from src to PREFIX in build.sh and bld.bat
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
       - ../src/conda_patches/0003-Restrict-search-paths.patch
-      - ../src/conda_patches/0004-Fix-CONDA_PACKAGE_ROOT.patch
+      - ../src/conda_patches/0004-Fix-conda-run.patch
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
     sha256: b1b0bb88a8934508f837c892b4f9c3f08b34bf044b704b1fde44b148c236efbe  # [win]

@@ -12,6 +12,8 @@ RENAME "%SP_DIR%\conda\base\context.py" context.py.bak || goto :error
 COPY conda_src\conda\base\context.py "%SP_DIR%\conda\base\context.py" || goto :error
 RENAME "%SP_DIR%\conda\__init__.py" __init__.py.bak || goto :error
 COPY conda_src\conda\__init__.py "%SP_DIR%\conda\__init__.py" || goto :error
+RENAME "%SP_DIR%\conda\cli\main_run.py" main_run.py.bak || goto :error
+COPY conda_src\conda\cli\main_run.py "%SP_DIR%\conda\cli\main_run.py" || goto :error
 
 :: we need these for noarch packages with entry points to work on windows
 COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error
