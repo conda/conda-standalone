@@ -1,8 +1,8 @@
 diff --git i/conda/__init__.py w/conda/__init__.py
-index 3abf5c0da..164076984 100644
+index 8e4c4e5ea..af174a71e 100644
 --- i/conda/__init__.py
 +++ w/conda/__init__.py
-@@ -59,7 +59,10 @@ if os.getenv("CONDA_ROOT") is None:
+@@ -28,7 +28,10 @@ if os.getenv("CONDA_ROOT") is None:
      os.environ["CONDA_ROOT"] = sys.prefix
  
  #: The conda package directory.
@@ -15,23 +15,20 @@ index 3abf5c0da..164076984 100644
  #:
  #: If `conda` is statically installed this is the site-packages. If `conda` is an editable install
 diff --git i/conda/base/context.py w/conda/base/context.py
-index adf6d6e89..7410de321 100644
+index 4f5f46392..16df3da30 100644
 --- i/conda/base/context.py
 +++ w/conda/base/context.py
-@@ -880,14 +880,9 @@ class Context(Configuration):
-                 "_CONDA_ROOT": self.conda_prefix,
+@@ -685,12 +685,8 @@ class Context(Configuration):
+                 "CONDA_PYTHON_EXE": sys.executable,
              }
          else:
--            exe = os.path.join(
--                self.conda_prefix,
--                BIN_DIRECTORY,
--                "conda.exe" if on_win else "conda",
--            )
+-            bin_dir = 'Scripts' if on_win else 'bin'
+-            exe = 'conda.exe' if on_win else 'conda'
+-            # I was going to use None to indicate a variable to unset, but that gets tricky with
+-            # error-on-undefined.
              return {
--                "CONDA_EXE": exe,
--                "_CONDA_EXE": exe,
+-                "CONDA_EXE": os.path.join(sys.prefix, bin_dir, exe),
 +                "CONDA_EXE": sys.executable,
-+                "_CONDA_EXE": sys.executable,
-                 "_CE_M": None,
-                 "_CE_CONDA": None,
+                 "_CE_M": "",
+                 "_CE_CONDA": "",
                  "CONDA_PYTHON_EXE": sys.executable,
