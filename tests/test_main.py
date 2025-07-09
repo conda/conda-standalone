@@ -336,3 +336,9 @@ def test_python():
         text=True,
     )
     assert eval(process.stdout) == ["-c", "extra-arg"]
+
+
+def test_conda_run():
+    process = run_conda("run", "echo", "hello", check=True, capture_output=True, text=True)
+    assert process.stdout.startswith("hello")
+    assert not process.stderr

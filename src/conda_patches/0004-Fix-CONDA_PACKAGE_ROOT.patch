@@ -1,0 +1,16 @@
+diff --git i/conda/__init__.py w/conda/__init__.py
+index 3abf5c0da..164076984 100644
+--- i/conda/__init__.py
++++ w/conda/__init__.py
+@@ -59,7 +59,10 @@ if os.getenv("CONDA_ROOT") is None:
+     os.environ["CONDA_ROOT"] = sys.prefix
+ 
+ #: The conda package directory.
+-CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
++if getattr(sys, "_MEIPASS", None):
++    CONDA_PACKAGE_ROOT = os.path.join(sys.prefix, "conda")
++else:
++    CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
+ #: The path within which to find the conda package.
+ #:
+ #: If `conda` is statically installed this is the site-packages. If `conda` is an editable install
