@@ -14,3 +14,24 @@ index 3abf5c0da..164076984 100644
  #: The path within which to find the conda package.
  #:
  #: If `conda` is statically installed this is the site-packages. If `conda` is an editable install
+diff --git i/conda/base/context.py w/conda/base/context.py
+index adf6d6e89..7410de321 100644
+--- i/conda/base/context.py
++++ w/conda/base/context.py
+@@ -880,14 +880,9 @@ class Context(Configuration):
+                 "_CONDA_ROOT": self.conda_prefix,
+             }
+         else:
+-            exe = os.path.join(
+-                self.conda_prefix,
+-                BIN_DIRECTORY,
+-                "conda.exe" if on_win else "conda",
+-            )
+             return {
+-                "CONDA_EXE": exe,
+-                "_CONDA_EXE": exe,
++                "CONDA_EXE": sys.executable,
++                "_CONDA_EXE": sys.executable,
+                 "_CE_M": None,
+                 "_CE_CONDA": None,
+                 "CONDA_PYTHON_EXE": sys.executable,
