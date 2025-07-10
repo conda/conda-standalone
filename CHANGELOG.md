@@ -22,7 +22,7 @@ Remember to update the hyperlinks at the bottom.
 
 ### Bug fixes
 
-* Include a filter arguments to `extractall` when possible to avoid a DeprecationWarnings. (#143 via #144)
+* Provide the `filter` argument to `extractall` when possible to avoid `DeprecationWarning` messages during extraction. (#143 via #144)
 
 ### Other
 
