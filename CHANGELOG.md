@@ -13,6 +13,30 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 25.3.1 (2025-07-09)
+
+### Enhancements
+
+* Bump to conda 25.3.1, python 3.13.5, menuinst 2.3.0. (#153)
+* Add single-directory build variant that doesn't require auto-extraction on execution. (#93, #145, #146)
+
+### Bug fixes
+
+* Provide the `filter` argument to `extractall` when possible to avoid `DeprecationWarning` messages during extraction. (#143 via #144)
+
+### Other
+
+* Use `ruff` to lint files. (#142)
+
+### Contributors
+
+* @Jrice1317
+* @jaimergp
+* @jjhelmus
+* @marcoesters
+
+
+
 ## 25.1.1 (2025-03-24)
 
 ### Enhancements
