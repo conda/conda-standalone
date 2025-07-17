@@ -339,11 +339,12 @@ def test_python():
 
 
 def test_conda_run(monkeypatch):
+    env = os.environ.copy()
     for key in os.environ:
         if key.startswith(("CONDA_", "_CONDA_", "_CE_")):
-            monkeypatch.delenv(key)
+            env.pop(key, None)
 
-    process = run_conda("run", text=True, capture_output=True)
+    process = run_conda("run", text=True, capture_output=True, env=env)
     assert process.returncode != 0
     print(process.stderr, file=sys.stderr)
     assert "ArgumentError" in process.stderr
@@ -358,6 +359,7 @@ def test_conda_run(monkeypatch):
         check=True,
         text=True,
         capture_output=True,
+        env=env,
     )
     assert os.path.realpath(process.stdout.strip()) == os.path.realpath(sys.executable)
     assert not process.stderr
