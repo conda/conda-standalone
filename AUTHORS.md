@@ -5,7 +5,9 @@ Authors are sorted alphabetically.
 * Eric Prestat
 * Hadrien Mary
 * Isuru Fernando
+* Jaida Rice
 * Jaime Rodríguez-Guerra
+* Jonathan J. Helmus
 * Marco Esters
 * Matthew R. Becker
 * Mike Sarahan
