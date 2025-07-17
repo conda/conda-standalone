@@ -338,7 +338,7 @@ def test_python():
     assert eval(process.stdout) == ["-c", "extra-arg"]
 
 
-def test_conda_run(monkeypatch, request):
+def test_conda_run():
     env = os.environ.copy()
     for key in os.environ:
         if key.startswith(("CONDA", "_CONDA_", "__CONDA", "_CE_")):
