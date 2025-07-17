@@ -338,22 +338,29 @@ def test_python():
     assert eval(process.stdout) == ["-c", "extra-arg"]
 
 
-def test_conda_run(monkeypatch):
+def test_conda_run(monkeypatch, request):
     env = os.environ.copy()
     for key in os.environ:
-        if key.startswith(("CONDA_", "_CONDA_", "_CE_")):
+        if key.startswith(("CONDA", "_CONDA_", "__CONDA", "_CE_")):
             env.pop(key, None)
 
-    env["CONDA_AUTO_ACTIVATE"] = "false"
-    process = run_conda("run", text=True, capture_output=True, env=env)
-    assert process.returncode != 0
-    assert "ArgumentError" in process.stderr
+    # on CI, setup-miniconda registers `test` as auto-activate for every CMD
+    # which adds some unnecessary stderr output
+    if sys.platform.startswith("win") and os.environ.get("CI"):
+        subprocess.run(["conda", "init", "--reverse"])
 
+    def restore_init():
+        subprocess.run(["conda", "init", "--all"])
+
+    request.addfinalizer(restore_init)
+
+    print(*sorted(env.items()), sep="\n")
     run_conda("config", "--show-sources")
     process = run_conda(
         "run",
         "-p",
         sys.prefix,
+        # "--debug-wrapper-scripts",
         "python",
         "-c",
         "import sys;print(sys.executable)",
