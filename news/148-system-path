@@ -4,11 +4,11 @@
 
 ### Bug fixes
 
-* Ensure `constructor`'s `_system_path.py` is bundled. (#148)
+* <news item>
 
 ### Deprecations
 
-* <news item>
+* Unbundle `constructor`'s `_nsis.py`. (#148)
 
 ### Docs
 
