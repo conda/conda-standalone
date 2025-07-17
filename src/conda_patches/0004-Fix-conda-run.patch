@@ -84,3 +84,32 @@ index b2af91738..4c0f2fde8 100644
      # create run script
      script, command = wrap_subprocess_call(
          context.root_prefix,
+diff --git i/conda/utils.py w/conda/utils.py
+index b9a3cc5cc..515622286 100644
+--- i/conda/utils.py
++++ w/conda/utils.py
+@@ -13,7 +13,7 @@ from os.path import abspath, basename, dirname, isfile, join
+ from pathlib import Path
+ from shutil import which
+ 
+-from . import CondaError
++from . import CONDA_PACKAGE_ROOT, CondaError
+ from .auxlib.compat import Utf8NamedTemporaryFile, shlex_split_unicode
+ from .common.compat import isiterable, on_win
+ from .common.path import path_identity as _path_identity
+@@ -401,14 +401,7 @@ def wrap_subprocess_call(
+         multiline = True
+     if on_win:
+         comspec = get_comspec()  # fail early with KeyError if undefined
+-        if dev_mode:
+-            from . import CONDA_PACKAGE_ROOT
+-
+-            conda_bat = join(CONDA_PACKAGE_ROOT, "shell", "condabin", "conda.bat")
+-        else:
+-            conda_bat = environ.get(
+-                "CONDA_BAT", abspath(join(root_prefix, "condabin", "conda.bat"))
+-            )
++        conda_bat = join(CONDA_PACKAGE_ROOT, "shell", "condabin", "conda.bat")
+         with Utf8NamedTemporaryFile(
+             mode="w", prefix=tmp_prefix, suffix=".bat", delete=False
+         ) as fh:
