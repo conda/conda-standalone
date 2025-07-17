@@ -346,15 +346,14 @@ def test_conda_run(monkeypatch, request):
 
     # on CI, setup-miniconda registers `test` as auto-activate for every CMD
     # which adds some unnecessary stderr output
-    if sys.platform.startswith("win") and os.environ.get("CI"):
-        subprocess.run(["conda", "init", "--reverse"])
 
     def restore_init():
-        subprocess.run(["conda", "init", "--all"])
+        subprocess.run(["conda", "init", "-v", "--all"])
 
-    request.addfinalizer(restore_init)
+    if sys.platform.startswith("win") and os.environ.get("CI"):
+        subprocess.run(["conda", "init", "-v", "--reverse", "--all"])
+        request.addfinalizer(restore_init)
 
-    print(*sorted(env.items()), sep="\n")
     run_conda("config", "--show-sources")
     process = run_conda(
         "run",
