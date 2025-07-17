@@ -347,9 +347,9 @@ def test_conda_run(monkeypatch):
     env["CONDA_AUTO_ACTIVATE"] = "false"
     process = run_conda("run", text=True, capture_output=True, env=env)
     assert process.returncode != 0
-    print(process.stderr, file=sys.stderr)
     assert "ArgumentError" in process.stderr
 
+    run_conda("config", "--show-sources")
     process = run_conda(
         "run",
         "-p",
