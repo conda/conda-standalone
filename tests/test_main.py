@@ -344,6 +344,7 @@ def test_conda_run(monkeypatch):
         if key.startswith(("CONDA_", "_CONDA_", "_CE_")):
             env.pop(key, None)
 
+    env["CONDA_AUTO_ACTIVATE"] = "false"
     process = run_conda("run", text=True, capture_output=True, env=env)
     assert process.returncode != 0
     print(process.stderr, file=sys.stderr)
