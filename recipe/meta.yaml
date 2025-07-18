@@ -1,7 +1,7 @@
 {% set conda_version = "25.3.1" %}
 {% set conda_libmamba_solver_version = "25.3.0" %}
 {% set libmambapy_version = "2.0.5" %}
-{% set constructor_version = "3.11.3" %}
+{% set constructor_lower_bound = "3.11.3" %}
 {% set menuinst_lower_bound = "2.3.0" %}
 {% set python_version = "3.13.5" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
@@ -20,10 +20,6 @@ source:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
       - ../src/conda_patches/0003-Restrict-search-paths.patch
-
-  - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: b1b0bb88a8934508f837c892b4f9c3f08b34bf044b704b1fde44b148c236efbe  # [win]
-    folder: constructor_src  # [win]
 
 build:
   number: 0
@@ -50,7 +46,7 @@ requirements:
     - libmambapy ={{ libmambapy_version }}
     - archspec >=0.2.3
   run_constrained:
-    - constructor >={{ constructor_version }}
+    - constructor >={{ constructor_lower_bound }}
 
 test:
   requires:
