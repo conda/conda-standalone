@@ -12,6 +12,13 @@ import sys
 from multiprocessing import freeze_support
 from pathlib import Path
 
+from conda_constructor.extract import (
+    DEFAULT_NUM_PROCESSORS,
+    _NumProcessorsAction,
+    extract_conda_pkgs,
+    extract_tarball,
+)
+
 if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
     # This causes a crash with requests 2.32+ on Windows
     # Root cause is 'urllib3.util.ssl_.create_urllib3_context()'
@@ -20,19 +27,6 @@ if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
 
 if "CONDARC" not in os.environ:
     os.environ["CONDARC"] = os.path.join(sys.prefix, ".condarc")
-
-
-def _create_dummy_executor(*args, **kwargs):
-    "use this for debugging, because ProcessPoolExecutor isn't pdb/ipdb friendly"
-    from concurrent.futures import Executor
-
-    class DummyExecutor(Executor):
-        def map(self, func, *iterables):
-            for iterable in iterables:
-                for thing in iterable:
-                    yield func(thing)
-
-    return DummyExecutor(*args, **kwargs)
 
 
 def _fix_sys_path():
@@ -48,37 +42,6 @@ def _fix_sys_path():
 
 def _constructor_parse_cli():
     import argparse
-
-    # This might be None!
-    CPU_COUNT = os.cpu_count()
-    # See validation results for magic number of 3
-    # https://dholth.github.io/conda-benchmarks/#extract.TimeExtract.time_extract?conda-package-handling=2.0.0a2&p-format='.conda'&p-format='.tar.bz2'&p-lang='py'
-    DEFAULT_NUM_PROCESSORS = 1 if not CPU_COUNT else min(3, CPU_COUNT)
-
-    class _NumProcessorsAction(argparse.Action):
-        def __call__(self, parser, namespace, values, option_string=None):
-            """Converts a string representing the max number of workers to an integer
-            while performing validation checks; raises argparse.ArgumentError if anything fails.
-            """
-
-            ERROR_MSG = f"Value must be int between 0 (auto) and {CPU_COUNT}."
-            try:
-                num = int(values)
-            except ValueError as exc:
-                raise argparse.ArgumentError(self, ERROR_MSG) from exc
-
-            # cpu_count can return None, so skip this check if that happens
-            if CPU_COUNT:
-                # See Windows notes for magic number of 61
-                # https://docs.python.org/3/library/concurrent.futures.html#processpoolexecutor
-                max_cpu_num = min(CPU_COUNT, 61) if os.name == "nt" else CPU_COUNT
-                if num > max_cpu_num:
-                    raise argparse.ArgumentError(self, ERROR_MSG)
-            if num < 0:
-                raise argparse.ArgumentError(self, ERROR_MSG)
-            elif num == 0:
-                num = None  # let the multiprocessing module decide
-            setattr(namespace, self.dest, num)
 
     # Remove "constructor" so that it does not clash with the uninstall subcommand
     del sys.argv[1]
@@ -188,66 +151,24 @@ def _constructor_parse_cli():
 
     if args.command != "uninstall":
         group_args = getattr(g, "_group_actions")
-        if all(getattr(args, arg.dest, None) is None for arg in group_args):
+        if all(getattr(args, arg.dest, False) is False for arg in group_args):
             required_args = [arg.option_strings[0] for arg in group_args]
             raise argparse.ArgumentError(
-                f"one of the following arguments are required: {'/'.join(required_args)}"
+                None, f"one of the following arguments are required: {'/'.join(required_args)}"
             )
 
     if args.prefix is None:
-        raise argparse.ArgumentError("the following arguments are required: --prefix")
+        raise argparse.ArgumentError(None, "the following arguments are required: --prefix")
 
-    args.prefix = os.path.abspath(os.path.expanduser(os.path.expandvars(args.prefix)))
-    args.root_prefix = os.path.abspath(os.environ.get("CONDA_ROOT_PREFIX", args.prefix))
+    args.prefix = Path(os.path.expandvars(args.prefix)).expanduser().resolve()
+    args.root_prefix = Path(os.environ.get("CONDA_ROOT_PREFIX", args.prefix))
 
     if "--num-processors" in sys.argv and not args.extract_conda_pkgs:
-        raise argparse.ArgumentError("--num-processors can only be used with --extract-conda-pkgs")
+        raise argparse.ArgumentError(
+            None, "--num-processors can only be used with --extract-conda-pkgs"
+        )
 
     return args, args_unknown
-
-
-def _constructor_extract_conda_pkgs(prefix, max_workers=None):
-    from concurrent.futures import ProcessPoolExecutor, as_completed
-
-    from conda.auxlib.type_coercion import boolify
-    from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
-    from conda_package_handling import api
-    from tqdm.auto import tqdm
-
-    os.chdir(os.path.join(prefix, "pkgs"))
-    flist = []
-    for ext in CONDA_PACKAGE_EXTENSIONS:
-        for pkg in os.listdir(os.getcwd()):
-            if pkg.endswith(ext):
-                fn = os.path.join(os.getcwd(), pkg)
-                flist.append(fn)
-    if boolify(os.environ.get("CONDA_QUIET")):
-        disabled = True
-    else:
-        disabled = None  # only for non-tty
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(api.extract, fn): fn for fn in flist}
-        with tqdm(total=len(flist), leave=False, disable=disabled) as pbar:
-            for future in as_completed(futures):
-                fn = futures[future]
-                try:
-                    future.result()
-                except Exception as exc:
-                    raise RuntimeError(f"Failed to extract {fn}: {exc}") from exc
-                else:
-                    pbar.set_description(f"Extracting: {os.path.basename(fn)}")
-                    pbar.update()
-
-
-def _constructor_extract_tarball():
-    from conda_package_streaming.package_streaming import TarfileNoSameOwner
-
-    t = TarfileNoSameOwner.open(mode="r|*", fileobj=sys.stdin.buffer)
-    tar_args = {}
-    if hasattr(t, "extraction_filter"):
-        tar_args["filter"] = "data"
-    t.extractall(**tar_args)
-    t.close()
 
 
 def _constructor_menuinst(prefix, pkg_names=None, root_prefix=None, remove=False):
@@ -562,12 +483,11 @@ def _constructor_subcommand():
         )
         # os.chdir will break conda --clean, so return early
         return
-    os.chdir(args.prefix)
     if args.extract_conda_pkgs:
-        _constructor_extract_conda_pkgs(args.prefix, max_workers=args.num_processors)
+        extract_conda_pkgs(args.prefix, max_workers=args.num_processors)
 
     elif args.extract_tarball:
-        _constructor_extract_tarball()
+        extract_tarball(args.prefix)
 
     # when called with --make-menus and no package names, the value is an empty list
     # hence the explicit check for None
