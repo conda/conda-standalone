@@ -18,6 +18,7 @@ from conda_constructor.extract import (
     extract_conda_pkgs,
     extract_tarball,
 )
+from conda_constructor.menuinst import install_shortcut
 
 if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
     # This causes a crash with requests 2.32+ on Windows
@@ -151,7 +152,7 @@ def _constructor_parse_cli():
 
     if args.command != "uninstall":
         group_args = getattr(g, "_group_actions")
-        if all(getattr(args, arg.dest, False) is False for arg in group_args):
+        if all(getattr(args, arg.dest, None) in (None, False) for arg in group_args):
             required_args = [arg.option_strings[0] for arg in group_args]
             raise argparse.ArgumentError(
                 None, f"one of the following arguments are required: {'/'.join(required_args)}"
@@ -169,15 +170,6 @@ def _constructor_parse_cli():
         )
 
     return args, args_unknown
-
-
-def _constructor_menuinst(prefix, pkg_names=None, root_prefix=None, remove=False):
-    from menuinst import install
-
-    for json_path in Path(prefix, "Menu").glob("*.json"):
-        if pkg_names and json_path.stem not in pkg_names:
-            continue
-        install(str(json_path), remove=remove, prefix=prefix, root_prefix=root_prefix)
 
 
 def _is_subdir(directory: Path, root: Path) -> bool:
@@ -406,7 +398,7 @@ def _constructor_uninstall_subcommand(
     # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
     for prefix in reversed(prefixes):
         prefix_str = str(prefix)
-        _constructor_menuinst(prefix_str, root_prefix=menuinst_base_prefix, remove=True)
+        install_shortcut(prefix_str, root_prefix=menuinst_base_prefix, remove=True)
         # If conda_root_prefix is the same as prefix, conda remove will not be able
         # to remove that environment, so temporarily unset it.
         if conda_root_prefix and conda_root_prefix == prefix:
@@ -492,7 +484,7 @@ def _constructor_subcommand():
     # when called with --make-menus and no package names, the value is an empty list
     # hence the explicit check for None
     elif (args.make_menus is not None) or args.rm_menus:
-        _constructor_menuinst(
+        install_shortcut(
             prefix=args.prefix,
             pkg_names=args.make_menus,
             remove=args.rm_menus,
