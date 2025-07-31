@@ -12,15 +12,6 @@ import sys
 from multiprocessing import freeze_support
 from pathlib import Path
 
-from conda_constructor.extract import (
-    DEFAULT_NUM_PROCESSORS,
-    _NumProcessorsAction,
-    extract_conda_pkgs,
-    extract_tarball,
-)
-from conda_constructor.menuinst import install_shortcut
-from conda_constructor.uninstall import uninstall
-
 if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
     # This causes a crash with requests 2.32+ on Windows
     # Root cause is 'urllib3.util.ssl_.create_urllib3_context()'
@@ -44,6 +35,13 @@ def _fix_sys_path():
 
 def _constructor_parse_cli():
     import argparse
+
+    # conda_constructor module exports must not be made at the top level, or else
+    # SEARCH_PATH is imported before it can be patched for the --no-rc option.
+    from conda_constructor.extract import (
+        DEFAULT_NUM_PROCESSORS,
+        _NumProcessorsAction,
+    )
 
     # Remove "constructor" so that it does not clash with the uninstall subcommand
     del sys.argv[1]
@@ -184,6 +182,15 @@ def _constructor_subcommand():
     - extract the tarball payload contained in the shell installers
     - invoke menuinst to create and remove menu items on Windows
     """
+    # conda_constructor module exports must not be made at the top level, or else
+    # SEARCH_PATH is imported before it can be patched for the --no-rc option.
+    from conda_constructor.extract import (
+        extract_conda_pkgs,
+        extract_tarball,
+    )
+    from conda_constructor.menuinst import install_shortcut
+    from conda_constructor.uninstall import uninstall
+
     args, _ = _constructor_parse_cli()
 
     if args.command == "uninstall":
