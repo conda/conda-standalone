@@ -326,8 +326,9 @@ def test_uninstallation_remove_caches(
     tmp_env: TmpEnvFixture,
     shared_pkgs: bool,
 ):
+    # This test will fail if CONDA_PKGS_DIRS is set because it overrides the mocked location
     if "CONDA_PKGS_DIRS" in os.environ:
-        pytest.skip("Test will fail with CONDA_PKGS_DIRS set.")
+        del os.environ["CONDA_PKGS_DIRS"]
     # Set up notices
     if ON_WIN:
         try:
