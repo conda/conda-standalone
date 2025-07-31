@@ -323,12 +323,12 @@ def test_uninstallation_menuinst(
 @pytest.mark.skipif(not ON_CI, reason="CI only - may remove shared caches")
 def test_uninstallation_remove_caches(
     mock_system_paths: dict[str, Path],
+    monkeypatch: MonkeyPatch,
     tmp_env: TmpEnvFixture,
     shared_pkgs: bool,
 ):
     # This test will fail if CONDA_PKGS_DIRS is set because it overrides the mocked location
-    if "CONDA_PKGS_DIRS" in os.environ:
-        del os.environ["CONDA_PKGS_DIRS"]
+    monkeypatch.delenv("CONDA_PKGS_DIRS", raising=False)
     # Set up notices
     if ON_WIN:
         try:
