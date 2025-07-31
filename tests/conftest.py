@@ -8,6 +8,12 @@ import pytest
 from utils import _get_shortcut_dirs
 
 
+@pytest.fixture(scope="session", autouse=True)
+def conda_pkgs_dirs(tmp_path_factory):
+    pkgs_dir = tmp_path_factory.mktemp("pkgs", numbered=False)
+    os.environ["CONDA_PKGS_DIRS"] = str(pkgs_dir)
+
+
 @pytest.fixture
 def menuinst_pkg_specs():
     specs = [

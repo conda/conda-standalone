@@ -326,8 +326,9 @@ def test_uninstallation_remove_caches(
     tmp_env: TmpEnvFixture,
     shared_pkgs: bool,
 ):
+    # This test will fail if CONDA_PKGS_DIRS is set because it overrides the mocked location
     if "CONDA_PKGS_DIRS" in os.environ:
-        pytest.skip("Test will fail with CONDA_PKGS_DIRS set.")
+        del os.environ["CONDA_PKGS_DIRS"]
     # Set up notices
     if ON_WIN:
         try:
@@ -455,13 +456,18 @@ def test_uninstallation_remove_config_files(
 
 def test_delete_self(tmp_path: Path):
     instdir = tmp_path / "install"
-    shutil.copytree(Path(CONDA_EXE).parent, instdir)
+    instdir.mkdir(parents=True)
+    conda_exe_target = instdir / "conda.exe"
+    shutil.copy(CONDA_EXE, conda_exe_target)
+    internal_dir = Path(CONDA_EXE).parent / "_internal"
+    if internal_dir.exists():
+        shutil.copytree(internal_dir, instdir / internal_dir.name)
     # Make the path of the copied conda-standalone file(s) look like a conda environment.
     (instdir / "conda-meta").mkdir(parents=True)
     (instdir / "conda-meta" / "history").touch()
     subprocess.run(
         [
-            str(instdir / "conda.exe"),
+            str(conda_exe_target),
             "constructor",
             "uninstall",
             "--prefix",
