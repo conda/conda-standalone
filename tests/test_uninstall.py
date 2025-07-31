@@ -455,13 +455,18 @@ def test_uninstallation_remove_config_files(
 
 def test_delete_self(tmp_path: Path):
     instdir = tmp_path / "install"
-    shutil.copytree(Path(CONDA_EXE).parent, instdir)
+    instdir.mkdir(parents=True)
+    conda_exe_target = instdir / "conda.exe"
+    shutil.copy(CONDA_EXE, conda_exe_target)
+    internal_dir = Path(CONDA_EXE).parent / "_internal"
+    if internal_dir.exists():
+        shutil.copytree(internal_dir, instdir / internal_dir.name)
     # Make the path of the copied conda-standalone file(s) look like a conda environment.
     (instdir / "conda-meta").mkdir(parents=True)
     (instdir / "conda-meta" / "history").touch()
     subprocess.run(
         [
-            str(instdir / "conda.exe"),
+            str(conda_exe_target),
             "constructor",
             "uninstall",
             "--prefix",
