@@ -69,7 +69,11 @@ if "PYINSTALLER_CONDARC_DIR" in os.environ:
     if os.path.exists(condarc):
         datas.append((condarc, "."))
 
-a = Analysis(['entry_point.py', 'imports.py'],
+conda_constructor_files = [
+    f'conda_constructor/{path}' for path in os.listdir('src/conda_constructor/')
+]
+
+a = Analysis(['entry_point.py', 'imports.py', *conda_constructor_files],
              pathex=['.'],
              binaries=binaries,
              datas=datas,
