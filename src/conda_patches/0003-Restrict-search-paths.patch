@@ -1,18 +1,27 @@
+From 7e2b47b2073f302d01dc2b423549f03c21f52c9e Mon Sep 17 00:00:00 2001
+From: Marco Esters <mesters@anaconda.com>
+Date: Thu, 31 Jul 2025 06:18:47 -0700
+Subject: [PATCH 3/3] Restrict search paths
+
+---
+ conda/base/constants.py | 68 ++++++++++++++++++++++-------------------
+ 1 file changed, 37 insertions(+), 31 deletions(-)
+
 diff --git a/conda/base/constants.py b/conda/base/constants.py
-index d38502a48..b56724933 100644
+index 5b42cf84a..94955fd53 100644
 --- a/conda/base/constants.py
 +++ b/conda/base/constants.py
-@@ -10,6 +10,7 @@ Another important source of "static" configuration is conda/models/enums.py.
+@@ -12,6 +12,7 @@ from __future__ import annotations
  
  import struct
  from enum import Enum, EnumMeta
 +from os import environ
  from os.path import join
+ from typing import TYPE_CHECKING
  
- from ..common.compat import on_win
-@@ -25,42 +26,47 @@ machine_bits = 8 * struct.calcsize("P")
+@@ -35,42 +36,47 @@ APP_NAME: Final = "conda"
  
- APP_NAME = "conda"
+ SEARCH_PATH: tuple[str, ...]
  
 -if on_win:  # pragma: no cover
 +if "CONDA_RESTRICT_RC_SEARCH_PATH" in environ:
@@ -86,6 +95,9 @@ index d38502a48..b56724933 100644
 -    "$CONDARC",
 -)
 -
- DEFAULT_CHANNEL_ALIAS = "https://conda.anaconda.org"
- CONDA_HOMEPAGE_URL = "https://conda.io"
- ERROR_UPLOAD_URL = "https://conda.io/conda-post/unexpected-error"
+ DEFAULT_CHANNEL_ALIAS: Final = "https://conda.anaconda.org"
+ CONDA_HOMEPAGE_URL: Final = "https://conda.io"
+ ERROR_UPLOAD_URL: Final = "https://conda.io/conda-post/unexpected-error"
+-- 
+2.32.1 (Apple Git-133)
+
