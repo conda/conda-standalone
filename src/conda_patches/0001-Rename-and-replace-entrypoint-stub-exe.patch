@@ -1,18 +1,17 @@
-From 1bac6f78cfb77b5c4ab4814e8693a0b7ab6762f9 Mon Sep 17 00:00:00 2001
+From 81a8ff71c02a0e236db077527754e7d9642bfc04 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Tue, 13 Aug 2019 07:43:35 -0400
-Subject: [PATCH 1/2] Rename and replace entrypoint stub exe
-Updated: 2023-06-21 by @jaimergp, conda 23.5.0 compatibility
+Subject: [PATCH 1/3] Rename and replace entrypoint stub exe
 
 ---
  conda/core/path_actions.py | 8 ++++++--
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/conda/core/path_actions.py b/conda/core/path_actions.py
-index ab306cf7d..99b8acbb3 100644
+index e6f1511b7..1440c69bc 100644
 --- a/conda/core/path_actions.py
 +++ b/conda/core/path_actions.py
-@@ -299,8 +299,12 @@ class LinkPathAction(CreateInPrefixPathAction):
+@@ -371,8 +371,12 @@ class LinkPathAction(CreateInPrefixPathAction):
          requested_link_type,
          entry_point_def,
      ):
@@ -25,7 +24,8 @@ index ab306cf7d..99b8acbb3 100644
 +            source_directory = context.conda_prefix
 +            source_short_path = "Scripts/conda.exe"
          command, _, _ = parse_entry_point_def(entry_point_def)
-         target_short_path = "Scripts/%s.exe" % command
+         target_short_path = f"Scripts/{command}.exe"
          source_path_data = PathDataV1(
---
-2.22.0
+-- 
+2.32.1 (Apple Git-133)
+
