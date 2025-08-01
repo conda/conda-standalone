@@ -5,7 +5,7 @@ import sys
 
 import conda.plugins.manager
 from menuinst.platforms.base import SCHEMA_VERSION
-from PyInstaller.utils.hooks import collect_submodules, copy_metadata
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
 
 # __file__ is not defined in the pyinstaller context,
 # so we will get it from sys.argv instead
@@ -86,6 +86,7 @@ for name, module in conda_plugin_manager.list_name_plugin():
     hiddenimports.extend(collect_submodules(package_name))
     # collect_submodules does not look at __init__
     hiddenimports.append(f"{package_name}.__init__")
+    datas.extend(collect_data_files(package_name))
     # metadata is needed for conda to find the plug-in
     datas.extend(copy_metadata(package_name))
 
