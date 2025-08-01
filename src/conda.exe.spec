@@ -2,7 +2,10 @@
 import os
 import site
 import sys
+
+import conda.plugins.manager
 from menuinst.platforms.base import SCHEMA_VERSION
+from PyInstaller.utils.hooks import collect_submodules, copy_metadata
 
 # __file__ is not defined in the pyinstaller context,
 # so we will get it from sys.argv instead
@@ -69,10 +72,28 @@ if "PYINSTALLER_CONDARC_DIR" in os.environ:
     if os.path.exists(condarc):
         datas.append((condarc, "."))
 
+# Add external conda plug-ins
+hiddenimports = []
+conda_plugin_manager = conda.plugins.manager.get_plugin_manager()
+for name, module in conda_plugin_manager.list_name_plugin():
+    if not hasattr(module, "__name__"):
+        print(f"WARNING: could not load plug-in {name}: not a module.")
+        continue
+    # conda plug-ins are already loaded with conda
+    if module.__name__.startswith("conda.plugins."):
+        continue
+    package_name = module.__name__.split(".")[0]
+    hiddenimports.extend(collect_submodules(package_name))
+    # collect_submodules does not look at __init__
+    hiddenimports.append(f"{package_name}.__init__")
+    # metadata is needed for conda to find the plug-in
+    datas.extend(copy_metadata(package_name))
+
 a = Analysis(['entry_point.py', 'imports.py'],
              pathex=['.'],
              binaries=binaries,
              datas=datas,
+             hiddenimports=hiddenimports,
              hookspath=[],
              runtime_hooks=[],
              excludes=['test'],
