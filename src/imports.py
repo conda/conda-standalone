@@ -250,15 +250,6 @@ import conda_env.specs.__init__
 import conda_env.specs.binstar
 import conda_env.specs.requirements
 import conda_env.specs.yaml_file
-import conda_libmamba_solver.__init__
-import conda_libmamba_solver.exceptions
-import conda_libmamba_solver.index
-import conda_libmamba_solver.mamba_utils
-import conda_libmamba_solver.models
-import conda_libmamba_solver.plugin
-import conda_libmamba_solver.solver
-import conda_libmamba_solver.state
-import conda_libmamba_solver.utils
 import conda_package_handling.__init__
 import conda_package_handling.api
 import conda_package_handling.cli
