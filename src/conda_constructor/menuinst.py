@@ -5,7 +5,7 @@ from menuinst import install
 
 def install_shortcut(
     prefix: Path,
-    pkg_names: Path | None = None,
+    pkg_names: list[str] | None = None,
     root_prefix: Path | None = None,
     remove: bool = False,
 ):
