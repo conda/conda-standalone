@@ -13,6 +13,32 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 25.5.1 (2025-08-04)
+
+### Enhancements
+
+* Bump to `conda 25.5.1`, `conda-libmamba-solver 25.4.0`, `constructor 3.12.1`. (#159)
+
+### Bug fixes
+
+* Set package cache location for tests to a temporary directory to avoid creating a `pkgs` file into the `conda-standalone` location for `onedir` builds. (#160)
+
+### Deprecations
+
+* Unbundle `constructor`'s `_nsis.py`. (#148)
+
+### Contributors
+
+* @Jrice1317
+* @jaimergp
+* @jjhelmus
+* @marcoesters
+* @conda-bot
+* @dependabot[bot]
+* @pre-commit-ci[bot]
+
+
+
 ## 25.3.1 (2025-07-09)
 
 ### Enhancements
