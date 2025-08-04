@@ -21,7 +21,7 @@ Remember to update the hyperlinks at the bottom.
 
 ### Bug fixes
 
-* Set package cache location for tests to a temporary directory to avoid creating a `pkgs` file into the `conda-standalone` location for `onedir` builds. (#160)
+* Set package cache location for tests to a temporary directory to avoid creating a `pkgs` directory into the `conda-standalone` location for `onedir` builds. (#160)
 
 ### Deprecations
 
@@ -31,7 +31,6 @@ Remember to update the hyperlinks at the bottom.
 
 * @Jrice1317
 * @jaimergp
-* @jjhelmus
 * @marcoesters
 
 
