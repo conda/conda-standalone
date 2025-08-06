@@ -4,7 +4,7 @@ import site
 import sys
 from menuinst.platforms.base import SCHEMA_VERSION
 
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
+from PyInstaller.utils.hooks import collect_submodules, copy_metadata
 
 # __file__ is not defined in the pyinstaller context,
 # so we will get it from sys.argv instead
