@@ -4,6 +4,8 @@ import site
 import sys
 from menuinst.platforms.base import SCHEMA_VERSION
 
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
+
 # __file__ is not defined in the pyinstaller context,
 # so we will get it from sys.argv instead
 for arg in sys.argv:
@@ -12,6 +14,23 @@ for arg in sys.argv:
         break
 else:
     HERE = os.path.join(os.path.getcwd(), "src")
+
+hiddenimports = []
+packages = [
+    "conda",
+    "conda_package_handling",
+    "conda_package_streaming",
+    "menuinst",
+    "conda_env",
+    "conda_libmamba_solver",
+    "libmambapy",
+]
+for package in packages:
+    hiddenimports.extend(collect_submodules(package))
+    # collect_submodules does not look at __init__
+    hiddenimports.append(f"{package_name}.__init__")
+    if package == "conda_libmamba_solver":
+        copy_metadata(package)
 
 block_cipher = None
 sitepackages = os.environ.get(
@@ -69,7 +88,7 @@ if "PYINSTALLER_CONDARC_DIR" in os.environ:
     if os.path.exists(condarc):
         datas.append((condarc, "."))
 
-a = Analysis(['entry_point.py', 'imports.py'],
+a = Analysis(['entry_point.py'],
              pathex=['.'],
              binaries=binaries,
              datas=datas,

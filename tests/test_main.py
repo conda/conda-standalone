@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -31,6 +32,24 @@ def test_new_environment(tmp_path, solver):
         check=True,
     )
     assert list((tmp_path / "env" / "conda-meta").glob("libzlib-*.json"))
+
+
+def test_install_conda(tmp_path):
+    # Use regex to avoid matching with conda plug-ins or other packages
+    # starting with "conda-"
+    conda_json_regex = re.compile(r"conda-[\d]+\.[\d]+\.[\d]-.*\.json$")
+    run_conda(
+        "create",
+        "-p",
+        tmp_path / "env",
+        "-y",
+        "conda",
+        check=True,
+    )
+    assert list(
+        conda_json_regex.match(file)
+        for file in (tmp_path / "env" / "conda-meta").glob("conda-*.json")
+    )
 
 
 def test_constructor():
