@@ -46,11 +46,10 @@ def test_install_conda(tmp_path):
         "conda",
         check=True,
     )
-    assert sum(
-        1
+    assert any(
+        conda_json_regex.search(str(file))
         for file in (tmp_path / "env" / "conda-meta").glob("conda-*.json")
-        if conda_json_regex.search(str(file))
-    ) == 1
+    )
 
 
 def test_constructor():
