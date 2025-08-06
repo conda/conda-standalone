@@ -4,7 +4,7 @@
 
 ### Bug fixes
 
-* <news item>
+* Add missing modules by auto-detecting all submodules instead of manually importing them. (#169)
 
 ### Deprecations
 
