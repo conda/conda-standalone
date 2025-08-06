@@ -30,6 +30,7 @@ for package in packages:
     # collect_submodules does not look at __init__
     hiddenimports.append(f"{package_name}.__init__")
     if package == "conda_libmamba_solver":
+        # Conda needs the metadata to reconize plug-ins
         copy_metadata(package)
 
 block_cipher = None
@@ -112,6 +113,7 @@ exe = EXE(pyz,
           a.scripts,
           *variant_args,
           name='conda.exe',
+          hiddenimports=hiddenimports,
           icon=os.path.join(HERE, "icon.ico"),
           debug=False,
           bootloader_ignore_signals=False,
