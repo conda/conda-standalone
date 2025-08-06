@@ -47,7 +47,7 @@ def test_install_conda(tmp_path):
         check=True,
     )
     assert list(
-        conda_json_regex.match(file)
+        conda_json_regex.search(str(file))
         for file in (tmp_path / "env" / "conda-meta").glob("conda-*.json")
     )
 

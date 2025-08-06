@@ -15,24 +15,6 @@ for arg in sys.argv:
 else:
     HERE = os.path.join(os.path.getcwd(), "src")
 
-hiddenimports = []
-packages = [
-    "conda",
-    "conda_package_handling",
-    "conda_package_streaming",
-    "menuinst",
-    "conda_env",
-    "conda_libmamba_solver",
-    "libmambapy",
-]
-for package in packages:
-    hiddenimports.extend(collect_submodules(package))
-    # collect_submodules does not look at __init__
-    hiddenimports.append(f"{package_name}.__init__")
-    if package == "conda_libmamba_solver":
-        # Conda needs the metadata to reconize plug-ins
-        copy_metadata(package)
-
 block_cipher = None
 sitepackages = os.environ.get(
     "SP_DIR",  # site-packages in conda-build's host environment
@@ -82,6 +64,24 @@ elif sys.platform == "darwin":
     ]
     extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
 
+hiddenimports = []
+packages = [
+    "conda",
+    "conda_package_handling",
+    "conda_package_streaming",
+    "menuinst",
+    "conda_env",
+    "conda_libmamba_solver",
+    "libmambapy",
+]
+for package in packages:
+    # collect_submodules does not look at __init__
+    hiddenimports.append(f"{package}.__init__")
+    hiddenimports.extend(collect_submodules(package))
+    if package == "conda_libmamba_solver":
+        # Conda needs the metadata to recognize plug-ins
+        datas.extend(copy_metadata(package))
+
 # Add .condarc file to bundle to configure channels
 # during the package building stage
 if "PYINSTALLER_CONDARC_DIR" in os.environ:
@@ -93,6 +93,7 @@ a = Analysis(['entry_point.py'],
              pathex=['.'],
              binaries=binaries,
              datas=datas,
+             hiddenimports=hiddenimports,
              hookspath=[],
              runtime_hooks=[],
              excludes=['test'],
@@ -113,7 +114,6 @@ exe = EXE(pyz,
           a.scripts,
           *variant_args,
           name='conda.exe',
-          hiddenimports=hiddenimports,
           icon=os.path.join(HERE, "icon.ico"),
           debug=False,
           bootloader_ignore_signals=False,
