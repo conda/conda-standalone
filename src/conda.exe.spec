@@ -7,6 +7,8 @@ import conda.plugins.manager
 from menuinst.platforms.base import SCHEMA_VERSION
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
 
+from PyInstaller.utils.hooks import collect_submodules, copy_metadata
+
 # __file__ is not defined in the pyinstaller context,
 # so we will get it from sys.argv instead
 for arg in sys.argv:
@@ -65,6 +67,20 @@ elif sys.platform == "darwin":
     ]
     extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
 
+hiddenimports = []
+packages = [
+    "conda",
+    "conda_package_handling",
+    "conda_package_streaming",
+    "menuinst",
+    "conda_env",
+    "libmambapy",
+]
+for package in packages:
+    # collect_submodules does not look at __init__
+    hiddenimports.append(f"{package}.__init__")
+    hiddenimports.extend(collect_submodules(package))
+
 # Add .condarc file to bundle to configure channels
 # during the package building stage
 if "PYINSTALLER_CONDARC_DIR" in os.environ:
@@ -73,7 +89,6 @@ if "PYINSTALLER_CONDARC_DIR" in os.environ:
         datas.append((condarc, "."))
 
 # Add external conda plug-ins
-hiddenimports = []
 conda_plugin_manager = conda.plugins.manager.get_plugin_manager()
 for name, module in conda_plugin_manager.list_name_plugin():
     if not hasattr(module, "__name__"):
@@ -90,7 +105,7 @@ for name, module in conda_plugin_manager.list_name_plugin():
     # metadata is needed for conda to find the plug-in
     datas.extend(copy_metadata(package_name))
 
-a = Analysis(['entry_point.py', 'imports.py'],
+a = Analysis(['entry_point.py'],
              pathex=['.'],
              binaries=binaries,
              datas=datas,
