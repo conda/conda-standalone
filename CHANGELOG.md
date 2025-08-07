@@ -13,6 +13,18 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 25.5.1.post1 (2025-08-07)
+
+### Bug fixes
+
+* Add missing modules by auto-detecting all submodules instead of manually importing them. (#169)
+
+### Contributors
+
+* @marcoesters
+
+
+
 ## 25.5.1 (2025-08-04)
 
 ### Enhancements
