@@ -81,7 +81,7 @@
 - name: Marco Esters
   email: mesters@anaconda.com
   github: marcoesters
-  num_commits: 16
+  num_commits: 17
   first_commit: 2024-10-03 08:54:36
 - name: Jonathan J. Helmus
   email: jjhelmus@gmail.com
@@ -93,5 +93,5 @@
   alternate_emails:
   - 100002667+Jrice1317@users.noreply.github.com
   github: Jrice1317
-  num_commits: 3
+  num_commits: 4
   first_commit: 2025-07-02 13:31:37
