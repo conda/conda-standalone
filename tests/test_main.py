@@ -66,6 +66,8 @@ def test_constructor_missing_arguments(args: list[str]):
 
 @pytest.mark.parametrize("search_paths", ("all_rcs", "--no-rc", "env_var"))
 def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
+    # Unset `CONDARC` to detect .condarc file of conda-standalone
+    monkeypatch.delenv("CONDARC", raising=False)
     variant = os.environ.get("PYINSTALLER_BUILD_VARIANT", "single-binary")
     expected_configs = {}
     yaml = YAML()
