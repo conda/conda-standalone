@@ -355,3 +355,32 @@ def test_python():
         text=True,
     )
     assert eval(process.stdout) == ["-c", "extra-arg"]
+
+
+def test_conda_run():
+    env = os.environ.copy()
+    for key in os.environ:
+        if key.startswith(("CONDA", "_CONDA_", "__CONDA", "_CE_")):
+            env.pop(key, None)
+
+    process = run_conda(
+        "run",
+        "-p",
+        sys.prefix,
+        "python",
+        "-c",
+        "import sys;print(sys.executable)",
+        check=True,
+        text=True,
+        capture_output=True,
+        env=env,
+    )
+    assert os.path.realpath(process.stdout.strip()) == os.path.realpath(sys.executable)
+    if sys.platform.startswith("win") and os.environ.get("CI"):
+        # on CI, setup-miniconda registers `test` as auto-activate for every CMD
+        # which adds some unnecessary stderr output; I couldn't find a way to prevent this
+        # (tried conda init --reverse) so we'll have to live with this skipped check;
+        # in a local setup it does work
+        pass
+    else:
+        assert not process.stderr
