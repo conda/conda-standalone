@@ -92,10 +92,10 @@ if "PYINSTALLER_CONDARC_DIR" in os.environ:
 conda_plugin_manager = conda.plugins.manager.get_plugin_manager()
 for name, module in conda_plugin_manager.list_name_plugin():
     if not hasattr(module, "__name__"):
-        print(f"WARNING: could not load plug-in {name}: not a module.")
+        print(f"WARNING: could not load plug-in {name}: not a module.", file=sys.stderr)
         continue
     # conda plug-ins are already loaded with conda
-    if module.__name__.startswith("conda.plugins."):
+    if module.__name__.startswith("conda."):
         continue
     package_name = module.__name__.split(".")[0]
     hiddenimports.extend(collect_submodules(package_name))
