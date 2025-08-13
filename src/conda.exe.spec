@@ -2,7 +2,10 @@
 import os
 import site
 import sys
+
+import conda.plugins.manager
 from menuinst.platforms.base import SCHEMA_VERSION
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
 
 from PyInstaller.utils.hooks import collect_submodules, copy_metadata
 
@@ -71,16 +74,12 @@ packages = [
     "conda_package_streaming",
     "menuinst",
     "conda_env",
-    "conda_libmamba_solver",
     "libmambapy",
 ]
 for package in packages:
     # collect_submodules does not look at __init__
     hiddenimports.append(f"{package}.__init__")
     hiddenimports.extend(collect_submodules(package))
-    if package == "conda_libmamba_solver":
-        # Conda needs the metadata to recognize plug-ins
-        datas.extend(copy_metadata(package))
 
 # Add .condarc file to bundle to configure channels
 # during the package building stage
@@ -88,6 +87,23 @@ if "PYINSTALLER_CONDARC_DIR" in os.environ:
     condarc = os.path.join(os.environ["PYINSTALLER_CONDARC_DIR"], ".condarc")
     if os.path.exists(condarc):
         datas.append((condarc, "."))
+
+# Add external conda plug-ins
+conda_plugin_manager = conda.plugins.manager.get_plugin_manager()
+for name, module in conda_plugin_manager.list_name_plugin():
+    if not hasattr(module, "__name__"):
+        print(f"WARNING: could not load plug-in {name}: not a module.", file=sys.stderr)
+        continue
+    # conda plug-ins are already loaded with conda
+    if module.__name__.startswith("conda."):
+        continue
+    package_name = module.__name__.split(".")[0]
+    hiddenimports.extend(collect_submodules(package_name))
+    # collect_submodules does not look at __init__
+    hiddenimports.append(f"{package_name}.__init__")
+    datas.extend(collect_data_files(package_name))
+    # metadata is needed for conda to find the plug-in
+    datas.extend(copy_metadata(package_name))
 
 a = Analysis(['entry_point.py'],
              pathex=['.'],
