@@ -162,7 +162,9 @@ def _constructor_parse_cli():
 
     args.prefix = Path(os.path.expandvars(args.prefix)).expanduser().resolve()
     args.root_prefix = (
-        Path(os.environ.get("CONDA_ROOT_PREFIX", args.prefix)).expanduser().resolve()
+        Path(os.path.expandvars(os.environ.get("CONDA_ROOT_PREFIX", args.prefix)))
+        .expanduser()
+        .resolve()
     )
 
     if "--num-processors" in sys.argv and not args.extract_conda_pkgs:
