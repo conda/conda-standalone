@@ -365,3 +365,24 @@ def test_conda_run():
         pass
     else:
         assert not process.stderr
+
+
+def test_conda_run_conda_exe():
+    env = os.environ.copy()
+    for key in os.environ:
+        if key.startswith(("CONDA", "_CONDA_", "__CONDA", "_CE_")):
+            env.pop(key, None)
+
+    process = run_conda(
+        "run",
+        "-p",
+        sys.prefix,
+        "python",
+        "-c",
+        "import sys,os;print(os.environ['CONDA_EXE'])",
+        check=True,
+        text=True,
+        capture_output=True,
+        env=env,
+    )
+    assert os.path.realpath(process.stdout.strip()) == os.path.realpath(CONDA_EXE)
