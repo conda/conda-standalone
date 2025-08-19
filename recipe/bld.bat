@@ -20,10 +20,6 @@ COPY conda_src\conda\activate.py "%SP_DIR%\conda\activate.py" || goto :error
 :: we need these for noarch packages with entry points to work on windows
 COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error
 
-:: This is ordinarily installed by the installer itself, but since we are building for a
-:: standalone and have only an env, not an installation, include it here.
-COPY constructor_src\constructor\nsis\_nsis.py "%PREFIX%\Lib\_nsis.py" || goto :error
-
 pyinstaller --clean --log-level=DEBUG src\conda.exe.spec || goto :error
 set "variant=%variant%"
 if "%variant%" == "onedir" (

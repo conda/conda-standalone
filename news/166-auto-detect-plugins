@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Bump to `conda 25.3.1`, `python 3.13.5`, `menuinst 2.3.0`. (#153)
+* Automatically package all installed conda plug-ins into `conda-standalone`. (#163 via #166)
 
 ### Bug fixes
 

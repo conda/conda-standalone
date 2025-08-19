@@ -2,7 +2,12 @@
 import os
 import site
 import sys
+
+import conda.plugins.manager
 from menuinst.platforms.base import SCHEMA_VERSION
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
+
+from PyInstaller.utils.hooks import collect_submodules, copy_metadata
 
 # __file__ is not defined in the pyinstaller context,
 # so we will get it from sys.argv instead
@@ -71,7 +76,6 @@ datas = [
 ]
 if sys.platform == "win32":
     datas += [
-        (os.path.join(os.getcwd(), 'constructor_src', 'constructor', 'nsis', '_nsis.py'), 'Lib'),
         (os.path.join(os.getcwd(), 'entry_point_base.exe'), '.'),
     ]
 elif sys.platform == "darwin":
@@ -83,6 +87,20 @@ elif sys.platform == "darwin":
     ]
     extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
 
+hiddenimports = []
+packages = [
+    "conda",
+    "conda_package_handling",
+    "conda_package_streaming",
+    "menuinst",
+    "conda_env",
+    "libmambapy",
+]
+for package in packages:
+    # collect_submodules does not look at __init__
+    hiddenimports.append(f"{package}.__init__")
+    hiddenimports.extend(collect_submodules(package))
+
 # Add .condarc file to bundle to configure channels
 # during the package building stage
 if "PYINSTALLER_CONDARC_DIR" in os.environ:
@@ -90,10 +108,28 @@ if "PYINSTALLER_CONDARC_DIR" in os.environ:
     if os.path.exists(condarc):
         datas.append((condarc, "."))
 
-a = Analysis(['entry_point.py', 'imports.py'],
+# Add external conda plug-ins
+conda_plugin_manager = conda.plugins.manager.get_plugin_manager()
+for name, module in conda_plugin_manager.list_name_plugin():
+    if not hasattr(module, "__name__"):
+        print(f"WARNING: could not load plug-in {name}: not a module.", file=sys.stderr)
+        continue
+    # conda plug-ins are already loaded with conda
+    if module.__name__.startswith("conda."):
+        continue
+    package_name = module.__name__.split(".")[0]
+    hiddenimports.extend(collect_submodules(package_name))
+    # collect_submodules does not look at __init__
+    hiddenimports.append(f"{package_name}.__init__")
+    datas.extend(collect_data_files(package_name))
+    # metadata is needed for conda to find the plug-in
+    datas.extend(copy_metadata(package_name))
+
+a = Analysis(['entry_point.py'],
              pathex=['.'],
              binaries=binaries,
              datas=datas,
+             hiddenimports=hiddenimports,
              hookspath=[],
              runtime_hooks=[],
              excludes=['test'],

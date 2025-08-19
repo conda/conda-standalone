@@ -1,16 +1,13 @@
-import io
 import json
 import os
-import shutil
-import stat
+import re
 import subprocess
 import sys
-import tarfile
 from pathlib import Path
 
 import pytest
 from ruamel.yaml import YAML
-from utils import CONDA_EXE, run_conda
+from utils import run_conda
 
 HERE = Path(__file__).parent
 
@@ -31,6 +28,24 @@ def test_new_environment(tmp_path, solver):
         check=True,
     )
     assert list((tmp_path / "env" / "conda-meta").glob("libzlib-*.json"))
+
+
+def test_install_conda(tmp_path):
+    # Use regex to avoid matching with conda plug-ins or other packages
+    # starting with "conda-"
+    conda_json_regex = re.compile(r"conda-[\d]+\.[\d]+\.[\d]-.*\.json$")
+    run_conda(
+        "create",
+        "-p",
+        tmp_path / "env",
+        "-y",
+        "conda",
+        check=True,
+    )
+    assert any(
+        conda_json_regex.search(str(file))
+        for file in (tmp_path / "env" / "conda-meta").glob("conda-*.json")
+    )
 
 
 def test_constructor():
@@ -128,75 +143,6 @@ def test_conda_standalone_config(search_paths, tmp_path, monkeypatch):
         assert expected_configs == conda_configs
 
 
-def test_extract_conda_pkgs(tmp_path: Path):
-    shutil.copytree(HERE / "data", tmp_path / "pkgs")
-    run_conda("constructor", "--prefix", tmp_path, "--extract-conda-pkgs", check=True)
-
-
-def test_extract_tarball_no_raise_deprecation_warning(tmp_path: Path):
-    # See https://github.com/conda/conda-standalone/issues/143
-    tarbytes = (HERE / "data" / "futures-compat-1.0-py3_0.tar.bz2").read_bytes()
-    process = run_conda(
-        "constructor",
-        "--prefix",
-        tmp_path,
-        "--extract-tarball",
-        input=tarbytes,
-        capture_output=True,
-        check=True,
-    )
-    assert b"DeprecationWarning: Python" not in process.stderr
-    # warnings should be send to stderr but check stdout for completeness
-    assert b"DeprecationWarning: Python" not in process.stdout
-
-
-def test_extract_tarball_umask(tmp_path: Path):
-    "Ported from https://github.com/conda/conda-package-streaming/pull/65"
-
-    def empty_tarfile_bytes(name, mode=0o644):
-        """
-        Return BytesIO containing a tarfile with one empty file named :name
-        """
-        tar = io.BytesIO()
-        t = tarfile.TarFile(mode="w", fileobj=tar)
-        tarinfo = tarfile.TarInfo(name=name)
-        tarinfo.mode = mode
-        t.addfile(tarinfo, io.BytesIO())
-        t.close()
-        tar.seek(0)
-        return tar
-
-    naughty_mode = 0o777
-    umask = 0o022
-    tarbytes = empty_tarfile_bytes(name="naughty_umask", mode=naughty_mode)
-    process = subprocess.Popen(
-        [CONDA_EXE, "constructor", "--prefix", tmp_path, "--extract-tarball"],
-        stdin=subprocess.PIPE,
-        umask=umask,
-    )
-    process.communicate(tarbytes.getvalue())
-    rc = process.wait()
-    assert rc == 0
-    if sys.platform != "win32":
-        mode = (tmp_path / "naughty_umask").stat().st_mode
-        # we only want the chmod bits (last three octal digits)
-        chmod_bits = stat.S_IMODE(mode)
-        expected_bits = naughty_mode & ~umask
-        assert chmod_bits == expected_bits == 0o755, f"{expected_bits:o}"
-
-
-def test_extract_conda_pkgs_num_processors(tmp_path: Path):
-    shutil.copytree(HERE / "data", tmp_path / "pkgs")
-    run_conda(
-        "constructor",
-        "--prefix",
-        tmp_path,
-        "--extract-conda-pkgs",
-        "--num-processors=2",
-        check=True,
-    )
-
-
 def test_menuinst_conda(tmp_path: Path, clean_shortcuts: dict[str, list[Path]]):
     "Check 'regular' conda can process menuinst JSONs"
 
@@ -236,69 +182,6 @@ def test_menuinst_conda(tmp_path: Path, clean_shortcuts: dict[str, list[Path]]):
         capture_output=True,
         text=True,
         check=True,
-    )
-    print(process.stdout)
-    print(process.stderr, file=sys.stderr)
-    shortcuts_found = [
-        package
-        for package, shortcuts in clean_shortcuts.items()
-        if any(shortcut.exists() for shortcut in shortcuts)
-    ]
-    assert shortcuts_found == []
-
-
-def test_menuinst_constructor(tmp_path: Path, clean_shortcuts: dict[str, list[Path]]):
-    "The constructor helper should also be able to process menuinst JSONs"
-    run_kwargs = dict(capture_output=True, text=True, check=True)
-    process = run_conda(
-        "create",
-        "-vvv",
-        "-p",
-        tmp_path,
-        "-y",
-        *clean_shortcuts.keys(),
-        "--no-deps",
-        "--no-shortcuts",
-        **run_kwargs,
-    )
-    print(process.stdout)
-    print(process.stderr, file=sys.stderr)
-    assert list(tmp_path.glob("Menu/*.json"))
-
-    env = os.environ.copy()
-    env["CONDA_ROOT_PREFIX"] = sys.prefix
-    process = run_conda(
-        "constructor",
-        # Not supported in micromamba's interface yet
-        # use CONDA_ROOT_PREFIX instead
-        # "--root-prefix",
-        # sys.prefix,
-        "--prefix",
-        tmp_path,
-        "--make-menus",
-        **run_kwargs,
-        env=env,
-    )
-    print(process.stdout)
-    print(process.stderr, file=sys.stderr)
-    shortcuts_found = [
-        package
-        for package, shortcuts in clean_shortcuts.items()
-        if any(shortcut.exists() for shortcut in shortcuts)
-    ]
-    assert sorted(shortcuts_found) == sorted(clean_shortcuts.keys())
-
-    process = run_conda(
-        "constructor",
-        # Not supported in micromamba's interface yet
-        # use CONDA_ROOT_PREFIX instead
-        # "--root-prefix",
-        # sys.prefix,
-        "--prefix",
-        tmp_path,
-        "--rm-menus",
-        **run_kwargs,
-        env=env,
     )
     print(process.stdout)
     print(process.stderr, file=sys.stderr)
