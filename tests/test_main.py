@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 from ruamel.yaml import YAML
-from utils import run_conda
+from utils import CONDA_EXE, run_conda
 
 HERE = Path(__file__).parent
 
