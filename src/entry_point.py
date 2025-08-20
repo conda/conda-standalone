@@ -87,19 +87,6 @@ def _constructor_parse_cli():
         action="store_true",
         help="extract tarball from stdin",
     )
-    g.add_argument(
-        "--make-menus",
-        nargs="*",
-        metavar="PKG_NAME",
-        help="create menu items for the given packages; "
-        "if none are given, create menu items for all packages "
-        "in the environment specified by --prefix",
-    )
-    g.add_argument(
-        "--rm-menus",
-        action="store_true",
-        help="remove menu items for all packages in the environment specified by --prefix",
-    )
 
     subcommands = p.add_subparsers(dest="command")
     uninstall_subcommand = subcommands.add_parser(
@@ -190,7 +177,6 @@ def _constructor_subcommand():
         extract_conda_pkgs,
         extract_tarball,
     )
-    from conda_constructor.menuinst import install_shortcut
     from conda_constructor.uninstall import uninstall
 
     args, _ = _constructor_parse_cli()
@@ -210,15 +196,50 @@ def _constructor_subcommand():
     elif args.extract_tarball:
         extract_tarball(args.prefix)
 
-    # when called with --make-menus and no package names, the value is an empty list
-    # hence the explicit check for None
-    elif (args.make_menus is not None) or args.rm_menus:
-        install_shortcut(
-            prefix=args.prefix,
-            pkg_names=args.make_menus,
-            remove=args.rm_menus,
-            root_prefix=args.root_prefix,
-        )
+
+def _menuinst_subcommand():
+    import argparse
+
+    from conda_constructor.menuinst import install_shortcut
+
+    parser = argparse.ArgumentParser(prog="conda.exe")
+    subparsers = parser.add_subparsers()
+    menuinst_parser = subparsers.add_parser("menuinst", description="menuinst helper command")
+
+    menuinst_parser.add_argument(
+        "--prefix",
+        action="store",
+        required=True,
+        help="path to the conda environment to operate on",
+    )
+    install_group = menuinst_parser.add_mutually_exclusive_group(required=True)
+    install_group.add_argument(
+        "--install",
+        nargs="*",
+        metavar="PKG_NAME",
+        help="create menu items for the given packages; "
+        "if none are given, create menu items for all packages "
+        "in the environment",
+    )
+    install_group.add_argument(
+        "--remove",
+        action="store_true",
+        help="remove menu items for all packages in the environment specified by --prefix",
+    )
+    args = parser.parse_args()
+
+    prefix = Path(os.path.expandvars(args.prefix)).expanduser().resolve()
+    root_prefix = (
+        Path(os.path.expandvars(os.environ.get("CONDA_ROOT_PREFIX", args.prefix)))
+        .expanduser()
+        .resolve()
+    )
+    install_shortcut(
+        prefix=prefix,
+        pkg_names=args.install,
+        remove=args.remove,
+        root_prefix=root_prefix,
+    )
 
 
 def _python_subcommand():
@@ -306,12 +327,45 @@ def _conda_main():
     return main()
 
 
+def _patch_constructor_args(argv: list[str] = sys.argv) -> list[str]:
+    legacy_args = {
+        "--extract-conda-pkgs": ["constructorextract", "--conda"],
+        "--extract-tarball": ["constructorextract", "--tar"],
+        "--make-menus": ["menuinst", "--install"],
+        "--rm-menus": ["menuinst", "--remove"],
+    }
+    used_legacy_args = set(legacy_args.keys()).intersection(set(argv))
+    if len(used_legacy_args) == 0:
+        return argv
+    elif len(used_legacy_args) > 1:
+        from argparse import ArgumentError
+
+        raise ArgumentError(
+            None, f"The following arguments are mutually exclusive: {', '.join(used_legacy_args)}."
+        )
+    legacy_arg = used_legacy_args.pop()
+    index_start = argv.index(legacy_arg)
+    index_end = index_start + 1
+    # Check for positional arguments after the legacy argument
+    while index_end < len(argv) and not argv[index_end].startswith("--"):
+        index_end += 1
+    args_to_move = argv[index_start:index_end]
+    args_to_move = legacy_args[legacy_arg] + args_to_move[1:]
+    del argv[index_start:index_end]
+    argv = [argv[0], *args_to_move, *argv[2:]]
+    return argv
+
+
 def main():
     # https://docs.python.org/3/library/multiprocessing.html#multiprocessing.freeze_support
     freeze_support()
     if len(sys.argv) > 1:
         if sys.argv[1] == "constructor":
+            sys.argv = _patch_constructor_args(sys.argv)
+        if sys.argv[1] == "constructor":
             return _constructor_subcommand()
+        elif sys.argv[1] == "menuinst":
+            return _menuinst_subcommand()
         # Some parts of conda call `sys.executable -m`, so conda-standalone needs to
         # interpret `conda.exe -m` as `conda.exe python -m`.
         elif sys.argv[1] == "python" or sys.argv[1] == "-m":
