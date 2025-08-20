@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Refactor `conda constructor` subcommand into its own submodule. (#162 via #165)
+* Refactor `conda constructor` subcommand into its own submodule. (#162 via #165, #175)
 
 ### Bug fixes
 
