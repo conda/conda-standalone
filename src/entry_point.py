@@ -43,65 +43,46 @@ def _constructor_parse_cli():
         _NumProcessorsAction,
     )
 
-    # Remove "constructor" so that it does not clash with the uninstall subcommand
-    del sys.argv[1]
-    p = argparse.ArgumentParser(
-        prog="conda.exe constructor", description="constructor helper subcommand"
+    p = argparse.ArgumentParser(prog="conda.exe")
+    constructor_subcommand = p.add_subparsers(dest="_")
+    constructor_subparser = constructor_subcommand.add_parser(
+        name="constructor",
+        help="constructor helper subcommand",
     )
-    # Cannot use argparse to make this a required argument
-    # or `conda.exe constructor uninstall --prefix`
-    # will not work (would have to be `conda constructor --prefix uninstall`).
-    # Requiring `--prefix` will be enforced manually later.
-    p.add_argument(
+    subcommands = constructor_subparser.add_subparsers(dest="command")
+
+    extract_subcommand = subcommands.add_parser(
+        "extract",
+        description="Extract packages in the package cache",
+    )
+
+    extract_subcommand.add_argument(
         "--prefix",
         action="store",
-        required=False,
+        required=True,
         help="path to the conda environment to operate on",
     )
-    # We can't add this option yet because micromamba doesn't support it
-    # Instead we check for the CONDA_ROOT_PREFIX env var; see below
-    # p.add_argument(
-    #     "--root-prefix",
-    #     action="store",
-    #     help="path to root path of the conda installation; "
-    #     "defaults to --prefix if not provided",
-    # )
-    p.add_argument(
+    extract_group = extract_subcommand.add_mutually_exclusive_group()
+    extract_group.add_argument(
+        "--conda",
+        action="store_true",
+        help="extract conda packages found in prefix/pkgs",
+    )
+    extract_group.add_argument(
+        "--tar",
+        action="store_true",
+        help="extract tarball from stdin",
+    )
+    extract_subcommand.add_argument(
         "--num-processors",
         default=DEFAULT_NUM_PROCESSORS,
         metavar="N",
         action=_NumProcessorsAction,
-        help="Number of processors to use with --extract-conda-pkgs. "
+        help="Number of processors to use with --conda. "
         "Value must be int between 0 (auto) and the number of processors. "
         f"Defaults to {DEFAULT_NUM_PROCESSORS}.",
     )
 
-    g = p.add_mutually_exclusive_group()
-    g.add_argument(
-        "--extract-conda-pkgs",
-        action="store_true",
-        help="extract conda packages found in prefix/pkgs",
-    )
-    g.add_argument(
-        "--extract-tarball",
-        action="store_true",
-        help="extract tarball from stdin",
-    )
-    g.add_argument(
-        "--make-menus",
-        nargs="*",
-        metavar="PKG_NAME",
-        help="create menu items for the given packages; "
-        "if none are given, create menu items for all packages "
-        "in the environment specified by --prefix",
-    )
-    g.add_argument(
-        "--rm-menus",
-        action="store_true",
-        help="remove menu items for all packages in the environment specified by --prefix",
-    )
-
-    subcommands = p.add_subparsers(dest="command")
     uninstall_subcommand = subcommands.add_parser(
         "uninstall",
         description="Uninstalls a conda directory and all environments inside the directory.",
@@ -147,32 +128,12 @@ def _constructor_parse_cli():
         ),
     )
 
-    args, args_unknown = p.parse_known_args()
+    args = p.parse_args()
 
-    if args.command != "uninstall":
-        group_args = getattr(g, "_group_actions")
-        if all(getattr(args, arg.dest, None) in (None, False) for arg in group_args):
-            required_args = [arg.option_strings[0] for arg in group_args]
-            raise argparse.ArgumentError(
-                None, f"one of the following arguments are required: {'/'.join(required_args)}"
-            )
+    if args.command == "extract" and "--num-processors" in sys.argv and not args.conda:
+        raise argparse.ArgumentError(None, "--num-processors can only be used with --conda")
 
-    if args.prefix is None:
-        raise argparse.ArgumentError(None, "the following arguments are required: --prefix")
-
-    args.prefix = Path(os.path.expandvars(args.prefix)).expanduser().resolve()
-    args.root_prefix = (
-        Path(os.path.expandvars(os.environ.get("CONDA_ROOT_PREFIX", args.prefix)))
-        .expanduser()
-        .resolve()
-    )
-
-    if "--num-processors" in sys.argv and not args.extract_conda_pkgs:
-        raise argparse.ArgumentError(
-            None, "--num-processors can only be used with --extract-conda-pkgs"
-        )
-
-    return args, args_unknown
+    return args
 
 
 def _constructor_subcommand():
@@ -190,35 +151,69 @@ def _constructor_subcommand():
         extract_conda_pkgs,
         extract_tarball,
     )
-    from conda_constructor.menuinst import install_shortcut
     from conda_constructor.uninstall import uninstall
 
-    args, _ = _constructor_parse_cli()
+    args = _constructor_parse_cli()
+
+    prefix = Path(os.path.expandvars(args.prefix)).expanduser().resolve()
 
     if args.command == "uninstall":
         uninstall(
-            args.prefix,
+            prefix,
             remove_caches=args.remove_caches,
             remove_config_files=args.remove_config_files,
             remove_user_data=args.remove_user_data,
         )
-        # os.chdir will break conda --clean, so return early
-        return
-    if args.extract_conda_pkgs:
-        extract_conda_pkgs(args.prefix, max_workers=args.num_processors)
+    elif args.command == "extract":
+        if args.conda:
+            extract_conda_pkgs(prefix, max_workers=args.num_processors)
+        elif args.tar:
+            extract_tarball(prefix)
 
-    elif args.extract_tarball:
-        extract_tarball(args.prefix)
 
-    # when called with --make-menus and no package names, the value is an empty list
-    # hence the explicit check for None
-    elif (args.make_menus is not None) or args.rm_menus:
-        install_shortcut(
-            prefix=args.prefix,
-            pkg_names=args.make_menus,
-            remove=args.rm_menus,
-            root_prefix=args.root_prefix,
-        )
+def _menuinst_subcommand():
+    import argparse
+
+    from conda_constructor.menuinst import install_shortcut
+
+    parser = argparse.ArgumentParser(prog="conda.exe")
+    subparsers = parser.add_subparsers()
+    menuinst_parser = subparsers.add_parser("menuinst", description="menuinst helper command")
+
+    menuinst_parser.add_argument(
+        "--prefix",
+        action="store",
+        required=True,
+        help="path to the conda environment to operate on",
+    )
+    install_group = menuinst_parser.add_mutually_exclusive_group(required=True)
+    install_group.add_argument(
+        "--install",
+        nargs="*",
+        metavar="PKG_NAME",
+        help="create menu items for the given packages; "
+        "if none are given, create menu items for all packages "
+        "in the environment",
+    )
+    install_group.add_argument(
+        "--remove",
+        action="store_true",
+        help="remove menu items for all packages in the environment specified by --prefix",
+    )
+    args = parser.parse_args()
+
+    prefix = Path(os.path.expandvars(args.prefix)).expanduser().resolve()
+    root_prefix = (
+        Path(os.path.expandvars(os.environ.get("CONDA_ROOT_PREFIX", args.prefix)))
+        .expanduser()
+        .resolve()
+    )
+    install_shortcut(
+        prefix=prefix,
+        pkg_names=args.install,
+        remove=args.remove,
+        root_prefix=root_prefix,
+    )
 
 
 def _python_subcommand():
@@ -306,12 +301,45 @@ def _conda_main():
     return main()
 
 
+def _patch_constructor_args(argv: list[str] = sys.argv) -> list[str]:
+    legacy_args = {
+        "--extract-conda-pkgs": ["constructor", "extract", "--conda"],
+        "--extract-tarball": ["constructor", "extract", "--tar"],
+        "--make-menus": ["menuinst", "--install"],
+        "--rm-menus": ["menuinst", "--remove"],
+    }
+    used_legacy_args = set(legacy_args.keys()).intersection(set(argv))
+    if len(used_legacy_args) == 0:
+        return argv
+    elif len(used_legacy_args) > 1:
+        from argparse import ArgumentError
+
+        raise ArgumentError(
+            None, f"The following arguments are mutually exclusive: {', '.join(used_legacy_args)}."
+        )
+    legacy_arg = used_legacy_args.pop()
+    index_start = argv.index(legacy_arg)
+    index_end = index_start + 1
+    # Check for positional arguments after the legacy argument
+    while index_end < len(argv) and not argv[index_end].startswith("--"):
+        index_end += 1
+    args_to_move = argv[index_start:index_end]
+    args_to_move = legacy_args[legacy_arg] + args_to_move[1:]
+    del argv[index_start:index_end]
+    argv = [argv[0], *args_to_move, *argv[2:]]
+    return argv
+
+
 def main():
     # https://docs.python.org/3/library/multiprocessing.html#multiprocessing.freeze_support
     freeze_support()
     if len(sys.argv) > 1:
         if sys.argv[1] == "constructor":
+            sys.argv = _patch_constructor_args(sys.argv)
+        if sys.argv[1] == "constructor":
             return _constructor_subcommand()
+        elif sys.argv[1] == "menuinst":
+            return _menuinst_subcommand()
         # Some parts of conda call `sys.executable -m`, so conda-standalone needs to
         # interpret `conda.exe -m` as `conda.exe python -m`.
         elif sys.argv[1] == "python" or sys.argv[1] == "-m":

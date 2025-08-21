@@ -6,24 +6,35 @@ import sys
 import tarfile
 from pathlib import Path
 
+import pytest
 from utils import CONDA_EXE, run_conda
 
 HERE = Path(__file__).parent
+CONDA_EXTRACT_COMMANDS = (
+    pytest.param(("extract", "--conda"), id="extract"),
+    pytest.param(("--extract-conda-pkgs",), id="legacy"),
+)
+TAR_EXTRACT_COMMANDS = (
+    pytest.param(("extract", "--tar"), id="extract"),
+    pytest.param(("--extract-tarball",), id="legacy"),
+)
 
 
-def test_extract_conda_pkgs(tmp_path: Path):
+@pytest.mark.parametrize("extract_command", CONDA_EXTRACT_COMMANDS)
+def test_extract_conda_pkgs(tmp_path: Path, extract_command: tuple[str]):
     shutil.copytree(HERE / "data", tmp_path / "pkgs")
-    run_conda("constructor", "--prefix", tmp_path, "--extract-conda-pkgs", check=True)
+    run_conda("constructor", *extract_command, "--prefix", tmp_path, check=True)
 
 
-def test_extract_tarball_no_raise_deprecation_warning(tmp_path: Path):
+@pytest.mark.parametrize("extract_command", TAR_EXTRACT_COMMANDS)
+def test_extract_tarball_no_raise_deprecation_warning(tmp_path: Path, extract_command: tuple[str]):
     # See https://github.com/conda/conda-standalone/issues/143
     tarbytes = (HERE / "data" / "futures-compat-1.0-py3_0.tar.bz2").read_bytes()
     process = run_conda(
         "constructor",
+        *extract_command,
         "--prefix",
         tmp_path,
-        "--extract-tarball",
         input=tarbytes,
         capture_output=True,
         check=True,
@@ -33,7 +44,8 @@ def test_extract_tarball_no_raise_deprecation_warning(tmp_path: Path):
     assert b"DeprecationWarning: Python" not in process.stdout
 
 
-def test_extract_tarball_umask(tmp_path: Path):
+@pytest.mark.parametrize("extract_command", TAR_EXTRACT_COMMANDS)
+def test_extract_tarball_umask(tmp_path: Path, extract_command: tuple[str]):
     "Ported from https://github.com/conda/conda-package-streaming/pull/65"
 
     def empty_tarfile_bytes(name, mode=0o644):
@@ -53,7 +65,7 @@ def test_extract_tarball_umask(tmp_path: Path):
     umask = 0o022
     tarbytes = empty_tarfile_bytes(name="naughty_umask", mode=naughty_mode)
     process = subprocess.Popen(
-        [CONDA_EXE, "constructor", "--prefix", tmp_path, "--extract-tarball"],
+        [CONDA_EXE, "constructor", *extract_command, "--prefix", tmp_path],
         stdin=subprocess.PIPE,
         umask=umask,
     )
@@ -68,13 +80,14 @@ def test_extract_tarball_umask(tmp_path: Path):
         assert chmod_bits == expected_bits == 0o755, f"{expected_bits:o}"
 
 
-def test_extract_conda_pkgs_num_processors(tmp_path: Path):
+@pytest.mark.parametrize("extract_command", CONDA_EXTRACT_COMMANDS)
+def test_extract_conda_pkgs_num_processors(tmp_path: Path, extract_command: tuple[str]):
     shutil.copytree(HERE / "data", tmp_path / "pkgs")
     run_conda(
         "constructor",
+        *extract_command,
         "--prefix",
         tmp_path,
-        "--extract-conda-pkgs",
         "--num-processors=2",
         check=True,
     )
