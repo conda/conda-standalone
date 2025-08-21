@@ -43,12 +43,13 @@ def _constructor_parse_cli():
         _NumProcessorsAction,
     )
 
-    # Remove "constructor" so that it does not clash with the subcommands
-    del sys.argv[1]
-    p = argparse.ArgumentParser(
-        prog="conda.exe constructor", description="constructor helper subcommand"
+    p = argparse.ArgumentParser(prog="conda.exe")
+    constructor_subcommand = p.add_subparsers(dest="_")
+    constructor_subparser = constructor_subcommand.add_parser(
+        name="constructor",
+        help="constructor helper subcommand",
     )
-    subcommands = p.add_subparsers(dest="command")
+    subcommands = constructor_subparser.add_subparsers(dest="command")
 
     extract_subcommand = subcommands.add_parser(
         "extract",
@@ -77,7 +78,7 @@ def _constructor_parse_cli():
         default=DEFAULT_NUM_PROCESSORS,
         metavar="N",
         action=_NumProcessorsAction,
-        help="Number of processors to use with --extract-conda-pkgs. "
+        help="Number of processors to use with --conda. "
         "Value must be int between 0 (auto) and the number of processors. "
         f"Defaults to {DEFAULT_NUM_PROCESSORS}.",
     )
