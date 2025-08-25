@@ -67,8 +67,8 @@ def extract_conda_pkgs(prefix: Path, max_workers=None) -> None:
     flist = []
     for ext in CONDA_PACKAGE_EXTENSIONS:
         for pkg in Path.cwd().iterdir():
-            if "".join(pkg.suffixes) == ext:
-                flist.append(pkg)
+            if pkg.name.endswith(ext):
+                flist.append(str(pkg))
     disabled = True if boolify(os.environ.get("CONDA_QUIET")) else None  # None only for non-tty
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(api.extract, fn): fn for fn in flist}
