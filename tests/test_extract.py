@@ -6,14 +6,25 @@ import sys
 import tarfile
 from pathlib import Path
 
+from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
 from utils import CONDA_EXE, run_conda
 
 HERE = Path(__file__).parent
 
 
 def test_extract_conda_pkgs(tmp_path: Path):
-    shutil.copytree(HERE / "data", tmp_path / "pkgs")
+    pkgs_dir = tmp_path / "pkgs"
+    data_dir = HERE / "data"
+    shutil.copytree(data_dir, pkgs_dir)
     run_conda("constructor", "--prefix", tmp_path, "--extract-conda-pkgs", check=True)
+    missing_directories = []
+    for pkg in data_dir.iterdir():
+        expected_dir = pkg.name
+        for ext in CONDA_PACKAGE_EXTENSIONS:
+            expected_dir = expected_dir.removesuffix(ext)
+        if not (pkgs_dir / expected_dir).exists():
+            missing_directories.append(expected_dir)
+    assert missing_directories == []
 
 
 def test_extract_tarball_no_raise_deprecation_warning(tmp_path: Path):
@@ -69,7 +80,9 @@ def test_extract_tarball_umask(tmp_path: Path):
 
 
 def test_extract_conda_pkgs_num_processors(tmp_path: Path):
-    shutil.copytree(HERE / "data", tmp_path / "pkgs")
+    pkgs_dir = tmp_path / "pkgs"
+    data_dir = HERE / "data"
+    shutil.copytree(data_dir, pkgs_dir)
     run_conda(
         "constructor",
         "--prefix",
@@ -78,3 +91,11 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path):
         "--num-processors=2",
         check=True,
     )
+    missing_directories = []
+    for pkg in data_dir.iterdir():
+        expected_dir = pkg.name
+        for ext in CONDA_PACKAGE_EXTENSIONS:
+            expected_dir = expected_dir.removesuffix(ext)
+        if not (pkgs_dir / expected_dir).exists():
+            missing_directories.append(expected_dir)
+    assert missing_directories == []
