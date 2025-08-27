@@ -266,7 +266,12 @@ def uninstall(
 
     # Find and collect PREFIX_FROZEN_FILE files for removal
     print("Finding frozen environment files...")
-    frozen_files = [file.resolve() for file in prefix.glob(f"**/{PREFIX_FROZEN_FILE}")]
+    # Use existing prefixes list to only search in confirmed environments
+    frozen_files = []
+    for env_prefix in prefixes:
+        frozen_file = env_prefix / PREFIX_FROZEN_FILE
+        if frozen_file.exists():
+            frozen_files.append(frozen_file)
 
     print(f"Found {len(frozen_files)} frozen environment files to remove.")
 
