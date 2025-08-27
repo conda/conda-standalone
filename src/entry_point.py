@@ -293,6 +293,15 @@ def _patch_root_prefix():
         os.environ.setdefault("CONDA_ROOT_PREFIX", str(root_prefix))
 
 
+def _patch_for_conda_run():
+    os.environ.setdefault("CONDA_ROOT", sys.prefix)
+    os.environ.setdefault("CONDA_ROOT_PREFIX", sys.prefix)
+    # sys.executable will be set to the path to conda.exe
+    # and that needs to be the value of CONDA_EXE if not set already
+    if "python" not in os.path.basename(sys.executable):
+        os.environ.setdefault("CONDA_EXE", sys.executable)
+
+
 def _conda_main():
     from conda.cli import main
 
@@ -316,6 +325,8 @@ def main():
         # interpret `conda.exe -m` as `conda.exe python -m`.
         elif sys.argv[1] == "python" or sys.argv[1] == "-m":
             return _python_subcommand()
+        elif sys.argv[1] == "run":
+            _patch_for_conda_run()
 
     _patch_root_prefix()
     return _conda_main()

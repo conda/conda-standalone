@@ -13,7 +13,7 @@ CONDA_EXE = os.environ.get(
 
 def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
     check = kwargs.pop("check", False)
-    sudo = None
+    sudo = []
     if "needs_sudo" in kwargs:
         if kwargs["needs_sudo"]:
             if sys.platform == "win32":
@@ -22,7 +22,7 @@ def run_conda(*args, **kwargs) -> subprocess.CompletedProcess:
                 )
             sudo = ["sudo", "-E"]
         del kwargs["needs_sudo"]
-    cmd = [*sudo, CONDA_EXE] if sudo else [CONDA_EXE]
+    cmd = [*sudo, CONDA_EXE]
 
     process = subprocess.run([*cmd, *args], **kwargs)
     if check:
