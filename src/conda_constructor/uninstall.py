@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from shutil import rmtree
 
-from conda.base.constants import COMPATIBLE_SHELLS, PREFIX_MAGIC_FILE
+from conda.base.constants import COMPATIBLE_SHELLS, PREFIX_FROZEN_FILE, PREFIX_MAGIC_FILE
 from conda.base.context import context, reset_context
 from conda.cli.main import main as conda_main
 from conda.common.compat import on_win
@@ -263,6 +263,21 @@ def uninstall(
     # Since it is more likely that profiles contain the root prefix,
     # this makes loops more efficient.
     prefixes.sort(key=lambda x: len(x.parts))
+
+    # Find and collect PREFIX_FROZEN_FILE files for removal
+    print("Finding frozen environment files...")
+    frozen_files = [file.resolve() for file in prefix.glob(f"**/{PREFIX_FROZEN_FILE}")]
+
+    print(f"Found {len(frozen_files)} frozen environment files to remove.")
+
+    # Remove PREFIX_FROZEN_FILE files first to unprotect environments
+    print("Removing frozen environment protection files...")
+    for frozen_file in frozen_files:
+        try:
+            _remove_file_directory(frozen_file)
+            print(f"Removed frozen file: {frozen_file}")
+        except Exception as e:
+            print(f"Warning: Could not remove frozen file {frozen_file}: {e}")
 
     # Run conda --init reverse for the shells
     # that contain a prefix that is being uninstalled
