@@ -189,6 +189,26 @@ def _get_menuinst_base_prefix(prefix: Path, conda_root_prefix: Path | None) -> P
 
 
 def _remove_environments(prefix: Path, prefixes: list[Path]):
+    # Find and collect PREFIX_FROZEN_FILE files for removal
+    print("Finding frozen environment files...")
+    # Use existing prefixes list to only search in confirmed environments
+    frozen_files = []
+    for env_prefix in prefixes:
+        frozen_file = env_prefix / PREFIX_FROZEN_FILE
+        if frozen_file.exists():
+            frozen_files.append(frozen_file)
+
+    print(f"Found {len(frozen_files)} frozen environment files to remove.")
+
+    # Remove PREFIX_FROZEN_FILE files first to unprotect environments
+    print("Removing frozen environment protection files...")
+    for frozen_file in frozen_files:
+        try:
+            _remove_file_directory(frozen_file)
+            print(f"Removed frozen file: {frozen_file}")
+        except Exception as e:
+            print(f"Warning: Could not remove frozen file {frozen_file}: {e}")
+
     # menuinst must be run separately because conda remove --all does not remove all shortcuts.
     # This is because some placeholders depend on conda's context.root_prefix, which is set to
     # the extraction directory of conda-standalone. The base prefix must be determined separately
@@ -263,26 +283,6 @@ def uninstall(
     # Since it is more likely that profiles contain the root prefix,
     # this makes loops more efficient.
     prefixes.sort(key=lambda x: len(x.parts))
-
-    # Find and collect PREFIX_FROZEN_FILE files for removal
-    print("Finding frozen environment files...")
-    # Use existing prefixes list to only search in confirmed environments
-    frozen_files = []
-    for env_prefix in prefixes:
-        frozen_file = env_prefix / PREFIX_FROZEN_FILE
-        if frozen_file.exists():
-            frozen_files.append(frozen_file)
-
-    print(f"Found {len(frozen_files)} frozen environment files to remove.")
-
-    # Remove PREFIX_FROZEN_FILE files first to unprotect environments
-    print("Removing frozen environment protection files...")
-    for frozen_file in frozen_files:
-        try:
-            _remove_file_directory(frozen_file)
-            print(f"Removed frozen file: {frozen_file}")
-        except Exception as e:
-            print(f"Warning: Could not remove frozen file {frozen_file}: {e}")
 
     # Run conda --init reverse for the shells
     # that contain a prefix that is being uninstalled
