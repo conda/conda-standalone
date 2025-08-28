@@ -32,7 +32,7 @@ def _is_subdir(directory: Path, root: Path) -> bool:
     return directory == root or root in directory.parents
 
 
-def _remove_file_directory(file: Path):
+def _remove_file_directory(file: Path, raise_on_error: bool = False):
     """
     Try to remove a file or directory.
 
@@ -45,8 +45,11 @@ def _remove_file_directory(file: Path):
             rmtree(file)
         elif file.is_symlink() or file.is_file():
             file.unlink()
-    except PermissionError:
-        pass
+    except PermissionError as e:
+        if raise_on_error:
+            raise PermissionError(
+                "You may need to re-run with elevated privileges or manually remove these files."
+            ) from e
 
 
 def _remove_config_file_and_parents(file: Path):
@@ -189,25 +192,12 @@ def _get_menuinst_base_prefix(prefix: Path, conda_root_prefix: Path | None) -> P
 
 
 def _remove_environments(prefix: Path, prefixes: list[Path]):
-    # Find and collect PREFIX_FROZEN_FILE files for removal
-    print("Finding frozen environment files...")
-    # Use existing prefixes list to only search in confirmed environments
-    frozen_files = []
-    for env_prefix in prefixes:
-        frozen_file = env_prefix / PREFIX_FROZEN_FILE
-        if frozen_file.exists():
-            frozen_files.append(frozen_file)
-
-    print(f"Found {len(frozen_files)} frozen environment files to remove.")
-
     # Remove PREFIX_FROZEN_FILE files first to unprotect environments
     print("Removing frozen environment protection files...")
-    for frozen_file in frozen_files:
-        try:
-            _remove_file_directory(frozen_file)
-            print(f"Removed frozen file: {frozen_file}")
-        except Exception as e:
-            print(f"Warning: Could not remove frozen file {frozen_file}: {e}")
+    for env_prefix in prefixes:
+        frozen_file = env_prefix / PREFIX_FROZEN_FILE
+        if frozen_file.is_file():
+            _remove_file_directory(frozen_file, raise_on_error=True)
 
     # menuinst must be run separately because conda remove --all does not remove all shortcuts.
     # This is because some placeholders depend on conda's context.root_prefix, which is set to
