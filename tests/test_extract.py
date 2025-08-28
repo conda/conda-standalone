@@ -7,6 +7,7 @@ import tarfile
 from pathlib import Path
 
 import pytest
+from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
 from utils import CONDA_EXE, run_conda
 
 HERE = Path(__file__).parent
@@ -22,8 +23,18 @@ TAR_EXTRACT_COMMANDS = (
 
 @pytest.mark.parametrize("extract_command", CONDA_EXTRACT_COMMANDS)
 def test_extract_conda_pkgs(tmp_path: Path, extract_command: tuple[str]):
-    shutil.copytree(HERE / "data", tmp_path / "pkgs")
+    pkgs_dir = tmp_path / "pkgs"
+    data_dir = HERE / "data"
+    shutil.copytree(data_dir, pkgs_dir)
     run_conda("constructor", *extract_command, "--prefix", tmp_path, check=True)
+    missing_directories = []
+    for pkg in data_dir.iterdir():
+        expected_dir = pkg.name
+        for ext in CONDA_PACKAGE_EXTENSIONS:
+            expected_dir = expected_dir.removesuffix(ext)
+        if not (pkgs_dir / expected_dir).exists():
+            missing_directories.append(expected_dir)
+    assert missing_directories == []
 
 
 @pytest.mark.parametrize("extract_command", TAR_EXTRACT_COMMANDS)
@@ -82,7 +93,9 @@ def test_extract_tarball_umask(tmp_path: Path, extract_command: tuple[str]):
 
 @pytest.mark.parametrize("extract_command", CONDA_EXTRACT_COMMANDS)
 def test_extract_conda_pkgs_num_processors(tmp_path: Path, extract_command: tuple[str]):
-    shutil.copytree(HERE / "data", tmp_path / "pkgs")
+    pkgs_dir = tmp_path / "pkgs"
+    data_dir = HERE / "data"
+    shutil.copytree(data_dir, pkgs_dir)
     run_conda(
         "constructor",
         *extract_command,
@@ -91,3 +104,11 @@ def test_extract_conda_pkgs_num_processors(tmp_path: Path, extract_command: tupl
         "--num-processors=2",
         check=True,
     )
+    missing_directories = []
+    for pkg in data_dir.iterdir():
+        expected_dir = pkg.name
+        for ext in CONDA_PACKAGE_EXTENSIONS:
+            expected_dir = expected_dir.removesuffix(ext)
+        if not (pkgs_dir / expected_dir).exists():
+            missing_directories.append(expected_dir)
+    assert missing_directories == []

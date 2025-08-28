@@ -1,10 +1,10 @@
 ### Enhancements
 
-* Refactor `conda constructor` subcommand into its own submodule. (#162 via #165, #175)
+* <news item>
 
 ### Bug fixes
 
-* <news item>
+* Make `conda run` subcommand fully operational. (#151 via #155)
 
 ### Deprecations
 
