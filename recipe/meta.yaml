@@ -45,7 +45,6 @@ build:
 
 requirements:
   build:
-    - {{ stdlib('c') }}
     - pyinstaller
     - python ={{ python_version }}
     - conda ={{ conda_version }}
