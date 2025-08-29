@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from conda.base.constants import COMPATIBLE_SHELLS
+from conda.base.constants import COMPATIBLE_SHELLS, PREFIX_FROZEN_FILE
 from conda.common.path import win_path_to_unix
 from conda.core.initialize import (
     Result,
@@ -114,32 +114,37 @@ def test_uninstallation(
         assert str(base_env) not in environments and str(second_env) in environments
 
 
-def test_uninstallation_frozen_environment(
+def test_uninstallation_frozen_environments(
     mock_system_paths: dict[str, Path],
     conda_cli: CondaCLIFixture,
 ):
     """Test that frozen files are removed during uninstallation."""
-    frozenenv_name = "frozenenv"
-    conda_cli("create", "-n", frozenenv_name, "-y")
+    frozenenv_names = ["frozenenv1", "frozenenv2", "frozenenv3"]
+    frozen_files = []
+    frozen_dirs = []
 
-    # Get the environment directory
-    frozenenv_dir = mock_system_paths["home"] / ".conda" / "envs" / frozenenv_name
-    assert frozenenv_dir.exists()
+    for frozenenv_name in frozenenv_names:
+        conda_cli("create", "-n", frozenenv_name, "-y")
 
-    # Create frozen file in the test environment
-    PREFIX_FROZEN_FILE = "conda-meta/frozen"
-    test_frozen_file = frozenenv_dir / PREFIX_FROZEN_FILE
-    test_frozen_file.touch()
+        # Get the environment directory
+        frozenenv_dir = mock_system_paths["home"] / ".conda" / "envs" / frozenenv_name
+        assert frozenenv_dir.is_dir()
+        frozen_dirs.append(frozenenv_dir)
 
-    assert test_frozen_file.exists()
+        # Create frozen file in each environment
+        frozen_file = frozenenv_dir / PREFIX_FROZEN_FILE
+        frozen_file.touch()
+        assert frozen_file.is_file()
+        frozen_files.append(frozen_file)
 
     # Run uninstaller on the environments directory
     envs_dir = mock_system_paths["home"] / ".conda" / "envs"
     run_uninstaller(envs_dir)
 
-    # Verify frozen file is removed along with environment
-    assert not test_frozen_file.exists()
-    assert not frozenenv_dir.exists()
+    # Verify all frozen files and environments are removed
+    for frozen_file, frozen_dir in zip(frozen_files, frozen_dirs):
+        assert not frozen_file.exists()
+        assert not frozen_dir.exists()
 
 
 @pytest.mark.parametrize("remove", (True, False), ids=("remove directory", "keep directory"))
