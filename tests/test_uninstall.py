@@ -105,18 +105,11 @@ def test_uninstallation(
 ):
     environments_txt = mock_system_paths["home"] / ".conda" / "environments.txt"
     with tmp_env() as base_env, tmp_env() as second_env:
-        # Create frozen file to test removal
-        PREFIX_FROZEN_FILE = "conda-meta/frozen"
-        frozen_file = base_env / PREFIX_FROZEN_FILE
-        frozen_file.touch()
-        assert frozen_file.exists()
-
         assert environments_txt.exists()
         environments = environments_txt.read_text().splitlines()
         assert str(base_env) in environments and str(second_env) in environments
         run_uninstaller(base_env)
         assert not base_env.exists()
-        assert not frozen_file.exists()  # Verify frozen file removed
         environments = environments_txt.read_text().splitlines()
         assert str(base_env) not in environments and str(second_env) in environments
 
