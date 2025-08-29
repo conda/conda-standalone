@@ -4,9 +4,8 @@
 
 ### Bug fixes
 
-* Removed `CONDARC` environment variable to prevent outside config files from breaking tests.
-
-* Added settings to handle missing libraries and linking problems on different platforms.
+* Unset `CONDARC` environment variable to prevent outside config files from breaking tests. (#179)
+* Add settings to handle missing libraries during overlinking checks. (#179)
 
 ### Deprecations
 
