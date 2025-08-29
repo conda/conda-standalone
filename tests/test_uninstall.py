@@ -119,6 +119,15 @@ def test_uninstallation_frozen_environments(
     conda_cli: CondaCLIFixture,
 ):
     """Test that frozen files are removed during uninstallation."""
+    # Set up custom environments directory
+    yaml = YAML()
+    envs_dir = mock_system_paths["home"] / ".conda" / "envs"
+    condarc = {
+        "envs_dirs": [str(envs_dir)],
+    }
+    with open(mock_system_paths["home"] / ".condarc", "w") as crc:
+        yaml.dump(condarc, crc)
+
     frozenenv_names = ["frozenenv1", "frozenenv2", "frozenenv3"]
     frozen_files = []
     frozen_dirs = []
@@ -127,12 +136,12 @@ def test_uninstallation_frozen_environments(
         conda_cli("create", "-n", frozenenv_name, "-y")
 
         # Get the environment directory
-        frozenenv_dir = mock_system_paths["home"] / ".conda" / "envs" / frozenenv_name
-        assert frozenenv_dir.is_dir()
-        frozen_dirs.append(frozenenv_dir)
+        frozen_dir = envs_dir / frozenenv_name
+        assert frozen_dir.is_dir()
+        frozen_dirs.append(frozen_dir)
 
         # Create frozen file in each environment
-        frozen_file = frozenenv_dir / PREFIX_FROZEN_FILE
+        frozen_file = frozen_dir / PREFIX_FROZEN_FILE
         frozen_file.touch()
         assert frozen_file.is_file()
         frozen_files.append(frozen_file)
