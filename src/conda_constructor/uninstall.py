@@ -193,13 +193,6 @@ def _get_menuinst_base_prefix(prefix: Path, conda_root_prefix: Path | None) -> P
 
 
 def _remove_environments(prefix: Path, prefixes: list[Path]):
-    # Remove PREFIX_FROZEN_FILE files first to unprotect environments
-    print("Removing frozen environment protection files...")
-    for env_prefix in prefixes:
-        frozen_file = env_prefix / PREFIX_FROZEN_FILE
-        if frozen_file.is_file():
-            _remove_file_directory(frozen_file, raise_on_error=True)
-
     # menuinst must be run separately because conda remove --all does not remove all shortcuts.
     # This is because some placeholders depend on conda's context.root_prefix, which is set to
     # the extraction directory of conda-standalone. The base prefix must be determined separately
@@ -212,6 +205,11 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
     # Otherwise, parent environments will delete the environment directory and
     # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
     for env_prefix in reversed(prefixes):
+        # Unprotect frozen environments first
+        frozen_file = env_prefix / PREFIX_FROZEN_FILE
+        if frozen_file.is_file():
+            _remove_file_directory(frozen_file, raise_on_error=True)
+
         install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove=True)
         # If conda_root_prefix is the same as prefix, conda remove will not be able
         # to remove that environment, so temporarily unset it.
