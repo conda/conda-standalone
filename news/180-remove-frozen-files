@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Enhanced uninstaller to remove frozen environment protection files before environment removal during uninstallation. (#180)
+* Remove frozen environment protection files before environment removal during uninstallation. (#180)
 
 ### Bug fixes
 

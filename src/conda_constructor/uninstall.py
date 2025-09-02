@@ -48,7 +48,8 @@ def _remove_file_directory(file: Path, raise_on_error: bool = False):
     except PermissionError as e:
         if raise_on_error:
             raise PermissionError(
-                "You may need to re-run with elevated privileges or manually remove these files."
+                f"Could not remove {file}."
+                "You may need to re-run with elevated privileges or manually remove this file."
             ) from e
 
 
