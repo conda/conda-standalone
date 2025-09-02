@@ -37,8 +37,8 @@ build:
     - "$RPATH/libswift*.dylib"    # [osx and variant == 'onedir']
   rpaths:                         # [variant == 'onedir' and linux]
     - standalone_conda/_internal  # [variant == 'onedir' and linux]
-  overlinking_ignore_patterns:   # [win]
-    - '*'                        # [win]
+  overlinking_ignore_patterns:   # [win and variant == 'onedir']
+    - '*'                        # [win and variant == 'onedir']
   script_env:
     - PYINSTALLER_CONDARC_DIR={{ RECIPE_DIR }}
     - PYINSTALLER_BUILD_VARIANT={{ variant }}
