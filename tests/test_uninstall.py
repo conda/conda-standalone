@@ -115,30 +115,21 @@ def test_uninstallation(
 
 
 def test_uninstallation_frozen_environment(
-    mock_system_paths: dict[str, Path],
-    conda_cli: CondaCLIFixture,
+    tmp_env: TmpEnvFixture,
 ):
     """Test that frozen files are removed during uninstallation."""
-    frozenenv_name = "frozenenv"
-    conda_cli("create", "-n", frozenenv_name, "-y")
+    with tmp_env() as frozen_env:
+        # Create frozen file in the environment
+        frozen_file = frozen_env / PREFIX_FROZEN_FILE
+        frozen_file.touch()
+        assert frozen_file.exists()
 
-    # Get the environment directory
-    frozenenv_dir = mock_system_paths["home"] / ".conda" / "envs" / frozenenv_name
-    assert frozenenv_dir.exists()
+        # Run uninstaller on the environment
+        run_uninstaller(frozen_env)
 
-    # Create frozen file in the test environment
-    test_frozen_file = frozenenv_dir / PREFIX_FROZEN_FILE
-    test_frozen_file.touch()
-
-    assert test_frozen_file.exists()
-
-    # Run uninstaller on the environments directory
-    envs_dir = mock_system_paths["home"] / ".conda" / "envs"
-    run_uninstaller(envs_dir)
-
-    # Verify frozen file is removed along with environment
-    assert not test_frozen_file.exists()
-    assert not frozenenv_dir.exists()
+        # Verify frozen file and environment are removed
+        assert not frozen_file.exists()
+        assert not frozen_env.exists()
 
 
 @pytest.mark.parametrize("remove", (True, False), ids=("remove directory", "keep directory"))
