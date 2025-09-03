@@ -1,3 +1,7 @@
 variant:
  - single-binary
  - onedir
+c_stdlib:
+  - sysroot                    # [linux]
+  - macosx_deployment_target   # [osx]
+  - vs                         # [win]

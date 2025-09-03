@@ -33,12 +33,19 @@ build:
     - conda-standalone_onedir  # [variant == 'onedir']
   ignore_run_exports:
     - '*'
+  missing_dso_whitelist:          # [osx and variant == 'onedir']
+    - "$RPATH/libswift*.dylib"    # [osx and variant == 'onedir']
+  rpaths:                         # [variant == 'onedir' and linux]
+    - standalone_conda/_internal  # [variant == 'onedir' and linux]
+  overlinking_ignore_patterns:   # [win and variant == 'onedir']
+    - '*'                        # [win and variant == 'onedir']
   script_env:
     - PYINSTALLER_CONDARC_DIR={{ RECIPE_DIR }}
     - PYINSTALLER_BUILD_VARIANT={{ variant }}
 
 requirements:
   build:
+    - {{ stdlib('c') }}
     - pyinstaller
     - python ={{ python_version }}
     - conda ={{ conda_version }}
@@ -65,8 +72,12 @@ test:
 
 about:
   home: https://github.com/conda/conda-standalone
+  summary: Entry point and dependency collection for PyInstaller-based standalone conda.
+  description: A standalone conda executable built with PyInstaller.
   license: LicenseRef-CondaStandalone
+  license_family: Other
   license_file:
     - LICENSE
     - 3rd-party-licenses.json
-  summary: Entry point and dependency collection for PyInstaller-based standalone conda.
+  doc_url: https://github.com/conda/conda-standalone
+  dev_url: https://github.com/conda/conda-standalone
