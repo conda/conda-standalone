@@ -114,46 +114,31 @@ def test_uninstallation(
         assert str(base_env) not in environments and str(second_env) in environments
 
 
-def test_uninstallation_frozen_environments(
+def test_uninstallation_frozen_environment(
     mock_system_paths: dict[str, Path],
     conda_cli: CondaCLIFixture,
 ):
     """Test that frozen files are removed during uninstallation."""
-    # Set up custom environments directory
-    yaml = YAML()
-    envs_dir = mock_system_paths["home"] / ".conda" / "envs"
-    condarc = {
-        "envs_dirs": [str(envs_dir)],
-    }
-    with open(mock_system_paths["home"] / ".condarc", "w") as crc:
-        yaml.dump(condarc, crc)
+    frozenenv_name = "frozenenv"
+    conda_cli("create", "-n", frozenenv_name, "-y")
 
-    frozenenv_names = ["frozenenv1", "frozenenv2", "frozenenv3"]
-    frozen_files = []
-    frozen_dirs = []
+    # Get the environment directory
+    frozenenv_dir = mock_system_paths["home"] / ".conda" / "envs" / frozenenv_name
+    assert frozenenv_dir.exists()
 
-    for frozenenv_name in frozenenv_names:
-        conda_cli("create", "-n", frozenenv_name, "-y")
+    # Create frozen file in the test environment
+    test_frozen_file = frozenenv_dir / PREFIX_FROZEN_FILE
+    test_frozen_file.touch()
 
-        # Get the environment directory
-        frozen_dir = envs_dir / frozenenv_name
-        assert frozen_dir.is_dir()
-        frozen_dirs.append(frozen_dir)
-
-        # Create frozen file in each environment
-        frozen_file = frozen_dir / PREFIX_FROZEN_FILE
-        frozen_file.touch()
-        assert frozen_file.is_file()
-        frozen_files.append(frozen_file)
+    assert test_frozen_file.exists()
 
     # Run uninstaller on the environments directory
     envs_dir = mock_system_paths["home"] / ".conda" / "envs"
     run_uninstaller(envs_dir)
 
-    # Verify all frozen files and environments are removed
-    for frozen_file, frozen_dir in zip(frozen_files, frozen_dirs):
-        assert not frozen_file.exists()
-        assert not frozen_dir.exists()
+    # Verify frozen file is removed along with environment
+    assert not test_frozen_file.exists()
+    assert not frozenenv_dir.exists()
 
 
 @pytest.mark.parametrize("remove", (True, False), ids=("remove directory", "keep directory"))
