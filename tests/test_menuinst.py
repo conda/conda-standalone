@@ -2,10 +2,23 @@ import os
 import sys
 from pathlib import Path
 
+import pytest
 from utils import run_conda
 
 
-def test_menuinst_constructor(tmp_path: Path, clean_shortcuts: dict[str, list[Path]]):
+@pytest.mark.parametrize(
+    "args_install,args_remove",
+    (
+        pytest.param(("menuinst", "--install"), ("menuinst", "--remove"), id="menuinst"),
+        pytest.param(("constructor", "--make-menus"), ("constructor", "--rm-menus"), id="legacy"),
+    ),
+)
+def test_menuinst_conda_standalone(
+    tmp_path: Path,
+    args_install: tuple[str, ...],
+    args_remove: tuple[str, ...],
+    clean_shortcuts: dict[str, list[Path]],
+):
     "The constructor helper should also be able to process menuinst JSONs"
     run_kwargs = dict(capture_output=True, text=True, check=True)
     process = run_conda(
@@ -26,14 +39,13 @@ def test_menuinst_constructor(tmp_path: Path, clean_shortcuts: dict[str, list[Pa
     env = os.environ.copy()
     env["CONDA_ROOT_PREFIX"] = sys.prefix
     process = run_conda(
-        "constructor",
+        *args_install,
         # Not supported in micromamba's interface yet
         # use CONDA_ROOT_PREFIX instead
         # "--root-prefix",
         # sys.prefix,
         "--prefix",
         tmp_path,
-        "--make-menus",
         **run_kwargs,
         env=env,
     )
@@ -47,14 +59,13 @@ def test_menuinst_constructor(tmp_path: Path, clean_shortcuts: dict[str, list[Pa
     assert sorted(shortcuts_found) == sorted(clean_shortcuts.keys())
 
     process = run_conda(
-        "constructor",
+        *args_remove,
         # Not supported in micromamba's interface yet
         # use CONDA_ROOT_PREFIX instead
         # "--root-prefix",
         # sys.prefix,
         "--prefix",
         tmp_path,
-        "--rm-menus",
         **run_kwargs,
         env=env,
     )
