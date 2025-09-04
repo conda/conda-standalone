@@ -117,7 +117,7 @@ def test_uninstallation(
 def test_uninstallation_frozen_environment(
     tmp_env: TmpEnvFixture,
 ):
-    """Test that frozen files are removed during uninstallation."""
+    """Test that frozen environments are removed during uninstallation."""
     with tmp_env() as frozen_env:
         # Create frozen file in the environment
         frozen_file = frozen_env / PREFIX_FROZEN_FILE
