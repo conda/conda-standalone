@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from conda.base.constants import COMPATIBLE_SHELLS
+from conda.base.constants import COMPATIBLE_SHELLS, PREFIX_FROZEN_FILE
 from conda.common.path import win_path_to_unix
 from conda.core.initialize import (
     Result,
@@ -112,6 +112,24 @@ def test_uninstallation(
         assert not base_env.exists()
         environments = environments_txt.read_text().splitlines()
         assert str(base_env) not in environments and str(second_env) in environments
+
+
+def test_uninstallation_frozen_environment(
+    tmp_env: TmpEnvFixture,
+):
+    """Test that frozen environments are removed during uninstallation."""
+    with tmp_env() as frozen_env:
+        # Create frozen file in the environment
+        frozen_file = frozen_env / PREFIX_FROZEN_FILE
+        frozen_file.touch()
+        assert frozen_file.exists()
+
+        # Run uninstaller on the environment
+        run_uninstaller(frozen_env)
+
+        # Verify frozen file and environment are removed
+        assert not frozen_file.exists()
+        assert not frozen_env.exists()
 
 
 @pytest.mark.parametrize("remove", (True, False), ids=("remove directory", "keep directory"))
