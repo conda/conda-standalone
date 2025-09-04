@@ -23,6 +23,7 @@ source:
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
       - ../src/conda_patches/0003-Restrict-search-paths.patch
       - ../src/conda_patches/0004-Fix-conda-run.patch
+      - ../src/conda_patches/0005-Use-default-NULL-for-override-frozen.patch
 
 build:
   number: 0
