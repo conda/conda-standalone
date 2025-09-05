@@ -20,7 +20,7 @@
   aliases:
   - jaimergp
   github: jaimergp
-  num_commits: 42
+  num_commits: 43
   first_commit: 2022-01-04 19:04:55
 - name: Daniel Bast
   email: 2790401+dbast@users.noreply.github.com
@@ -39,7 +39,7 @@
   github: nehaljwani
 - name: conda-bot
   email: 18747875+conda-bot@users.noreply.github.com
-  num_commits: 31
+  num_commits: 32
   first_commit: 2023-02-08 16:08:24
   github: conda-bot
 - name: Hadrien Mary
@@ -51,7 +51,7 @@
   github: hadim
 - name: pre-commit-ci[bot]
   email: 66853113+pre-commit-ci[bot]@users.noreply.github.com
-  num_commits: 29
+  num_commits: 33
   first_commit: 2023-02-06 23:27:05
   github: pre-commit-ci[bot]
 - name: Isuru Fernando
@@ -75,13 +75,13 @@
   github: SC426
 - name: dependabot[bot]
   email: 49699333+dependabot[bot]@users.noreply.github.com
-  num_commits: 11
+  num_commits: 12
   first_commit: 2024-06-12 18:31:22
   github: dependabot[bot]
 - name: Marco Esters
   email: mesters@anaconda.com
   github: marcoesters
-  num_commits: 17
+  num_commits: 20
   first_commit: 2024-10-03 08:54:36
 - name: Jonathan J. Helmus
   email: jjhelmus@gmail.com
@@ -93,5 +93,5 @@
   alternate_emails:
   - 100002667+Jrice1317@users.noreply.github.com
   github: Jrice1317
-  num_commits: 4
+  num_commits: 8
   first_commit: 2025-07-02 13:31:37
