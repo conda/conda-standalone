@@ -22,7 +22,7 @@ def get_files_from_patch(patch_file: Path) -> list[str]:
     Returns
     -------
     file: list[str]
-        A list of patched files.
+        A list of patched files relative to the `conda` root directory.
     """
     files = []
     patch = patch_file.read_text().split("\n")
@@ -32,7 +32,9 @@ def get_files_from_patch(patch_file: Path) -> list[str]:
         if not line.startswith("--- ") or not patch[lineno + 1].startswith("+++ "):
             continue
         patched_file = Path(line.strip().split()[-1])
-        files.append("/".join(patched_file.parts[1:]))
+        if len(patched_file.parts) < 3 or patched_file.parts[1] != "conda":
+            continue
+        files.append("/".join(patched_file.parts[2:]))
     return files
 
 
@@ -53,11 +55,9 @@ def copy_patches(patch_source: Path, site_packages: Path, conda_source: Path) ->
         if patch_file.suffix != ".patch":
             continue
         patched_files.update(get_files_from_patch(patch_file))
-    print(f"Copying files: {', '.join(sorted(patched_files))}")
-    conda_sp_dir = site_packages / "conda"
     for file in patched_files:
-        source = conda_source / file
-        destination = conda_sp_dir / file
+        source = conda_source / "conda" / file
+        destination = site_packages / "conda" / file
         shutil.copy(source, destination)
 
 
