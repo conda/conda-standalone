@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from shutil import rmtree
 
-from conda.base.constants import COMPATIBLE_SHELLS, PREFIX_MAGIC_FILE
+from conda.base.constants import COMPATIBLE_SHELLS, PREFIX_FROZEN_FILE, PREFIX_MAGIC_FILE
 from conda.base.context import context, reset_context
 from conda.cli.main import main as conda_main
 from conda.common.compat import on_win
@@ -32,7 +32,7 @@ def _is_subdir(directory: Path, root: Path) -> bool:
     return directory == root or root in directory.parents
 
 
-def _remove_file_directory(file: Path):
+def _remove_file_directory(file: Path, raise_on_error: bool = False):
     """
     Try to remove a file or directory.
 
@@ -45,8 +45,12 @@ def _remove_file_directory(file: Path):
             rmtree(file)
         elif file.is_symlink() or file.is_file():
             file.unlink()
-    except PermissionError:
-        pass
+    except PermissionError as e:
+        if raise_on_error:
+            raise PermissionError(
+                f"Could not remove {file}. "
+                "You may need to re-run with elevated privileges or manually remove this file."
+            ) from e
 
 
 def _remove_config_file_and_parents(file: Path):
@@ -201,6 +205,11 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
     # Otherwise, parent environments will delete the environment directory and
     # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
     for env_prefix in reversed(prefixes):
+        # Unprotect frozen environments first
+        frozen_file = env_prefix / PREFIX_FROZEN_FILE
+        if frozen_file.is_file():
+            _remove_file_directory(frozen_file, raise_on_error=True)
+
         install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove=True)
         # If conda_root_prefix is the same as prefix, conda remove will not be able
         # to remove that environment, so temporarily unset it.
