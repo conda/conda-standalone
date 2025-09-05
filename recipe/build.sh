@@ -11,6 +11,7 @@ for fname in \
   "core/path_actions.py" \
   "deprecations.py" \
   "utils.py" \
+  "cli/helpers.py" \
 ; do
   mv "$SP_DIR/conda/${fname}" "$SP_DIR/conda/${fname}.bak"
   cp "conda_src/conda/${fname}" "$SP_DIR/conda/${fname}"
