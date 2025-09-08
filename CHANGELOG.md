@@ -18,7 +18,7 @@ Remember to update the hyperlinks at the bottom.
 ### Enhancements
 
 * Refactor `conda constructor` subcommand into its own submodule. (#162 via #165, #175)
-* Automatically package all installed conda plug-ins into `conda-standalone`. (#163 via #166)
+* Automatically package all installed `conda` plug-ins into `conda-standalone`. (#163 via #166)
 * Remove frozen environment protection files before environment removal during uninstallation. (#180)
 * Bump `conda` to `25.7.0`. (#185)
 
