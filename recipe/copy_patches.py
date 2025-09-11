@@ -39,7 +39,7 @@ def get_files_from_patch(patch_file: Path) -> list[str]:
 
 
 def copy_patches(patch_source: Path, site_packages: Path, conda_source: Path) -> None:
-    """Copy patched conda files to site-packes.
+    """Copy patched conda files to site-packages.
 
     Parameters
     ----------
