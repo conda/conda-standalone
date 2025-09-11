@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Convert `constructor` subcommand into a `conda` plug-in. (#164 via #190)
+* Convert `constructor` subcommand into a `conda` plug-in. (#164 via #191)
 
 ### Bug fixes
 
