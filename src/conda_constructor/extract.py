@@ -18,8 +18,8 @@ CPU_COUNT = os.cpu_count()
 DEFAULT_NUM_PROCESSORS = 1 if not CPU_COUNT else min(3, CPU_COUNT)
 
 
-class PackageFormat(Enum):
-    CONDA = "conda"
+class ExtractType(Enum):
+    PACKAGES = "packages"
     TAR = "tar"
 
 
@@ -103,10 +103,10 @@ def _extract_tarball(prefix: Path) -> None:
     os.chdir(current_location)
 
 
-def extract(prefix: Path, package_format: PackageFormat, max_workers: int | None = None):
-    if package_format == PackageFormat.TAR:
+def extract(prefix: Path, package_format: ExtractType, max_workers: int | None = None):
+    if package_format == ExtractType.TAR:
         _extract_tarball(prefix)
-    elif package_format == PackageFormat.CONDA:
+    elif package_format == ExtractType.PACKAGES:
         _extract_conda_pkgs(prefix, max_workers=max_workers)
     else:
         raise NotImplementedError(f"Cannot extract packages of format {package_format.value}.")

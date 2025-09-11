@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .extract import DEFAULT_NUM_PROCESSORS, PackageFormat, _NumProcessorsAction, extract
+from .extract import DEFAULT_NUM_PROCESSORS, ExtractType, _NumProcessorsAction, extract
 from .uninstall import uninstall
 
 if TYPE_CHECKING:
@@ -25,16 +25,16 @@ def _add_prefix(parser: ArgumentParser) -> None:
 def _add_extract(parser: ArgumentParser) -> None:
     extract_group = parser.add_mutually_exclusive_group(required=True)
     extract_group.add_argument(
-        "--conda",
+        "--conda-pkgs",
         action="store_const",
-        const=PackageFormat.CONDA,
+        const=ExtractType.PACKAGES,
         dest="pkg_format",
         help="extract conda packages found in prefix/pkgs",
     )
     extract_group.add_argument(
-        "--tar",
+        "--tar-from-stdin",
         action="store_const",
-        const=PackageFormat.TAR,
+        const=ExtractType.TAR,
         dest="pkg_format",
         help="extract tarball from stdin",
     )

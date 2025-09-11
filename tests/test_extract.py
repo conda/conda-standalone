@@ -12,11 +12,11 @@ from utils import CONDA_EXE, run_conda
 
 HERE = Path(__file__).parent
 CONDA_EXTRACT_COMMANDS = (
-    pytest.param(("extract", "--conda"), id="extract"),
+    pytest.param(("extract", "--conda-pkgs"), id="extract"),
     pytest.param(("--extract-conda-pkgs",), id="legacy"),
 )
 TAR_EXTRACT_COMMANDS = (
-    pytest.param(("extract", "--tar"), id="extract"),
+    pytest.param(("extract", "--tar-from-stdin"), id="extract"),
     pytest.param(("--extract-tarball",), id="legacy"),
 )
 
