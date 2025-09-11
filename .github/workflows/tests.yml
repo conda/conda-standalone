@@ -51,6 +51,13 @@ jobs:
         shell: bash -el {0}
         run: conda install -y "conda-build!=3.28.0,!=3.28.1" anaconda-client
 
+      - name: Debugging information
+        run: |
+          conda info
+          conda config --show-sources
+          conda list
+        shell: bash -el {0}
+
       - name: Build recipe
         shell: bash -el {0}
         env:
