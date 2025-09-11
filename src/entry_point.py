@@ -147,7 +147,10 @@ def _constructor_subcommand():
     """
     # conda_constructor module exports must not be made at the top level, or else
     # SEARCH_PATH is imported before it can be patched for the --no-rc option.
-    from conda_constructor.extract import PackageFormat, extract
+    from conda_constructor.extract import (
+        extract_conda_pkgs,
+        extract_tarball,
+    )
     from conda_constructor.uninstall import uninstall
 
     args = _constructor_parse_cli()
@@ -163,9 +166,9 @@ def _constructor_subcommand():
         )
     elif args.command == "extract":
         if args.conda:
-            extract(prefix, PackageFormat.CONDA, max_workers=args.num_processors)
+            extract_conda_pkgs(prefix, max_workers=args.num_processors)
         elif args.tar:
-            extract(prefix, PackageFormat.TAR)
+            extract_tarball(prefix)
 
 
 def _menuinst_subcommand():

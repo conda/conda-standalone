@@ -2,7 +2,6 @@ import argparse
 import os
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from enum import Enum
 from pathlib import Path
 
 from conda.auxlib.type_coercion import boolify
@@ -16,11 +15,6 @@ CPU_COUNT = os.cpu_count()
 # See validation results for magic number of 3
 # https://dholth.github.io/conda-benchmarks/#extract.TimeExtract.time_extract?conda-package-handling=2.0.0a2&p-format='.conda'&p-format='.tar.bz2'&p-lang='py'
 DEFAULT_NUM_PROCESSORS = 1 if not CPU_COUNT else min(3, CPU_COUNT)
-
-
-class PackageFormat(Enum):
-    CONDA = "conda"
-    TAR = "tar"
 
 
 class _NumProcessorsAction(argparse.Action):
@@ -67,7 +61,7 @@ def _create_dummy_executor(*args, **kwargs):
     return DummyExecutor(*args, **kwargs)
 
 
-def _extract_conda_pkgs(prefix: Path, max_workers=None) -> None:
+def extract_conda_pkgs(prefix: Path, max_workers=None) -> None:
     current_location = Path.cwd()
     os.chdir(prefix / "pkgs")
     flist = []
@@ -91,7 +85,7 @@ def _extract_conda_pkgs(prefix: Path, max_workers=None) -> None:
     os.chdir(current_location)
 
 
-def _extract_tarball(prefix: Path) -> None:
+def extract_tarball(prefix: Path) -> None:
     current_location = Path.cwd()
     os.chdir(prefix)
     t = TarfileNoSameOwner.open(mode="r|*", fileobj=sys.stdin.buffer)
@@ -101,12 +95,3 @@ def _extract_tarball(prefix: Path) -> None:
     t.extractall(**tar_args)
     t.close()
     os.chdir(current_location)
-
-
-def extract(prefix: Path, package_format: PackageFormat, max_workers: int | None = None):
-    if package_format == PackageFormat.TAR:
-        _extract_tarball(prefix)
-    elif package_format == PackageFormat.CONDA:
-        _extract_conda_pkgs(prefix, max_workers=max_workers)
-    else:
-        raise NotImplementedError(f"Cannot extract packages of format {package_format}.")
