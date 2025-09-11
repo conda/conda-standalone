@@ -13,6 +13,29 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 25.7.0 (2025-09-05)
+
+### Enhancements
+
+* Refactor `conda constructor` subcommand into its own submodule. (#162 via #165, #175)
+* Automatically package all installed `conda` plug-ins into `conda-standalone`. (#163 via #166)
+* Remove frozen environment protection files before environment removal during uninstallation. (#180)
+* Bump `conda` to `25.7.0`. (#185)
+
+### Bug fixes
+
+* Make `conda run` subcommand fully operational. (#151 via #155)
+* Unset `CONDARC` environment variable to prevent outside config files from breaking tests. (#179)
+* Add settings to handle missing libraries during overlinking checks. (#179)
+
+### Contributors
+
+* @Jrice1317
+* @jaimergp
+* @marcoesters
+
+
+
 ## 25.5.1.post1 (2025-08-07)
 
 ### Bug fixes

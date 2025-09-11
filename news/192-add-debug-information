@@ -4,7 +4,7 @@
 
 ### Bug fixes
 
-* Make `conda run` subcommand fully operational. (#151 via #155)
+* <news item>
 
 ### Deprecations
 
@@ -16,4 +16,4 @@
 
 ### Other
 
-* <news item>
+* Output `conda` environment information during test builds to help debugging. (#192)
