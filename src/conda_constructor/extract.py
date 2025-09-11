@@ -109,4 +109,4 @@ def extract(prefix: Path, package_format: PackageFormat, max_workers: int | None
     elif package_format == PackageFormat.CONDA:
         _extract_conda_pkgs(prefix, max_workers=max_workers)
     else:
-        raise NotImplementedError(f"Cannot extract packages of format {package_format}.")
+        raise NotImplementedError(f"Cannot extract packages of format {package_format.value}.")

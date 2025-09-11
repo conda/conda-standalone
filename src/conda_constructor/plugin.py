@@ -136,7 +136,7 @@ def execute(args: Namespace) -> None | int:
             }
         )
     else:
-        raise NotImplementedError("No action available for subcommand.")
+        raise NotImplementedError(f"No action available for subcommand '{args.cmd}'.")
     return action(
         prefix=Path(args.prefix).expanduser().resolve(),
         **kwargs,
