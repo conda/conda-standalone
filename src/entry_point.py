@@ -33,141 +33,6 @@ def _fix_sys_path():
         del sys.path[0]
 
 
-def _constructor_parse_cli():
-    import argparse
-
-    # conda_constructor module exports must not be made at the top level, or else
-    # SEARCH_PATH is imported before it can be patched for the --no-rc option.
-    from conda_constructor.extract import (
-        DEFAULT_NUM_PROCESSORS,
-        _NumProcessorsAction,
-    )
-
-    p = argparse.ArgumentParser(prog="conda.exe")
-    constructor_subcommand = p.add_subparsers(dest="_")
-    constructor_subparser = constructor_subcommand.add_parser(
-        name="constructor",
-        help="constructor helper subcommand",
-    )
-    subcommands = constructor_subparser.add_subparsers(dest="command")
-
-    extract_subcommand = subcommands.add_parser(
-        "extract",
-        description="Extract packages in the package cache",
-    )
-
-    extract_subcommand.add_argument(
-        "--prefix",
-        action="store",
-        required=True,
-        help="path to the conda environment to operate on",
-    )
-    extract_group = extract_subcommand.add_mutually_exclusive_group()
-    extract_group.add_argument(
-        "--conda",
-        action="store_true",
-        help="extract conda packages found in prefix/pkgs",
-    )
-    extract_group.add_argument(
-        "--tar",
-        action="store_true",
-        help="extract tarball from stdin",
-    )
-    extract_subcommand.add_argument(
-        "--num-processors",
-        default=DEFAULT_NUM_PROCESSORS,
-        metavar="N",
-        action=_NumProcessorsAction,
-        help="Number of processors to use with --conda. "
-        "Value must be int between 0 (auto) and the number of processors. "
-        f"Defaults to {DEFAULT_NUM_PROCESSORS}.",
-    )
-
-    uninstall_subcommand = subcommands.add_parser(
-        "uninstall",
-        description="Uninstalls a conda directory and all environments inside the directory.",
-    )
-    uninstall_subcommand.add_argument(
-        "--prefix",
-        action="store",
-        required=True,
-        help="Path to the conda directory to uninstall.",
-    )
-    uninstall_subcommand.add_argument(
-        "--remove-caches",
-        action="store_true",
-        required=False,
-        help=(
-            "Removes the notices cache and runs conda --clean --all to clean package caches"
-            " outside the installation directory."
-            " This is especially useful when pkgs_dirs is set in a .condarc file."
-            " Not recommended with multiple conda installations when softlinks are enabled."
-        ),
-    )
-    uninstall_subcommand.add_argument(
-        "--remove-config-files",
-        choices=["user", "system", "all"],
-        default=None,
-        required=False,
-        help=(
-            "Removes all .condarc files."
-            " `user` removes the files inside the current user's"
-            " home directory and `system` removes all files outside of that directory."
-            " Not recommended when multiple conda installations are on the system"
-            " or when running on an environments directory."
-        ),
-    )
-    uninstall_subcommand.add_argument(
-        "--remove-user-data",
-        action="store_true",
-        required=False,
-        help=(
-            "Removes the ~/.conda directory."
-            " Not recommended when multiple conda installations are on the system"
-            " or when running on an environments directory."
-        ),
-    )
-
-    args = p.parse_args()
-
-    if args.command == "extract" and "--num-processors" in sys.argv and not args.conda:
-        raise argparse.ArgumentError(None, "--num-processors can only be used with --conda")
-
-    return args
-
-
-def _constructor_subcommand():
-    r"""
-    This is the entry point for the `conda constructor` subcommand. This subcommand
-    only exists in conda-standalone for now. constructor uses it to:
-
-    - extract conda packages
-    - extract the tarball payload contained in the shell installers
-    - invoke menuinst to create and remove menu items on Windows
-    """
-    # conda_constructor module exports must not be made at the top level, or else
-    # SEARCH_PATH is imported before it can be patched for the --no-rc option.
-    from conda_constructor.extract import PackageFormat, extract
-    from conda_constructor.uninstall import uninstall
-
-    args = _constructor_parse_cli()
-
-    prefix = Path(os.path.expandvars(args.prefix)).expanduser().resolve()
-
-    if args.command == "uninstall":
-        uninstall(
-            prefix,
-            remove_caches=args.remove_caches,
-            remove_config_files=args.remove_config_files,
-            remove_user_data=args.remove_user_data,
-        )
-    elif args.command == "extract":
-        if args.conda:
-            extract(prefix, PackageFormat.CONDA, max_workers=args.num_processors)
-        elif args.tar:
-            extract(prefix, PackageFormat.TAR)
-
-
 def _menuinst_subcommand():
     import argparse
 
@@ -304,6 +169,14 @@ def _conda_main():
         del sys.argv[no_rc]
     except ValueError:
         pass
+
+    from conda.plugins.manager import get_plugin_manager
+
+    from conda_constructor import plugin
+
+    manager = get_plugin_manager()
+    manager.load_plugins(plugin)
+
     return main()
 
 
@@ -342,9 +215,7 @@ def main():
     if len(sys.argv) > 1:
         if sys.argv[1] == "constructor":
             sys.argv = _patch_constructor_args(sys.argv)
-        if sys.argv[1] == "constructor":
-            return _constructor_subcommand()
-        elif sys.argv[1] == "menuinst":
+        if sys.argv[1] == "menuinst":
             return _menuinst_subcommand()
         # Some parts of conda call `sys.executable -m`, so conda-standalone needs to
         # interpret `conda.exe -m` as `conda.exe python -m`.
