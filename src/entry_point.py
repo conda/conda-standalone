@@ -215,6 +215,9 @@ def main():
     if len(sys.argv) > 1:
         if sys.argv[1] == "constructor":
             sys.argv = _patch_constructor_args(sys.argv)
+
+        # if is needed here instead of elif because the menuinst subcommand is not available
+        # until _patch_constructor_args is run.
         if sys.argv[1] == "menuinst":
             return _menuinst_subcommand()
         # Some parts of conda call `sys.executable -m`, so conda-standalone needs to
