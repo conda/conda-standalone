@@ -8,6 +8,7 @@ from .extract import DEFAULT_NUM_PROCESSORS, ExtractType, _NumProcessorsAction, 
 from .uninstall import uninstall
 
 if sys.platform == "win32":
+    from .windows.autorun import add_remove_autorun
     from .windows.path import add_remove_path
 
 if TYPE_CHECKING:
@@ -106,6 +107,25 @@ def _add_windows_path(parser: ArgumentParser) -> None:
     )
 
 
+def _add_windows_autorun(parser: ArgumentParser) -> None:
+    windows_autorun_group = parser.add_mutually_exclusive_group(required=True)
+    windows_autorun_group.add_argument(
+        "--add",
+        choices=["user", "system"],
+        default=None,
+        help=(
+            "Adds a conda activation script the Windows AutoRun."
+            " If another conda activation script is found in AutoRun, it will be replaced."
+        ),
+    )
+    windows_autorun_group.add_argument(
+        "--remove",
+        choices=["user", "system"],
+        default=None,
+        help="Removes a conda activation script from the Windows AutoRun.",
+    )
+
+
 def configure_parser(parser: ArgumentParser) -> None:
     subparsers = parser.add_subparsers(
         title="subcommand",
@@ -143,6 +163,11 @@ def configure_parser(parser: ArgumentParser) -> None:
     )
     _add_prefix(windows_path_parser)
     _add_windows_path(windows_path_parser)
+    windows_autorun_parser = windows_subparsers.add_parser(
+        "autorun", description="Adds or removes conda activation commands to AutoRun."
+    )
+    _add_prefix(windows_autorun_parser)
+    _add_windows_autorun(windows_autorun_parser)
 
 
 def execute(args: Namespace) -> None | int:
@@ -168,6 +193,14 @@ def execute(args: Namespace) -> None | int:
     elif args.cmd == "windows" and sys.platform == "win32":
         if args.windows_cmd == "path":
             action = add_remove_path
+            kwargs.update(
+                {
+                    "add": args.add,
+                    "remove": args.remove,
+                }
+            )
+        elif args.windows_cmd == "autorun":
+            action = add_remove_autorun
             kwargs.update(
                 {
                     "add": args.add,
