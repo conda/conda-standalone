@@ -14,6 +14,7 @@ AUTORUN_NAMED_VALUE = "AutoRun"
 
 
 def _get_hive(user_or_system: str) -> int:
+    """Return the registry hive for the user or the system/machine."""
     if user_or_system == "user":
         return winreg.HKEY_CURRENT_USER
     elif user_or_system == "system":
@@ -23,6 +24,11 @@ def _get_hive(user_or_system: str) -> int:
 
 
 def _add_to_autorun(prefix: Path, user_or_system: str) -> None:
+    """Add the execution of the conda hook file to the AutoRun registry value.
+
+    If other activation files are found, they are removed from AutoRun
+    to avoid environment stacking.
+    """
     autorun_regex = re.compile(r"(if +exist)?(\s*?\"[^\"]*?conda[-_]hook\.bat\")", re.IGNORECASE)
     conda_hook = prefix / "condabin" / "conda_hook.bat"
     if not conda_hook.exists():
@@ -34,30 +40,31 @@ def _add_to_autorun(prefix: Path, user_or_system: str) -> None:
     autorun_commands = [v.strip() for v in value.split("&")] if value else []
     new_autorun_commands = []
     for autorun in autorun_commands:
+        # Already in AutoRun, so nothing to do
         if activate_str.lower() in autorun_commands:
             return
         elif not autorun_regex.match(autorun):
             new_autorun_commands.append(autorun)
     new_autorun_commands.append(f"if exist {activate_str}")
-    if new_autorun_commands != autorun_commands:
-        registry.set(
-            AUTORUN_KEY,
-            named_value=AUTORUN_NAMED_VALUE,
-            value=" & ".join(new_autorun_commands),
-            value_type=winreg.REG_EXPAND_SZ if value_type < 0 else value_type,
-        )
+    registry.set(
+        AUTORUN_KEY,
+        named_value=AUTORUN_NAMED_VALUE,
+        value=" & ".join(new_autorun_commands),
+        value_type=winreg.REG_EXPAND_SZ if value_type < 0 else value_type,
+    )
 
 
 def _remove_from_autorun(
     prefix: Path,
     user_or_system: str,
 ) -> None:
+    """Remove the conda activation belonging to the prefix from the AutoRun registry value."""
     conda_hook = prefix / "condabin" / "conda_hook.bat"
     activate_str = f'if exist "{conda_hook}" "{conda_hook}"'.lower()
     hive = _get_hive(user_or_system)
     registry = WinRegistry(hive)
     value, value_type = registry.get(AUTORUN_KEY, named_value=AUTORUN_NAMED_VALUE)
-    if not value:
+    if value is None or not value.strip():
         return
     autorun_commands = [v.strip().lower() for v in value.split("&")]
     ncommands = len(autorun_commands)
@@ -65,13 +72,14 @@ def _remove_from_autorun(
         if activate_str in autorun:
             del autorun_commands[a]
             break
-    if len(autorun_commands) < ncommands:
-        registry.set(
-            AUTORUN_KEY,
-            named_value=AUTORUN_NAMED_VALUE,
-            value="&".join(autorun_commands),
-            value_type=value_type,
-        )
+    if len(autorun_commands) == ncommands:
+        return
+    registry.set(
+        AUTORUN_KEY,
+        named_value=AUTORUN_NAMED_VALUE,
+        value="&".join(autorun_commands),
+        value_type=value_type,
+    )
 
 
 def add_remove_autorun(
@@ -79,6 +87,7 @@ def add_remove_autorun(
     add: str | None = None,
     remove: str | None = None,
 ) -> None:
+    """Entry point for manipulating the AutoRun registry entry."""
     if add is not None:
         _add_to_autorun(prefix, add)
     elif remove is not None:

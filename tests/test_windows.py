@@ -69,8 +69,7 @@ def test_autorun(tmp_path: Path, user_or_system: str):
                 text=True,
             )
             return [cmd.strip() for cmd in result.stdout.split("&")]
-        except subprocess.CalledProcessError as e:
-            print(e)
+        except subprocess.CalledProcessError:
             # Get-ItemProperty fails if the registry entry does not exist
             return []
 
@@ -143,7 +142,8 @@ def test_autorun(tmp_path: Path, user_or_system: str):
 
 
 def test_autorun_error(tmp_path: Path):
-    with pytest.raises(subprocess.SubprocessError):
+    """Test that the autorun subcommand aborts when the prefix does not contain the hook file."""
+    with pytest.raises(subprocess.CalledProcessError):
         run_conda(
             "constructor",
             "windows",

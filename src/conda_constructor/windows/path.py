@@ -25,8 +25,7 @@ SendMessageTimeout.argtypes = [
 def _broadcast_environment_settings_change() -> None:
     """Broadcasts to the system indicating that master environment variables have changed.
 
-    This must be called after using the other functions in this module to
-    manipulate environment variables.
+    This must be called at the end of any function that changes environment variables.
     """
     result = SendMessageTimeout(
         HWND_BROADCAST,
@@ -43,6 +42,7 @@ def _broadcast_environment_settings_change() -> None:
 
 
 def _get_path_hive_key(user_or_system: str) -> tuple[int, str]:
+    """Return the registry hive and key path for user and system-wide environment variables."""
     if user_or_system == "user":
         hive = winreg.HKEY_CURRENT_USER
         key = "Environment"
@@ -55,6 +55,7 @@ def _get_path_hive_key(user_or_system: str) -> tuple[int, str]:
 
 
 def _find_in_path(prefix: Path, paths: list[str], value_type: int) -> int:
+    """Find the index of a path inside a list of paths from the registry."""
     for p, test_path in enumerate(paths):
         if value_type == winreg.REG_EXPAND_SZ:
             test_path = winreg.ExpandEnvironmentStrings(test_path)
@@ -64,6 +65,7 @@ def _find_in_path(prefix: Path, paths: list[str], value_type: int) -> int:
 
 
 def _add_to_path(prefix: Path, user_or_system: str) -> None:
+    """Add a prefix to the PATH environment variable."""
     hive, key = _get_path_hive_key(user_or_system)
     registry = WinRegistry(hive)
     reg_value, value_type = registry.get(key, "Path")
@@ -78,6 +80,7 @@ def _add_to_path(prefix: Path, user_or_system: str) -> None:
 
 
 def _remove_from_path(prefix: Path, user_or_system: str) -> None:
+    """Remove a prefix to the PATH environment variable."""
     hive, key = _get_path_hive_key(user_or_system)
     registry = WinRegistry(hive)
     reg_value, value_type = registry.get(key, "Path")
@@ -93,6 +96,7 @@ def _remove_from_path(prefix: Path, user_or_system: str) -> None:
 
 
 def add_remove_path(prefix: Path, add: str | None = None, remove: str | None = None) -> None:
+    """Entry point for manipulating the PATH environment variable."""
     if add is not None:
         _add_to_path(prefix, add)
     elif remove is not None:
