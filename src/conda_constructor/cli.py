@@ -94,10 +94,24 @@ def _add_uninstall(parser: ArgumentParser) -> None:
 def _add_windows_path(parser: ArgumentParser) -> None:
     windows_path_group = parser.add_mutually_exclusive_group(required=True)
     windows_path_group.add_argument(
-        "--add",
+        "--append",
         choices=["user", "system"],
         default=None,
-        help="Adds a prefix to the Windows PATH.",
+        help=(
+            "Appends a prefix to the Windows PATH. "
+            "If the prefix already exists in PATH, the prefix will be moved "
+            "to the end of the PATH variable."
+        ),
+    )
+    windows_path_group.add_argument(
+        "--prepend",
+        choices=["user", "system"],
+        default=None,
+        help=(
+            "Prepends a prefix to the Windows PATH."
+            "If the prefix already exists in PATH, the prefix will be moved "
+            "to the beginning of the PATH variable."
+        ),
     )
     windows_path_group.add_argument(
         "--remove",
@@ -195,7 +209,8 @@ def execute(args: Namespace) -> None | int:
             action = add_remove_path
             kwargs.update(
                 {
-                    "add": args.add,
+                    "add": args.append or args.prepend,
+                    "append": args.append is not None,
                     "remove": args.remove,
                 }
             )

@@ -13,14 +13,22 @@ if not ON_WIN:
     pytest.skip(reason="Windows only", allow_module_level=True)
 
 
+@pytest.mark.parametrize("append_or_prepend", ("append", "prepend"))
 @pytest.mark.parametrize("user_or_system", ("user", "system"))
 @pytest.mark.skipif(not ON_CI, reason="CI only, changes PATH variable")
-def test_windows_add_remove_path(tmp_path: Path, user_or_system: str):
+def test_windows_add_remove_path(tmp_path: Path, append_or_prepend: str, user_or_system: str):
     envvar_map = {
         "system": "Machine",
         "user": "User",
     }
-    run_conda("constructor", "windows", "path", f"--add={user_or_system}", "--prefix", tmp_path)
+    run_conda(
+        "constructor",
+        "windows",
+        "path",
+        f"--{append_or_prepend}={user_or_system}",
+        "--prefix",
+        tmp_path,
+    )
     # Quick way to query the registry for changes.
     # The updated PATH environment variable is only available
     # to a new process, which we cannot spawn within a pytest run.
@@ -36,6 +44,10 @@ def test_windows_add_remove_path(tmp_path: Path, user_or_system: str):
     )
     paths = [Path(p) for p in pathvar_run.stdout.strip().split(os.pathsep) if p]
     assert tmp_path in paths
+    if append_or_prepend == "append":
+        assert paths[-1] == tmp_path
+    else:
+        assert paths[0] == tmp_path
     run_conda("constructor", "windows", "path", f"--remove={user_or_system}", "--prefix", tmp_path)
     # Quick way to query the registry for changes.
     # The updated PATH environment variable is only available

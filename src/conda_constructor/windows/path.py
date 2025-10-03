@@ -64,15 +64,23 @@ def _find_in_path(prefix: Path, paths: list[str], value_type: int) -> int:
     return -1
 
 
-def _add_to_path(prefix: Path, user_or_system: str) -> None:
-    """Add a prefix to the PATH environment variable."""
+def _add_to_path(prefix: Path, user_or_system: str, append: bool) -> None:
+    """Append or prepend a prefix to the PATH environment variable.
+
+    If the prefix already exists in PATH, move the prefix to the beginning/end of PATH.
+
+    """
     hive, key = _get_path_hive_key(user_or_system)
     registry = WinRegistry(hive)
     reg_value, value_type = registry.get(key, "Path")
     paths = reg_value.split(os.pathsep) if reg_value else []
-    if _find_in_path(prefix, paths, value_type) >= 0:
-        return
-    paths = [str(prefix), *paths]
+    p = _find_in_path(prefix, paths, value_type)
+    if p >= 0:
+        del paths[p]
+    if append:
+        paths = [*paths, str(prefix)]
+    else:
+        paths = [str(prefix), *paths]
     if value_type == -1:
         value_type = winreg.REG_EXPAND_SZ
     registry.set(key, named_value="Path", value=os.pathsep.join(paths), value_type=value_type)
@@ -95,9 +103,14 @@ def _remove_from_path(prefix: Path, user_or_system: str) -> None:
     _broadcast_environment_settings_change()
 
 
-def add_remove_path(prefix: Path, add: str | None = None, remove: str | None = None) -> None:
+def add_remove_path(
+    prefix: Path,
+    add: str | None = None,
+    remove: str | None = None,
+    append: bool = False,
+) -> None:
     """Entry point for manipulating the PATH environment variable."""
     if add is not None:
-        _add_to_path(prefix, add)
+        _add_to_path(prefix, add, append)
     elif remove is not None:
         _remove_from_path(prefix, remove)
