@@ -18,7 +18,7 @@ if "%variant%" == "onedir" (
 MOVE dist\conda.exe "%PREFIX%\standalone_conda" || goto :error
 
 :: Collect licenses
-%PYTHON% src\licenses.py ^
+"%PYTHON%" src\licenses.py ^
   --prefix "%BUILD_PREFIX%" ^
   --include-text ^
   --text-errors replace ^
