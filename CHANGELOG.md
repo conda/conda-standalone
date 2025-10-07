@@ -13,6 +13,30 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 25.9.0 (2025-10-07)
+
+### Enhancements
+
+* Automatically copy patched `conda` source files during the build process. (#187)
+* Convert `constructor` subcommand into a `conda` plug-in. (#164 via #191)
+* Refactor CLI commands `--rm-menus`, `--make-menus`, `--extract-conda-pkgs`, and `--extract-tarball` into a `conda menuinst` and `conda constructor extract` subcommand. (#176 via #191)
+* Bump `conda` to 25.9.0. (#202)
+
+### Other
+
+* Output `conda` environment information during test builds to help debugging. (#192)
+
+### Contributors
+
+* @Jrice1317
+* @jaimergp
+* @marcoesters
+* @conda-bot
+* @dependabot[bot]
+* @pre-commit-ci[bot]
+
+
+
 ## 25.7.0 (2025-09-05)
 
 ### Enhancements
