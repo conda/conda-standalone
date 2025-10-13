@@ -22,11 +22,7 @@ Remember to update the hyperlinks at the bottom.
 ### Contributors
 
 * @Jrice1317
-* @jaimergp
 * @marcoesters
-* @conda-bot
-* @dependabot[bot]
-* @pre-commit-ci[bot]
 
 
 
