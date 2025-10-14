@@ -39,7 +39,7 @@
   github: nehaljwani
 - name: conda-bot
   email: 18747875+conda-bot@users.noreply.github.com
-  num_commits: 34
+  num_commits: 35
   first_commit: 2023-02-08 16:08:24
   github: conda-bot
 - name: Hadrien Mary
@@ -51,7 +51,7 @@
   github: hadim
 - name: pre-commit-ci[bot]
   email: 66853113+pre-commit-ci[bot]@users.noreply.github.com
-  num_commits: 38
+  num_commits: 39
   first_commit: 2023-02-06 23:27:05
   github: pre-commit-ci[bot]
 - name: Isuru Fernando
@@ -93,5 +93,5 @@
   alternate_emails:
   - 100002667+Jrice1317@users.noreply.github.com
   github: Jrice1317
-  num_commits: 10
+  num_commits: 12
   first_commit: 2025-07-02 13:31:37

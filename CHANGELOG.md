@@ -13,6 +13,19 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 25.9.1 (2025-10-13)
+
+### Enhancements
+
+* Update `conda` version to 25.9.1. (#206)
+
+### Contributors
+
+* @Jrice1317
+* @marcoesters
+
+
+
 ## 25.9.0 (2025-10-07)
 
 ### Enhancements
