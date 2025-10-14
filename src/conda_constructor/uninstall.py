@@ -19,8 +19,7 @@ from conda.core.initialize import (
     run_plan_elevated,
 )
 from conda.notices.cache import get_notices_cache_dir
-
-from .menuinst import install_shortcut
+from menuinst.cli.cli import install as install_shortcut
 
 
 def _is_subdir(directory: Path, root: Path) -> bool:
@@ -210,7 +209,7 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
         if frozen_file.is_file():
             _remove_file_directory(frozen_file, raise_on_error=True)
 
-        install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove=True)
+        install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove_shortcuts=[])
         # If conda_root_prefix is the same as prefix, conda remove will not be able
         # to remove that environment, so temporarily unset it.
         if conda_root_prefix and conda_root_prefix == env_prefix:
