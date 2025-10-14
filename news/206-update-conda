@@ -1,6 +1,6 @@
 ### Enhancements
 
-* <news item>
+* Update `conda` version to 25.9.1. (#206)
 
 ### Bug fixes
 
@@ -16,4 +16,4 @@
 
 ### Other
 
-* Output `conda` environment information during test builds to help debugging. (#192)
+* <news item>

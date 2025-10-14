@@ -1,9 +1,9 @@
-{% set conda_version = "25.7.0" %}
+{% set conda_version = "25.9.1" %}
 {% set conda_libmamba_solver_version = "25.4.0" %}
 {% set libmambapy_version = "2.0.5" %}
 {% set constructor_lower_bound = "3.12.1" %}
 {% set menuinst_lower_bound = "2.3.0" %}
-{% set python_version = "3.13.5" %}
+{% set python_version = "3.13.7" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
 package:
@@ -14,7 +14,7 @@ source:
   - path: ../
 
   - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 18ffef053c4f14db42870f36fab8df162dea5cb14a022a24abb1a3822ef3874c
+    sha256: a8fd4efd493203fc8017f9d80d2d69fbc97a6f583f3da956097eaaf160e84f99
     folder: conda_src
     # NOTE: All files affected by a patch need to be manually copied
     # from src to PREFIX in build.sh and bld.bat
@@ -23,7 +23,6 @@ source:
       - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
       - ../src/conda_patches/0003-Restrict-search-paths.patch
       - ../src/conda_patches/0004-Fix-conda-run.patch
-      - ../src/conda_patches/0005-Use-default-NULL-for-override-frozen.patch
 
 build:
   number: 0
