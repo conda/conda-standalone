@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Add subcommands for Windows to add prefixes to `PATH` and conda activation scripts to `AutoRun`. (#197)
+* Add subcommands for Windows to add prefixes to `PATH`. (#197)
 
 ### Bug fixes
 
