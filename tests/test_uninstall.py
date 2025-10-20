@@ -510,3 +510,15 @@ def test_delete_self(tmp_path: Path):
 def test_uninstallation_invalid_directory(tmp_path: Path):
     with pytest.raises(subprocess.SubprocessError):
         run_uninstaller(tmp_path)
+
+
+def test_uninstallation_uninstall_active_environment(
+    conda_cli: CondaCLIFixture,
+    tmp_env: TmpEnvFixture,
+):
+    with tmp_env() as dummy_env:
+        uninstall_cmd = [CONDA_EXE, "constructor", "uninstall", "--prefix", str(dummy_env)]
+        _, stderr, code = conda_cli("run", "-p", str(dummy_env), *uninstall_cmd)
+        assert code == 1
+        assert "OSError: The currently activated environment is a subdirectory" in stderr
+        assert dummy_env.exists()
