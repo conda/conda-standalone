@@ -191,6 +191,7 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
     # outside of the uninstall prefix.
     if conda_root_prefix := os.environ.get("CONDA_ROOT_PREFIX"):
         conda_root_prefix = Path(conda_root_prefix).resolve()
+    default_activation_prefix = context.default_activation_prefix
     menuinst_base_prefix = _get_menuinst_base_prefix(prefix, conda_root_prefix)
     # Uninstalling environments must be performed with the deepest environment first.
     # Otherwise, parent environments will delete the environment directory and
@@ -207,9 +208,16 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
         if conda_root_prefix and conda_root_prefix == env_prefix:
             del os.environ["CONDA_ROOT_PREFIX"]
             reset_context()
+        # Conda does not remove the default environment, so set it to something else temporarily
+        if default_activation_prefix == env_prefix:
+            os.environ["CONDA_DEFAULT_ACTIVATION_ENV"] = sys.prefix
+            reset_context()
         conda_main("remove", "-y", "-p", str(env_prefix), "--all")
         if conda_root_prefix and conda_root_prefix == env_prefix:
             os.environ["CONDA_ROOT_PREFIX"] = str(conda_root_prefix)
+            reset_context()
+        if default_activation_prefix == env_prefix:
+            del os.environ["CONDA_DEFAULT_ACTIVATION_ENV"]
             reset_context()
 
 
