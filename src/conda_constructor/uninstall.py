@@ -19,6 +19,7 @@ from conda.core.initialize import (
     run_plan_elevated,
 )
 from conda.notices.cache import get_notices_cache_dir
+from ruamel.yaml import YAML
 
 from .menuinst import install_shortcut
 
@@ -247,6 +248,49 @@ def _remove_config_files(remove_config_files: str):
         _remove_config_file_and_parents(config_file)
 
 
+def _remove_default_environment_from_configs(prefixes: list[Path]):
+    """Remove `default_activation_env` from .condarc files.
+
+    If a named environment is found, issue a warning instead of deleting the entry
+    since the named environment may refer to a different installation. To avoid
+    excessive warnings, run this function towards the end where fewer .condarc files
+    are left to examine.
+    """
+    yaml = YAML()
+    for config_file_str in context.config_files:
+        config_file = Path(config_file_str)
+        if not config_file.exists():
+            continue
+        with open(config_file) as crc:
+            config = yaml.load(crc)
+        if not (default_environment := config.get("default_activation_env")):
+            continue
+        if "/" in default_environment:
+            if not Path(default_environment).is_relative_to(prefixes[0]):
+                continue
+            del config["default_activation_env"]
+            try:
+                if config:
+                    with config_file.open(mode="w") as crc:
+                        yaml.dump(config, crc)
+                else:
+                    _remove_config_file_and_parents(config_file, raise_on_error=True)
+            except Exception as e:
+                print(
+                    "WARNING: Unable to remove default activation environment "
+                    f"from {config_file}. This may result in broken `conda` installations. "
+                    "Please remove `default_activation_env` from the file manually. "
+                    f"Traceback: {e}."
+                )
+        elif any(default_environment == prefix.name for prefix in prefixes):
+            print(
+                f"WARNING: Named environment `{default_environment}` is set as "
+                f"a default environment in {config_file}. Please ensure that "
+                "this environment is available in another existing installation "
+                "or remove the `default_activation_env` entry manually from this file."
+            )
+
+
 def uninstall(
     prefix: Path,
     remove_caches: bool = False,
@@ -303,3 +347,8 @@ def uninstall(
     if remove_user_data:
         print("Removing user data...")
         _remove_file_directory(Path("~/.conda").expanduser())
+
+    # Remove default activation environment where possible.
+    # Run this at the end because at this point, a lot of
+    # configuration files may have already been deleted.
+    _remove_default_environment_from_configs(prefixes)
