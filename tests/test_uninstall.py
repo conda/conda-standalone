@@ -88,7 +88,7 @@ def run_uninstaller(
     remove_config_files: str | None = None,
     remove_user_data: bool = False,
     needs_sudo: bool = False,
-):
+) -> subprocess.CompletedProcess:
     args = ["--prefix", str(prefix)]
     if remove_caches:
         args.append("--remove-caches")
@@ -96,7 +96,15 @@ def run_uninstaller(
         args.extend(["--remove-config-files", remove_config_files])
     if remove_user_data:
         args.append("--remove-user-data")
-    run_conda("constructor", "uninstall", *args, needs_sudo=needs_sudo, check=True)
+    return run_conda(
+        "constructor",
+        "uninstall",
+        *args,
+        needs_sudo=needs_sudo,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
 
 
 def test_uninstallation(
