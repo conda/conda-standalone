@@ -44,7 +44,7 @@ def _remove_file_directory(file: Path, raise_on_error: bool = False):
             ) from e
 
 
-def _remove_config_file_and_parents(file: Path):
+def _remove_config_file_and_parents(file: Path, raise_on_error: bool = False):
     """
     Remove a configuration file and empty parent directories.
 
@@ -53,7 +53,7 @@ def _remove_config_file_and_parents(file: Path):
     and search backwards to be conservative about what is deleted.
     """
     rootdir = None
-    _remove_file_directory(file)
+    _remove_file_directory(file, raise_on_error=raise_on_error)
     # Directories that may have been created by conda that are okay
     # to be removed if they are empty.
     if file.parent.parts[-1] in (".conda", "conda", "xonsh", "fish"):
@@ -68,7 +68,7 @@ def _remove_config_file_and_parents(file: Path):
         return
     parent = file.parent
     while parent != rootdir.parent and not next(parent.iterdir(), None):
-        _remove_file_directory(parent)
+        _remove_file_directory(parent, raise_on_error=raise_on_error)
         parent = parent.parent
 
 
