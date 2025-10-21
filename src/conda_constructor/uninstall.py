@@ -23,15 +23,6 @@ from conda.notices.cache import get_notices_cache_dir
 from .menuinst import install_shortcut
 
 
-def _is_subdir(directory: Path, root: Path) -> bool:
-    """
-    Helper function to detect whether a directory is a subdirectory.
-
-    Rely on Path objects rather than string comparison to be portable.
-    """
-    return directory == root or root in directory.parents
-
-
 def _remove_file_directory(file: Path, raise_on_error: bool = False):
     """
     Try to remove a file or directory.
@@ -100,7 +91,7 @@ def _requires_init_reverse_shell(
     bin_directory = "Scripts" if on_win else "bin"
     # Only reverse for paths that are outside the uninstall prefix
     # since paths inside the uninstall prefix will be deleted anyway
-    if not target_path.exists() or _is_subdir(target_path, prefix):
+    if not target_path.exists() or target_path.is_relative_to(prefix):
         return False
     rc_content = target_path.read_text()
     pattern = CONDA_INITIALIZE_PS_RE_BLOCK if shell == "powershell" else CONDA_INITIALIZE_RE_BLOCK
@@ -241,9 +232,9 @@ def _remove_config_files(remove_config_files: str):
     for config_file in context.config_files:
         if not isinstance(config_file, Path):
             config_file = Path(config_file)
-        if (remove_config_files == "user" and not _is_subdir(config_file.parent, Path.home())) or (
-            remove_config_files == "system" and _is_subdir(config_file.parent, Path.home())
-        ):
+        if remove_config_files == "user" and not config_file.parent.is_relative_to(Path.home()):
+            continue
+        if remove_config_files == "system" and config_file.parent.is_relative_to(Path.home()):
             continue
         _remove_config_file_and_parents(config_file)
 
