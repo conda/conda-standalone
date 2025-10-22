@@ -241,10 +241,22 @@ def _remove_config_files(remove_config_files: str):
     for config_file in context.config_files:
         if not isinstance(config_file, Path):
             config_file = Path(config_file)
-        if remove_config_files == "user" and not config_file.parent.is_relative_to(Path.home()):
+        config_dir = config_file.parent
+        if remove_config_files == "user" and not config_dir.is_relative_to(Path.home()):
             continue
-        if remove_config_files == "system" and config_file.parent.is_relative_to(Path.home()):
+        if remove_config_files == "system" and config_dir.is_relative_to(Path.home()):
             continue
+        # Skip any configuration files that are relative to CONDA_ROOT or CONDA_PREFIX
+        # because they may point to the paths of an activated environment and delete
+        # a .condarc file of a different installation.If they point to the installation
+        # directory, they have been removed with the environment already.
+        if any(
+            config_dir.is_relative_to(Path(os.environ[envvar]))
+            for envvar in ("CONDA_ROOT", "CONDA_PREFIX")
+            if envvar in os.environ
+        ):
+            continue
+
         _remove_config_file_and_parents(config_file)
 
 

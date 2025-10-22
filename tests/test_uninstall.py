@@ -410,14 +410,9 @@ def test_uninstallation_remove_user_data(
 @pytest.mark.skipif(not ON_CI, reason="CI only - Writes to system files")
 def test_uninstallation_remove_config_files(
     mock_system_paths: dict[str, Path],
-    monkeypatch: MonkeyPatch,
     tmp_env: TmpEnvFixture,
     remove: str,
 ):
-    # Unset these environment variables pointing to .condarc locations
-    # of an existing user installation to avoid accidental file deletion.
-    monkeypatch.delenv("CONDA_ROOT", raising=False)
-    monkeypatch.delenv("CONDA_PREFIX", raising=False)
     yaml = YAML()
     remove_system = remove != "user"
     remove_user = remove != "system"
