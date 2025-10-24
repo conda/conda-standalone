@@ -148,8 +148,12 @@ def _get_init_reverse_plan(
             anaconda_prompt,
             reverse=True,
         )
+        from pprint import pprint
+
+        pprint(plan)
         for initializer in plan:
             target_path = initializer["kwargs"]["target_path"]
+            print(f"{target_path=}")
             append_plan = False
             if target_path.startswith("HKEY"):
                 append_plan = _requires_init_reverse_hkey(target_path, prefixes)
