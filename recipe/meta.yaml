@@ -67,7 +67,7 @@ test:
   source_files:
     - tests
   commands:
-    - pytest -vvv -s -q
+    - pytest -vv
     - test ! -e {{ PREFIX }}/bin/codesign  # [osx]
 
 about:
