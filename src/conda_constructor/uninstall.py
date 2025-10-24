@@ -99,9 +99,8 @@ def _requires_init_reverse_shell(
     bin_directory = "Scripts" if on_win else "bin"
     # Only reverse for paths that are outside the uninstall prefix
     # since paths inside the uninstall prefix will be deleted anyway
-    if not target_path.exists() or _is_subdir(target_path, prefix):
+    if not target_path.exists() or not target_path.is_file() or _is_subdir(target_path, prefix):
         return False
-    print(shell, target_path)
     rc_content = target_path.read_text()
     pattern = CONDA_INITIALIZE_PS_RE_BLOCK if shell == "powershell" else CONDA_INITIALIZE_RE_BLOCK
     flags = re.MULTILINE
@@ -148,16 +147,14 @@ def _get_init_reverse_plan(
             anaconda_prompt,
             reverse=True,
         )
-        from pprint import pprint
 
-        pprint(plan)
         for initializer in plan:
             target_path = initializer["kwargs"]["target_path"]
-            print(f"{target_path=}")
             append_plan = False
             if target_path.startswith("HKEY"):
                 append_plan = _requires_init_reverse_hkey(target_path, prefixes)
-            else:
+            # Ensure that target_path is not empty
+            elif target_path:
                 append_plan = _requires_init_reverse_shell(
                     Path(target_path), shell, prefix, prefixes
                 )
