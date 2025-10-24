@@ -101,6 +101,7 @@ def _requires_init_reverse_shell(
     # since paths inside the uninstall prefix will be deleted anyway
     if not target_path.exists() or _is_subdir(target_path, prefix):
         return False
+    print(shell, target_path)
     rc_content = target_path.read_text()
     pattern = CONDA_INITIALIZE_PS_RE_BLOCK if shell == "powershell" else CONDA_INITIALIZE_RE_BLOCK
     flags = re.MULTILINE
