@@ -19,9 +19,8 @@ from conda.core.initialize import (
     run_plan_elevated,
 )
 from conda.notices.cache import get_notices_cache_dir
-from ruamel.yaml import YAML
-
 from menuinst.cli.cli import install as install_shortcut
+from ruamel.yaml import YAML
 
 
 def _remove_file_directory(file: Path, raise_on_error: bool = False):
