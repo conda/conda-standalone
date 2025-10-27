@@ -79,8 +79,6 @@ def mock_system_paths(
     monkeypatch.setenv("XDG_CONFIG_HOME", str(paths["confighome"]))
     monkeypatch.setenv("XDG_CACHE_HOME", str(paths["cachehome"]))
     monkeypatch.setenv("XDG_DATA_HOME", str(paths["datahome"]))
-    print(os.environ)
-    print(paths)
     return paths
 
 
