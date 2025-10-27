@@ -33,51 +33,6 @@ def _fix_sys_path():
         del sys.path[0]
 
 
-def _menuinst_subcommand():
-    import argparse
-
-    from conda_constructor.menuinst import install_shortcut
-
-    parser = argparse.ArgumentParser(prog="conda.exe")
-    subparsers = parser.add_subparsers()
-    menuinst_parser = subparsers.add_parser("menuinst", description="menuinst helper command")
-
-    menuinst_parser.add_argument(
-        "--prefix",
-        action="store",
-        required=True,
-        help="path to the conda environment to operate on",
-    )
-    install_group = menuinst_parser.add_mutually_exclusive_group(required=True)
-    install_group.add_argument(
-        "--install",
-        nargs="*",
-        metavar="PKG_NAME",
-        help="create menu items for the given packages; "
-        "if none are given, create menu items for all packages "
-        "in the environment",
-    )
-    install_group.add_argument(
-        "--remove",
-        action="store_true",
-        help="remove menu items for all packages in the environment specified by --prefix",
-    )
-    args = parser.parse_args()
-
-    prefix = Path(os.path.expandvars(args.prefix)).expanduser().resolve()
-    root_prefix = (
-        Path(os.path.expandvars(os.environ.get("CONDA_ROOT_PREFIX", args.prefix)))
-        .expanduser()
-        .resolve()
-    )
-    install_shortcut(
-        prefix=prefix,
-        pkg_names=args.install,
-        remove=args.remove,
-        root_prefix=root_prefix,
-    )
-
-
 def _python_subcommand():
     """
     Since conda-standalone is actually packaging a full Python interpreter,
@@ -215,11 +170,6 @@ def main():
     if len(sys.argv) > 1:
         if sys.argv[1] == "constructor":
             sys.argv = _patch_constructor_args(sys.argv)
-
-        # if is needed here instead of elif because the menuinst subcommand is not available
-        # until _patch_constructor_args is run.
-        if sys.argv[1] == "menuinst":
-            return _menuinst_subcommand()
         # Some parts of conda call `sys.executable -m`, so conda-standalone needs to
         # interpret `conda.exe -m` as `conda.exe python -m`.
         elif sys.argv[1] == "python" or sys.argv[1] == "-m":

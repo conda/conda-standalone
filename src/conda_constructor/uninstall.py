@@ -19,8 +19,7 @@ from conda.core.initialize import (
     run_plan_elevated,
 )
 from conda.notices.cache import get_notices_cache_dir
-
-from .menuinst import install_shortcut
+from menuinst.cli.cli import install as install_shortcut
 
 
 def _is_subdir(directory: Path, root: Path) -> bool:
@@ -100,7 +99,7 @@ def _requires_init_reverse_shell(
     bin_directory = "Scripts" if on_win else "bin"
     # Only reverse for paths that are outside the uninstall prefix
     # since paths inside the uninstall prefix will be deleted anyway
-    if not target_path.exists() or _is_subdir(target_path, prefix):
+    if not target_path.exists() or not target_path.is_file() or _is_subdir(target_path, prefix):
         return False
     rc_content = target_path.read_text()
     pattern = CONDA_INITIALIZE_PS_RE_BLOCK if shell == "powershell" else CONDA_INITIALIZE_RE_BLOCK
@@ -148,12 +147,14 @@ def _get_init_reverse_plan(
             anaconda_prompt,
             reverse=True,
         )
+
         for initializer in plan:
             target_path = initializer["kwargs"]["target_path"]
             append_plan = False
             if target_path.startswith("HKEY"):
                 append_plan = _requires_init_reverse_hkey(target_path, prefixes)
-            else:
+            # Ensure that target_path is not empty
+            elif target_path:
                 append_plan = _requires_init_reverse_shell(
                     Path(target_path), shell, prefix, prefixes
                 )
@@ -210,7 +211,7 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
         if frozen_file.is_file():
             _remove_file_directory(frozen_file, raise_on_error=True)
 
-        install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove=True)
+        install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove_shortcuts=[])
         # If conda_root_prefix is the same as prefix, conda remove will not be able
         # to remove that environment, so temporarily unset it.
         if conda_root_prefix and conda_root_prefix == env_prefix:
