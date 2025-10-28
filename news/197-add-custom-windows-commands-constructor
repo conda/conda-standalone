@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Add subcommands for Windows to add prefixes to `PATH`. (#197)
+* Add subcommands for Windows to add prefixes to `PATH`. (#197, #215)
 
 ### Bug fixes
 
