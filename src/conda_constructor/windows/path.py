@@ -116,8 +116,8 @@ def _remove_from_path(prefixes: list[Path], user_or_system: Literal["user", "sys
 
 def add_remove_path(
     prefix: Path,
-    add: str | None = None,
-    remove: str | None = None,
+    add: Literal["user", "system"] | None = None,
+    remove: Literal["user", "system"] | None = None,
     append: bool = False,
     condabin: bool = False,
     classic: bool = False,
@@ -125,7 +125,7 @@ def add_remove_path(
     """Entry point for manipulating the PATH environment variable."""
     if condabin:
         prefixes = [prefix / "condabin"]
-    elif condalibs:
+    elif classic:
         prefixes = [
             prefix,
             prefix / "Library" / "mingw-w64" / "bin",
