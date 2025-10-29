@@ -5,6 +5,19 @@ from ctypes import wintypes
 from pathlib import Path
 
 from .registry import WinRegistry
+from __future__ import annotations
+
+import ctypes
+import os
+import winreg
+from ctypes import wintypes
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+from .registry import WinRegistry
+
+if TYPE_CHECKING:
+    from typing import Iterable, Literal
 
 HWND_BROADCAST = 0xFFFF
 WM_SETTINGCHANGE = 0x001A
