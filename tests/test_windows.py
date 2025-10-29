@@ -15,8 +15,8 @@ if not ON_WIN:
 
 @pytest.mark.parametrize(
     "extra_flag",
-    (None, "--condabin", "--condalib"),
-    ids=("prefix", "condabin", "condalib"),
+    (None, "--condabin", "--classic"),
+    ids=("prefix", "condabin", "classic"),
 )
 @pytest.mark.parametrize("append_or_prepend", ("append", "prepend"))
 @pytest.mark.parametrize("user_or_system", ("user", "system"))
@@ -33,7 +33,7 @@ def test_windows_add_remove_path(
     }
     if extra_flag == "--condabin":
         expected_paths = [tmp_path / "condabin"]
-    elif extra_flag == "--condalib":
+    elif extra_flag == "--classic":
         expected_paths = [
             tmp_path,
             tmp_path / "Library" / "mingw-w64" / "bin",

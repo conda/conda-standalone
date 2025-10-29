@@ -64,7 +64,7 @@ def _find_in_path(prefix: Path, paths: list[str], value_type: int) -> int:
     return -1
 
 
-def _add_to_path(prefixes: list[Path], user_or_system: str, append: bool) -> None:
+def _add_to_path(prefixes: Iterable[Path], user_or_system: Literal["user", "system"], append: bool) -> None:
     """Append or prepend a prefix to the PATH environment variable.
 
     If the prefix already exists in PATH, move the prefix to the beginning/end of PATH.
@@ -88,7 +88,7 @@ def _add_to_path(prefixes: list[Path], user_or_system: str, append: bool) -> Non
     _broadcast_environment_settings_change()
 
 
-def _remove_from_path(prefixes: list[Path], user_or_system: str) -> None:
+def _remove_from_path(prefixes: list[Path], user_or_system: Literal["user", "system"]) -> None:
     """Remove a prefix to the PATH environment variable."""
     hive, key = _get_path_hive_key(user_or_system)
     registry = WinRegistry(hive)
@@ -111,7 +111,7 @@ def add_remove_path(
     remove: str | None = None,
     append: bool = False,
     condabin: bool = False,
-    condalibs: bool = False,
+    classic: bool = False,
 ) -> None:
     """Entry point for manipulating the PATH environment variable."""
     if condabin:

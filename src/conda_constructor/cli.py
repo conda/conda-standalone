@@ -124,7 +124,7 @@ def _add_windows_path(parser: ArgumentParser) -> None:
         help="Adds the condabin directory under PREFIX to PATH.",
     )
     parser.add_argument(
-        "--condalibs",
+        "--classic",
         action="store_true",
         help="Adds PREFIX and additional libraries under PREFIX to PATH.",
     )
@@ -196,7 +196,7 @@ def execute(args: Namespace) -> None | int:
                 {
                     "add": args.append or args.prepend,
                     "condabin": args.condabin,
-                    "condalibs": args.condalibs,
+                    "classic": args.classic,
                     "append": args.append is not None,
                     "remove": args.remove,
                 }
