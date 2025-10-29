@@ -1,10 +1,3 @@
-import ctypes
-import os
-import winreg
-from ctypes import wintypes
-from pathlib import Path
-
-from .registry import WinRegistry
 from __future__ import annotations
 
 import ctypes
@@ -17,7 +10,8 @@ from typing import TYPE_CHECKING
 from .registry import WinRegistry
 
 if TYPE_CHECKING:
-    from typing import Iterable, Literal
+    from collections.abc import Iterable
+    from typing import Literal
 
 HWND_BROADCAST = 0xFFFF
 WM_SETTINGCHANGE = 0x001A
@@ -77,7 +71,9 @@ def _find_in_path(prefix: Path, paths: list[str], value_type: int) -> int:
     return -1
 
 
-def _add_to_path(prefixes: Iterable[Path], user_or_system: Literal["user", "system"], append: bool) -> None:
+def _add_to_path(
+    prefixes: Iterable[Path], user_or_system: Literal["user", "system"], append: bool
+) -> None:
     """Append or prepend a prefix to the PATH environment variable.
 
     If the prefix already exists in PATH, move the prefix to the beginning/end of PATH.
