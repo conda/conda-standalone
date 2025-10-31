@@ -13,22 +13,47 @@ if not ON_WIN:
     pytest.skip(reason="Windows only", allow_module_level=True)
 
 
+@pytest.mark.parametrize(
+    "extra_flag",
+    (None, "--condabin", "--classic"),
+    ids=("prefix", "condabin", "classic"),
+)
 @pytest.mark.parametrize("append_or_prepend", ("append", "prepend"))
 @pytest.mark.parametrize("user_or_system", ("user", "system"))
 @pytest.mark.skipif(not ON_CI, reason="CI only, changes PATH variable")
-def test_windows_add_remove_path(tmp_path: Path, append_or_prepend: str, user_or_system: str):
+def test_windows_add_remove_path(
+    tmp_path: Path,
+    append_or_prepend: str,
+    user_or_system: str,
+    extra_flag: str | None,
+):
     envvar_map = {
         "system": "Machine",
         "user": "User",
     }
-    run_conda(
+    if extra_flag == "--condabin":
+        expected_paths = [tmp_path / "condabin"]
+    elif extra_flag == "--classic":
+        expected_paths = [
+            tmp_path,
+            tmp_path / "Library" / "mingw-w64" / "bin",
+            tmp_path / "Library" / "usr" / "bin",
+            tmp_path / "Library" / "bin",
+            tmp_path / "Scripts",
+        ]
+    else:
+        expected_paths = [tmp_path]
+    create_command = [
         "constructor",
         "windows",
         "path",
         f"--{append_or_prepend}={user_or_system}",
         "--prefix",
         tmp_path,
-    )
+    ]
+    if extra_flag:
+        create_command.append(extra_flag)
+    run_conda(*create_command)
     # Quick way to query the registry for changes.
     # The updated PATH environment variable is only available
     # to a new process, which we cannot spawn within a pytest run.
@@ -43,12 +68,22 @@ def test_windows_add_remove_path(tmp_path: Path, append_or_prepend: str, user_or
         text=True,
     )
     paths = [Path(p) for p in pathvar_run.stdout.strip().split(os.pathsep) if p]
-    assert tmp_path in paths
+    assert all(expected_path in paths for expected_path in expected_paths)
     if append_or_prepend == "append":
-        assert paths[-1] == tmp_path
+        assert paths[-len(expected_paths) :] == expected_paths
     else:
-        assert paths[0] == tmp_path
-    run_conda("constructor", "windows", "path", f"--remove={user_or_system}", "--prefix", tmp_path)
+        assert paths[: len(expected_paths)] == list(reversed(expected_paths))
+    remove_command = [
+        "constructor",
+        "windows",
+        "path",
+        f"--remove={user_or_system}",
+        "--prefix",
+        tmp_path,
+    ]
+    if extra_flag:
+        remove_command.append(extra_flag)
+    run_conda(*remove_command)
     # Quick way to query the registry for changes.
     # The updated PATH environment variable is only available
     # to a new process, which we cannot spawn within a pytest run.
@@ -63,4 +98,4 @@ def test_windows_add_remove_path(tmp_path: Path, append_or_prepend: str, user_or
         text=True,
     )
     paths = [Path(p) for p in pathvar_run.stdout.strip().split(os.pathsep) if p]
-    assert tmp_path not in paths
+    assert all(expected_path not in paths for expected_path in expected_paths)

@@ -1,10 +1,17 @@
+from __future__ import annotations
+
 import ctypes
 import os
 import winreg
 from ctypes import wintypes
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from .registry import WinRegistry
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from typing import Literal
 
 HWND_BROADCAST = 0xFFFF
 WM_SETTINGCHANGE = 0x001A
@@ -64,7 +71,9 @@ def _find_in_path(prefix: Path, paths: list[str], value_type: int) -> int:
     return -1
 
 
-def _add_to_path(prefix: Path, user_or_system: str, append: bool) -> None:
+def _add_to_path(
+    prefixes: Iterable[Path], user_or_system: Literal["user", "system"], append: bool
+) -> None:
     """Append or prepend a prefix to the PATH environment variable.
 
     If the prefix already exists in PATH, move the prefix to the beginning/end of PATH.
@@ -74,20 +83,21 @@ def _add_to_path(prefix: Path, user_or_system: str, append: bool) -> None:
     registry = WinRegistry(hive)
     reg_value, value_type = registry.get(key, "Path")
     paths = reg_value.split(os.pathsep) if reg_value else []
-    p = _find_in_path(prefix, paths, value_type)
-    if p >= 0:
-        del paths[p]
-    if append:
-        paths = [*paths, str(prefix)]
-    else:
-        paths = [str(prefix), *paths]
-    if value_type == -1:
-        value_type = winreg.REG_EXPAND_SZ
+    for prefix in prefixes:
+        p = _find_in_path(prefix, paths, value_type)
+        if p >= 0:
+            del paths[p]
+        if append:
+            paths = [*paths, str(prefix)]
+        else:
+            paths = [str(prefix), *paths]
+        if value_type == -1:
+            value_type = winreg.REG_EXPAND_SZ
     registry.set(key, named_value="Path", value=os.pathsep.join(paths), value_type=value_type)
     _broadcast_environment_settings_change()
 
 
-def _remove_from_path(prefix: Path, user_or_system: str) -> None:
+def _remove_from_path(prefixes: list[Path], user_or_system: Literal["user", "system"]) -> None:
     """Remove a prefix to the PATH environment variable."""
     hive, key = _get_path_hive_key(user_or_system)
     registry = WinRegistry(hive)
@@ -95,22 +105,37 @@ def _remove_from_path(prefix: Path, user_or_system: str) -> None:
     if not reg_value:
         return
     paths = reg_value.split(os.pathsep)
-    p = _find_in_path(prefix, paths, value_type)
-    if p == -1:
-        return
-    del paths[p]
+    for prefix in prefixes:
+        p = _find_in_path(prefix, paths, value_type)
+        if p == -1:
+            return
+        del paths[p]
     registry.set(key, named_value="Path", value=os.pathsep.join(paths), value_type=value_type)
     _broadcast_environment_settings_change()
 
 
 def add_remove_path(
     prefix: Path,
-    add: str | None = None,
-    remove: str | None = None,
+    add: Literal["user", "system"] | None = None,
+    remove: Literal["user", "system"] | None = None,
     append: bool = False,
+    condabin: bool = False,
+    classic: bool = False,
 ) -> None:
     """Entry point for manipulating the PATH environment variable."""
+    if condabin:
+        prefixes = [prefix / "condabin"]
+    elif classic:
+        prefixes = [
+            prefix,
+            prefix / "Library" / "mingw-w64" / "bin",
+            prefix / "Library" / "usr" / "bin",
+            prefix / "Library" / "bin",
+            prefix / "Scripts",
+        ]
+    else:
+        prefixes = [prefix]
     if add is not None:
-        _add_to_path(prefix, add, append)
+        _add_to_path(prefixes, add, append)
     elif remove is not None:
-        _remove_from_path(prefix, remove)
+        _remove_from_path(prefixes, remove)
