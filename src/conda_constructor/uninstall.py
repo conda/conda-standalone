@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import sys
@@ -20,6 +21,13 @@ from conda.core.initialize import (
 )
 from conda.notices.cache import get_notices_cache_dir
 from menuinst.cli.cli import install as install_shortcut
+
+logger = logging.getLogger()
+# On Windows, these warnings are expected because the uninstaller may still be
+# accessing files (like install.log) that conda cannot rename.
+if sys.platform == "win32":
+    conda_logger = logging.getLogger("conda.gateways.disk.delete")
+    conda_logger.addFilter(lambda record: "Could not remove or rename" not in record.getMessage())
 
 
 def _is_subdir(directory: Path, root: Path) -> bool:
@@ -45,11 +53,14 @@ def _remove_file_directory(file: Path, raise_on_error: bool = False):
         elif file.is_symlink() or file.is_file():
             file.unlink()
     except PermissionError as e:
+        message = (
+            f"Could not remove {file}. "
+            "You may need to re-run with elevated privileges or manually remove this file."
+        )
         if raise_on_error:
-            raise PermissionError(
-                f"Could not remove {file}. "
-                "You may need to re-run with elevated privileges or manually remove this file."
-            ) from e
+            raise PermissionError(message) from e
+        else:
+            logger.warning(message)
 
 
 def _remove_config_file_and_parents(file: Path):
@@ -171,7 +182,13 @@ def _run_conda_init_reverse(for_user: bool, prefix: Path, prefixes: list[Path]):
     # That function will search for activation scripts in sys.prefix which do no exist
     # in the extraction directory of conda-standalone.
     run_plan(plan)
-    run_plan_elevated(plan)
+    try:
+        run_plan_elevated(plan)
+    except Exception:
+        logger.error(
+            "Could not revert some shell profiles because they require elevated privileges. "
+            "Check the output for lines with `needs sudo` and edit those files manually."
+        )
     print_plan_results(plan)
     for initializer in plan:
         target_path = initializer["kwargs"]["target_path"]
@@ -209,7 +226,13 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
         # Unprotect frozen environments first
         frozen_file = env_prefix / PREFIX_FROZEN_FILE
         if frozen_file.is_file():
-            _remove_file_directory(frozen_file, raise_on_error=True)
+            try:
+                _remove_file_directory(frozen_file, raise_on_error=True)
+            except PermissionError as e:
+                raise PermissionError(
+                    f"Failed to unprotect {env_prefix}. Try to re-run the uninstallation with "
+                    f"elevated privileges or remove the file {frozen_file} manually."
+                ) from e
 
         install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove_shortcuts=[])
         # If conda_root_prefix is the same as prefix, conda remove will not be able
@@ -217,14 +240,18 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
         if conda_root_prefix and conda_root_prefix == env_prefix:
             del os.environ["CONDA_ROOT_PREFIX"]
             reset_context()
-        conda_main("remove", "-y", "-p", str(env_prefix), "--all")
+        return_code = conda_main("remove", "-y", "-p", str(env_prefix), "--all")
+        if return_code != 0:
+            raise RuntimeError(f"Failed to remove environment {env_prefix}.")
         if conda_root_prefix and conda_root_prefix == env_prefix:
             os.environ["CONDA_ROOT_PREFIX"] = str(conda_root_prefix)
             reset_context()
 
 
 def _remove_caches():
-    conda_main("clean", "--all", "-y")
+    return_code = conda_main("clean", "--all", "-y")
+    if return_code != 0:
+        logger.warning("Failed to remove all cache files.")
     # Delete empty package cache directories
     for directory in context.pkgs_dirs:
         pkgs_dir = Path(directory)
