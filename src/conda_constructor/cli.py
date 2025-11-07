@@ -118,6 +118,16 @@ def _add_windows_path(parser: ArgumentParser) -> None:
         default=None,
         help="Removes a prefix from the Windows PATH.",
     )
+    parser.add_argument(
+        "--condabin",
+        action="store_true",
+        help="Adds the condabin directory under PREFIX to PATH.",
+    )
+    parser.add_argument(
+        "--classic",
+        action="store_true",
+        help="Adds PREFIX and additional libraries under PREFIX to PATH.",
+    )
 
 
 def configure_parser(parser: ArgumentParser) -> None:
@@ -185,6 +195,8 @@ def execute(args: Namespace) -> None | int:
             kwargs.update(
                 {
                     "add": args.append or args.prepend,
+                    "condabin": args.condabin,
+                    "classic": args.classic,
                     "append": args.append is not None,
                     "remove": args.remove,
                 }
