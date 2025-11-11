@@ -20,15 +20,7 @@ from conda.core.initialize import (
 )
 from conda.notices.cache import get_notices_cache_dir
 from menuinst.cli.cli import install as install_shortcut
-
-
-def _is_subdir(directory: Path, root: Path) -> bool:
-    """
-    Helper function to detect whether a directory is a subdirectory.
-
-    Rely on Path objects rather than string comparison to be portable.
-    """
-    return directory == root or root in directory.parents
+from ruamel.yaml import YAML
 
 
 def _remove_file_directory(file: Path, raise_on_error: bool = False):
@@ -52,7 +44,7 @@ def _remove_file_directory(file: Path, raise_on_error: bool = False):
             ) from e
 
 
-def _remove_config_file_and_parents(file: Path):
+def _remove_config_file_and_parents(file: Path, raise_on_error: bool = False):
     """
     Remove a configuration file and empty parent directories.
 
@@ -61,7 +53,7 @@ def _remove_config_file_and_parents(file: Path):
     and search backwards to be conservative about what is deleted.
     """
     rootdir = None
-    _remove_file_directory(file)
+    _remove_file_directory(file, raise_on_error=raise_on_error)
     # Directories that may have been created by conda that are okay
     # to be removed if they are empty.
     if file.parent.parts[-1] in (".conda", "conda", "xonsh", "fish"):
@@ -76,7 +68,7 @@ def _remove_config_file_and_parents(file: Path):
         return
     parent = file.parent
     while parent != rootdir.parent and not next(parent.iterdir(), None):
-        _remove_file_directory(parent)
+        _remove_file_directory(parent, raise_on_error=raise_on_error)
         parent = parent.parent
 
 
@@ -99,7 +91,7 @@ def _requires_init_reverse_shell(
     bin_directory = "Scripts" if on_win else "bin"
     # Only reverse for paths that are outside the uninstall prefix
     # since paths inside the uninstall prefix will be deleted anyway
-    if not target_path.exists() or not target_path.is_file() or _is_subdir(target_path, prefix):
+    if not target_path.exists() or not target_path.is_file() or target_path.is_relative_to(prefix):
         return False
     rc_content = target_path.read_text()
     pattern = CONDA_INITIALIZE_PS_RE_BLOCK if shell == "powershell" else CONDA_INITIALIZE_RE_BLOCK
@@ -201,7 +193,8 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
     # outside of the uninstall prefix.
     if conda_root_prefix := os.environ.get("CONDA_ROOT_PREFIX"):
         conda_root_prefix = Path(conda_root_prefix).resolve()
-    menuinst_base_prefix = _get_menuinst_base_prefix(prefix, conda_root_prefix)
+    default_activation_prefix = context.default_activation_prefix.resolve()
+    menuinst_base_prefix = _get_menuinst_base_prefix(prefix, conda_root_prefix).resolve()
     # Uninstalling environments must be performed with the deepest environment first.
     # Otherwise, parent environments will delete the environment directory and
     # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
@@ -211,15 +204,22 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
         if frozen_file.is_file():
             _remove_file_directory(frozen_file, raise_on_error=True)
 
-        install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove_shortcuts=[])
+        install_shortcut(env_prefix, root_prefix=str(menuinst_base_prefix), remove_shortcuts=[])
         # If conda_root_prefix is the same as prefix, conda remove will not be able
         # to remove that environment, so temporarily unset it.
         if conda_root_prefix and conda_root_prefix == env_prefix:
             del os.environ["CONDA_ROOT_PREFIX"]
             reset_context()
+        # Conda does not remove the default environment, so set it to something else temporarily
+        if default_activation_prefix == env_prefix:
+            os.environ["CONDA_DEFAULT_ACTIVATION_ENV"] = sys.prefix
+            reset_context()
         conda_main("remove", "-y", "-p", str(env_prefix), "--all")
         if conda_root_prefix and conda_root_prefix == env_prefix:
             os.environ["CONDA_ROOT_PREFIX"] = str(conda_root_prefix)
+            reset_context()
+        if default_activation_prefix == env_prefix:
+            del os.environ["CONDA_DEFAULT_ACTIVATION_ENV"]
             reset_context()
 
 
@@ -242,11 +242,69 @@ def _remove_config_files(remove_config_files: str):
     for config_file in context.config_files:
         if not isinstance(config_file, Path):
             config_file = Path(config_file)
-        if (remove_config_files == "user" and not _is_subdir(config_file.parent, Path.home())) or (
-            remove_config_files == "system" and _is_subdir(config_file.parent, Path.home())
+        config_dir = config_file.parent
+        if remove_config_files == "user" and not config_dir.is_relative_to(Path.home()):
+            continue
+        if remove_config_files == "system" and config_dir.is_relative_to(Path.home()):
+            continue
+        # Skip any configuration files that are relative to CONDA_ROOT or CONDA_PREFIX
+        # because they may point to the paths of an activated environment and delete
+        # a .condarc file of a different installation. If they point to the installation
+        # directory, they have been removed with the environment already.
+        conda_dir_env_vars = ("CONDA_ROOT", "CONDA_ROOT_DIR", "CONDA_ROOT_PREFIX", "CONDA_PREFIX")
+        if any(
+            config_dir.is_relative_to(Path(os.environ[envvar]))
+            for envvar in conda_dir_env_vars
+            if envvar in os.environ
         ):
             continue
+
         _remove_config_file_and_parents(config_file)
+
+
+def _remove_default_environment_from_configs(prefixes: list[Path]):
+    """Remove `default_activation_env` from .condarc files.
+
+    If a named environment is found, issue a warning instead of deleting the entry
+    since the named environment may refer to a different installation. To avoid
+    excessive warnings, run this function towards the end where fewer .condarc files
+    are left to examine.
+    """
+    yaml = YAML()
+    for config_file_str in context.config_files:
+        config_file = Path(config_file_str)
+        if not config_file.exists():
+            continue
+        with config_file.open() as crc:
+            config = yaml.load(crc)
+        if not (default_environment := config.get("default_activation_env")):
+            continue
+        if "/" in default_environment or (sys.platform == "win32" and "\\" in default_environment):
+            if not Path(default_environment).is_relative_to(prefixes[0]):
+                continue
+            del config["default_activation_env"]
+            try:
+                if config:
+                    with config_file.open(mode="w") as crc:
+                        yaml.dump(config, crc)
+                else:
+                    _remove_config_file_and_parents(config_file, raise_on_error=True)
+            except Exception as e:
+                print(
+                    "WARNING: Unable to remove default activation environment "
+                    f"from {config_file}. This may result in broken `conda` installations. "
+                    "Please remove `default_activation_env` from the file manually. "
+                    f"Traceback: {e}.",
+                    file=sys.stderr,
+                )
+        elif any(default_environment == prefix.name for prefix in prefixes):
+            print(
+                f"WARNING: Named environment `{default_environment}` is set as "
+                f"a default environment in {config_file}. Please ensure that "
+                "this environment is available in another existing installation "
+                "or remove the `default_activation_env` entry manually from this file.",
+                file=sys.stderr,
+            )
 
 
 def uninstall(
@@ -313,3 +371,8 @@ def uninstall(
     if remove_user_data:
         print("Removing user data...")
         _remove_file_directory(Path("~/.conda").expanduser())
+
+    # Remove default activation environment where possible.
+    # Run this at the end because at this point, a lot of
+    # configuration files may have already been deleted.
+    _remove_default_environment_from_configs(prefixes)

@@ -88,7 +88,7 @@ def run_uninstaller(
     remove_config_files: str | None = None,
     remove_user_data: bool = False,
     needs_sudo: bool = False,
-):
+) -> subprocess.CompletedProcess:
     args = ["--prefix", str(prefix)]
     if remove_caches:
         args.append("--remove-caches")
@@ -96,7 +96,15 @@ def run_uninstaller(
         args.extend(["--remove-config-files", remove_config_files])
     if remove_user_data:
         args.append("--remove-user-data")
-    run_conda("constructor", "uninstall", *args, needs_sudo=needs_sudo, check=True)
+    return run_conda(
+        "constructor",
+        "uninstall",
+        *args,
+        needs_sudo=needs_sudo,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
 
 
 def test_uninstallation(
@@ -503,6 +511,62 @@ def test_delete_self(
                 if not file.is_dir() and file.suffix != ".conda_trash"
             ]
             assert unexpected_files == []
+
+
+def test_uninstallation_default_environment(
+    mock_system_paths: dict[str, Path],
+    tmp_env: TmpEnvFixture,
+):
+    environments_txt = mock_system_paths["home"] / ".conda" / "environments.txt"
+    yaml = YAML()
+    with tmp_env() as base_env:
+        environments = environments_txt.read_text().splitlines()
+        assert str(base_env) in environments
+
+        # Set up .condarc files to point to base_env as the default environment
+        config_name = {
+            "default_activation_env": base_env.name,
+        }
+        condarc_name = mock_system_paths["home"] / ".condarc"
+        with condarc_name.open(mode="w") as crc:
+            yaml.dump(config_name, crc)
+        config_full_path = {
+            "default_activation_env": base_env.as_posix(),
+        }
+        condarc_full_path = mock_system_paths["home"] / ".conda" / ".condarc"
+        condarc_full_path.parent.mkdir(exist_ok=True, parents=True)
+        with condarc_full_path.open(mode="w") as crc:
+            yaml.dump(config_full_path, crc)
+        config_full_path_extra = {
+            "channels": [CONDA_CHANNEL],
+            **config_full_path,
+        }
+        condarc_full_path_extra = mock_system_paths["home"] / ".config" / "conda" / ".condarc"
+        condarc_full_path_extra.parent.mkdir(exist_ok=True, parents=True)
+        with condarc_full_path_extra.open(mode="w") as crc:
+            yaml.dump(config_full_path_extra, crc)
+
+        proc = run_uninstaller(base_env)
+
+        environments = environments_txt.read_text().splitlines()
+        assert not base_env.exists()
+        assert str(base_env) not in environments
+        assert f"WARNING: Named environment `{base_env.name}`" in proc.stderr
+        assert "WARNING: Unable to remove default environment" not in proc.stderr
+
+        # Test that .condarc files have been cleaned up correctly
+        assert condarc_name.exists()
+        with condarc_name.open() as crc:
+            condarc_name_content = yaml.load(crc)
+        assert condarc_name_content == config_name
+        assert not condarc_full_path.exists()
+        assert condarc_full_path_extra.exists()
+        with condarc_full_path_extra.open() as crc:
+            condarc_full_path_extra_content = yaml.load(crc)
+        expected_content = {
+            key: val for key, val in config_full_path_extra.items() if key not in config_full_path
+        }
+        assert condarc_full_path_extra_content == expected_content
 
 
 def test_uninstallation_invalid_directory(tmp_path: Path):
