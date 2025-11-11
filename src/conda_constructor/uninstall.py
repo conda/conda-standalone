@@ -204,7 +204,7 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
         if frozen_file.is_file():
             _remove_file_directory(frozen_file, raise_on_error=True)
 
-        install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove_shortcuts=[])
+        install_shortcut(env_prefix, root_prefix=str(menuinst_base_prefix), remove_shortcuts=[])
         # If conda_root_prefix is the same as prefix, conda remove will not be able
         # to remove that environment, so temporarily unset it.
         if conda_root_prefix and conda_root_prefix == env_prefix:
@@ -275,7 +275,7 @@ def _remove_default_environment_from_configs(prefixes: list[Path]):
         config_file = Path(config_file_str)
         if not config_file.exists():
             continue
-        with open(config_file) as crc:
+        with config_file.open() as crc:
             config = yaml.load(crc)
         if not (default_environment := config.get("default_activation_env")):
             continue
