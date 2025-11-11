@@ -276,4 +276,9 @@ def test_conda_run_conda_exe(tmp_path: Path, with_log: bool):
     assert os.path.realpath(process.stdout.strip()) == os.path.realpath(CONDA_EXE)
     if with_log:
         assert log_file.exists()
-        assert os.path.realpath(log_file.read_text().strip()) == os.path.realpath(CONDA_EXE)
+        log_text = log_file.read_text().strip()
+        if sys.platform.startswith("win") and os.environ.get("CI"):
+            # on CI, setup-miniconda registers `test` as auto-activate for every CMD
+            # which adds some unnecessary stderr output; so, only read the first line
+            log_text = log_text.split("\n")[0]
+        assert os.path.realpath(log_text.strip()) == os.path.realpath(CONDA_EXE)
