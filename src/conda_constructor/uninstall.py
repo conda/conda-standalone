@@ -279,7 +279,7 @@ def _remove_default_environment_from_configs(prefixes: list[Path]):
             config = yaml.load(crc)
         if not (default_environment := config.get("default_activation_env")):
             continue
-        if "/" in default_environment:
+        if "/" in default_environment or (sys.platform == "win32" and "\\" in default_environment):
             if not Path(default_environment).is_relative_to(prefixes[0]):
                 continue
             del config["default_activation_env"]
