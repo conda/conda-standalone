@@ -267,6 +267,14 @@ def uninstall(
     if not (prefix / PREFIX_MAGIC_FILE).exists() and not (prefix / envs_dir_magic_file).exists():
         raise OSError(f"{prefix} is not a valid conda environment or environments directory.")
 
+    if context.active_prefix:
+        active_prefix = Path(context.active_prefix).resolve()
+        if active_prefix.is_relative_to(prefix):
+            raise OSError(
+                f"The currently activated environment is a subdirectory of {prefix}. "
+                "Please deactivate the current environment and re-run the uninstallation."
+            )
+
     print(f"Uninstalling conda installation in {prefix}...")
     prefixes = [file.parent.parent.resolve() for file in prefix.glob(f"**/{PREFIX_MAGIC_FILE}")]
     # Sort by path depth. This will place the root prefix first
