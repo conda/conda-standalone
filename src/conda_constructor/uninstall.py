@@ -193,8 +193,8 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
     # outside of the uninstall prefix.
     if conda_root_prefix := os.environ.get("CONDA_ROOT_PREFIX"):
         conda_root_prefix = Path(conda_root_prefix).resolve()
-    default_activation_prefix = context.default_activation_prefix
-    menuinst_base_prefix = _get_menuinst_base_prefix(prefix, conda_root_prefix)
+    default_activation_prefix = context.default_activation_prefix.resolve()
+    menuinst_base_prefix = _get_menuinst_base_prefix(prefix, conda_root_prefix).resolve()
     # Uninstalling environments must be performed with the deepest environment first.
     # Otherwise, parent environments will delete the environment directory and
     # uninstallation logic (removing shortcuts, pre-unlink scripts, etc.) cannot be run.
