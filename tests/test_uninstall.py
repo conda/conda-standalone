@@ -553,8 +553,8 @@ def test_uninstallation_default_environment(
         environments = environments_txt.read_text().splitlines()
         assert not base_env.exists()
         assert str(base_env) not in environments
-        assert f"WARNING: Named environment `{base_env.name}`" in proc.stdout
-        assert "WARNING: Unable to remove default environment" not in proc.stdout
+        assert f"WARNING: Named environment `{base_env.name}`" in proc.stderr
+        assert "WARNING: Unable to remove default environment" not in proc.stderr
 
         # Test that .condarc files have been cleaned up correctly
         assert condarc_name.exists()

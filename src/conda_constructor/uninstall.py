@@ -249,7 +249,7 @@ def _remove_config_files(remove_config_files: str):
             continue
         # Skip any configuration files that are relative to CONDA_ROOT or CONDA_PREFIX
         # because they may point to the paths of an activated environment and delete
-        # a .condarc file of a different installation.If they point to the installation
+        # a .condarc file of a different installation. If they point to the installation
         # directory, they have been removed with the environment already.
         if any(
             config_dir.is_relative_to(Path(os.environ[envvar]))
@@ -293,14 +293,16 @@ def _remove_default_environment_from_configs(prefixes: list[Path]):
                     "WARNING: Unable to remove default activation environment "
                     f"from {config_file}. This may result in broken `conda` installations. "
                     "Please remove `default_activation_env` from the file manually. "
-                    f"Traceback: {e}."
+                    f"Traceback: {e}.",
+                    file=sys.stderr,
                 )
         elif any(default_environment == prefix.name for prefix in prefixes):
             print(
                 f"WARNING: Named environment `{default_environment}` is set as "
                 f"a default environment in {config_file}. Please ensure that "
                 "this environment is available in another existing installation "
-                "or remove the `default_activation_env` entry manually from this file."
+                "or remove the `default_activation_env` entry manually from this file.",
+                file=sys.stderr,
             )
 
 
