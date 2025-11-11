@@ -251,9 +251,10 @@ def _remove_config_files(remove_config_files: str):
         # because they may point to the paths of an activated environment and delete
         # a .condarc file of a different installation. If they point to the installation
         # directory, they have been removed with the environment already.
+        conda_dir_env_vars = ("CONDA_ROOT", "CONDA_ROOT_DIR", "CONDA_ROOT_PREFIX", "CONDA_PREFIX")
         if any(
             config_dir.is_relative_to(Path(os.environ[envvar]))
-            for envvar in ("CONDA_ROOT", "CONDA_PREFIX")
+            for envvar in conda_dir_env_vars
             if envvar in os.environ
         ):
             continue
