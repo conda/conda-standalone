@@ -1,6 +1,7 @@
 ### Enhancements
 
-* Add option to log `conda-standalone` and `conda` outputs into log file. (#218)
+* Add option to log `conda-standalone` and `conda` outputs into a log file
+  using the `--log-file` CLI option. (#218)
 
 ### Bug fixes
 
