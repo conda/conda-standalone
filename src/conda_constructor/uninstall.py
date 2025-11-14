@@ -230,8 +230,8 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
                 _remove_file_directory(frozen_file, raise_on_error=True)
             except PermissionError as e:
                 raise PermissionError(
-                    f"Failed to unprotect {env_prefix}. Try to re-run the uninstallation with "
-                    f"elevated privileges or remove the file {frozen_file} manually."
+                    f"Failed to unprotect '{env_prefix}'. Try to re-run the uninstallation with "
+                    f"elevated privileges or remove the file '{frozen_file}' manually."
                 ) from e
 
         install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove_shortcuts=[])
@@ -242,7 +242,7 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
             reset_context()
         return_code = conda_main("remove", "-y", "-p", str(env_prefix), "--all")
         if return_code != 0:
-            raise RuntimeError(f"Failed to remove environment {env_prefix}.")
+            raise RuntimeError(f"Failed to remove environment '{env_prefix}'.")
         if conda_root_prefix and conda_root_prefix == env_prefix:
             os.environ["CONDA_ROOT_PREFIX"] = str(conda_root_prefix)
             reset_context()
