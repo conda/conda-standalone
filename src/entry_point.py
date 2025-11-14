@@ -24,6 +24,7 @@ class StreamToLogger:
         self.logger.log(self.log_level, buf.rstrip())
 
     def flush(self):
+        # Stream handlers need a flush method, but the log command flushes the buffer already
         pass
 
 
