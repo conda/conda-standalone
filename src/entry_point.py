@@ -11,6 +11,7 @@ import argparse
 import logging
 import os
 import sys
+from contextlib import contextmanager, nullcontext
 from multiprocessing import freeze_support
 from pathlib import Path
 
@@ -130,6 +131,7 @@ def _patch_for_conda_run():
         os.environ.setdefault("CONDA_EXE", sys.executable)
 
 
+@contextmanager
 def setup_logger(logfile: Path):
     """Forward all stdout and stderr output into a file logger.
 
@@ -157,6 +159,9 @@ def setup_logger(logfile: Path):
 
     sys.stdout = StreamToLogger(stdout_logger)
     sys.stderr = StreamToLogger(stderr_logger)
+    yield
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
 
 
 def _conda_main():
@@ -182,9 +187,12 @@ def _conda_main():
     args, remaining = logger_parser.parse_known_args()
     if args.log_file:
         sys.argv[1:] = remaining
-        setup_logger(args.log_file.resolve())
+        logger_context = setup_logger(args.log_file.resolve())
+    else:
+        logger_context = nullcontext()
 
-    return main()
+    with logger_context:
+        return main()
 
 
 def _patch_constructor_args(argv: list[str] = sys.argv) -> list[str]:
