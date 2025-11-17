@@ -60,7 +60,7 @@ def _remove_file_directory(file: Path, raise_on_error: bool = False):
         if raise_on_error:
             raise PermissionError(message) from e
         else:
-            logger.warning(message)
+            logger.warning(message, exc_info=e)
 
 
 def _remove_config_file_and_parents(file: Path):
@@ -184,10 +184,11 @@ def _run_conda_init_reverse(for_user: bool, prefix: Path, prefixes: list[Path]):
     run_plan(plan)
     try:
         run_plan_elevated(plan)
-    except Exception:
+    except Exception as exc:
         logger.error(
             "Could not revert some shell profiles because they require elevated privileges. "
-            "Check the output for lines with `needs sudo` and edit those files manually."
+            "Check the output for lines with `needs sudo` and edit those files manually.",
+            exc_info=exc,
         )
     print_plan_results(plan)
     for initializer in plan:
@@ -231,7 +232,8 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
             except PermissionError as e:
                 raise PermissionError(
                     f"Failed to unprotect '{env_prefix}'. Try to re-run the uninstallation with "
-                    f"elevated privileges or remove the file '{frozen_file}' manually."
+                    f"elevated privileges or remove the file '{frozen_file}' manually.",
+                    exc_info=e
                 ) from e
 
         install_shortcut(env_prefix, root_prefix=menuinst_base_prefix, remove_shortcuts=[])
