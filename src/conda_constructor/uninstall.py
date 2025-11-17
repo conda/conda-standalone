@@ -226,7 +226,7 @@ def _remove_environments(prefix: Path, prefixes: list[Path]):
                 raise PermissionError(
                     f"Failed to unprotect '{env_prefix}'. Try to re-run the uninstallation with "
                     f"elevated privileges or remove the file '{frozen_file}' manually.",
-                    exc_info=e
+                    exc_info=e,
                 ) from e
 
         install_shortcut(env_prefix, root_prefix=str(menuinst_base_prefix), remove_shortcuts=[])
