@@ -4,11 +4,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .extract import DEFAULT_NUM_PROCESSORS, ExtractType, _NumProcessorsAction, extract
-from .uninstall import uninstall
-
-if sys.platform == "win32":
-    from .windows.path import add_remove_path
+from .extract import DEFAULT_NUM_PROCESSORS, ExtractType, _NumProcessorsAction
 
 if TYPE_CHECKING:
     from argparse import ArgumentParser, Namespace
@@ -173,6 +169,8 @@ def execute(args: Namespace) -> None | int:
     action: Callable
     kwargs = {}
     if args.cmd == "extract":
+        from .extract import extract
+
         action = extract
         kwargs.update(
             {
@@ -181,6 +179,8 @@ def execute(args: Namespace) -> None | int:
             }
         )
     elif args.cmd == "uninstall":
+        from .uninstall import uninstall
+
         action = uninstall
         kwargs.update(
             {
@@ -191,6 +191,8 @@ def execute(args: Namespace) -> None | int:
         )
     elif args.cmd == "windows" and sys.platform == "win32":
         if args.windows_cmd == "path":
+            from .windows.path import add_remove_path
+
             action = add_remove_path
             kwargs.update(
                 {
