@@ -252,8 +252,10 @@ def test_conda_run():
         assert not process.stderr
 
 
-def test_conda_run_conda_exe():
+@pytest.mark.parametrize("with_log", (True, False), ids=("with log", "no log"))
+def test_conda_run_conda_exe(tmp_path: Path, with_log: bool):
     env = os.environ.copy()
+    log_file = tmp_path / "conda_run.log"
     for key in os.environ:
         if key.startswith(("CONDA", "_CONDA_", "__CONDA", "_CE_")):
             env.pop(key, None)
@@ -265,9 +267,18 @@ def test_conda_run_conda_exe():
         "python",
         "-c",
         "import sys,os;print(os.environ['CONDA_EXE'])",
+        *(("--log-file", str(log_file)) if with_log else ()),
         check=True,
         text=True,
         capture_output=True,
         env=env,
     )
     assert os.path.realpath(process.stdout.strip()) == os.path.realpath(CONDA_EXE)
+    if with_log:
+        assert log_file.exists()
+        log_text = log_file.read_text().strip()
+        if sys.platform.startswith("win") and os.environ.get("CI"):
+            # on CI, setup-miniconda registers `test` as auto-activate for every CMD
+            # which adds some unnecessary stderr output; so, only read the first line
+            log_text = log_text.split("\n")[0]
+        assert os.path.realpath(log_text.strip()) == os.path.realpath(CONDA_EXE)

@@ -7,10 +7,27 @@ It will end up calling the `conda` CLI, but it intercepts the call to do some
 preliminary work and handling some special cases that arise when PyInstaller is involved.
 """
 
+import argparse
+import logging
 import os
 import sys
+from contextlib import contextmanager, nullcontext
 from multiprocessing import freeze_support
 from pathlib import Path
+
+
+class StreamToLogger:
+    def __init__(self, logger, log_level=logging.INFO):
+        self.logger = logger
+        self.log_level = log_level
+
+    def write(self, buf):
+        self.logger.log(self.log_level, buf.rstrip())
+
+    def flush(self):
+        # Stream handlers need a flush method, but the log command flushes the buffer already
+        pass
+
 
 if os.name == "nt" and "SSLKEYLOGFILE" in os.environ:
     # This causes a crash with requests 2.32+ on Windows
@@ -114,6 +131,39 @@ def _patch_for_conda_run():
         os.environ.setdefault("CONDA_EXE", sys.executable)
 
 
+@contextmanager
+def setup_logger(logfile: Path):
+    """Forward all stdout and stderr output into a file logger.
+
+    This automatically captures all logger output.
+    """
+    plain_formatter = logging.Formatter("%(message)s")
+    plain_logfile_handler = logging.FileHandler(logfile)
+    plain_logfile_handler.setFormatter(plain_formatter)
+
+    stdout_logger = logging.getLogger("stdout_logger")
+    stdout_logger.setLevel(logging.INFO)
+    stdout_logger.propagate = False
+    stdout_console_handler = logging.StreamHandler(sys.__stdout__)
+    stdout_console_handler.setFormatter(plain_formatter)
+    stdout_logger.addHandler(stdout_console_handler)
+    stdout_logger.addHandler(plain_logfile_handler)
+
+    stderr_logger = logging.getLogger("stderr_logger")
+    stderr_logger.setLevel(logging.INFO)
+    stderr_logger.propagate = False
+    stderr_console_handler = logging.StreamHandler(sys.__stderr__)
+    stderr_console_handler.setFormatter(plain_formatter)
+    stderr_logger.addHandler(stderr_console_handler)
+    stderr_logger.addHandler(plain_logfile_handler)
+
+    sys.stdout = StreamToLogger(stdout_logger)
+    sys.stderr = StreamToLogger(stderr_logger)
+    yield
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+
+
 def _conda_main():
     from conda.cli import main
 
@@ -132,7 +182,17 @@ def _conda_main():
     manager = get_plugin_manager()
     manager.load_plugins(plugin)
 
-    return main()
+    logger_parser = argparse.ArgumentParser(add_help=False)
+    logger_parser.add_argument("--log-file", type=Path)
+    args, remaining = logger_parser.parse_known_args()
+    if args.log_file:
+        sys.argv[1:] = remaining
+        logger_context = setup_logger(args.log_file.resolve())
+    else:
+        logger_context = nullcontext()
+
+    with logger_context:
+        return main()
 
 
 def _patch_constructor_args(argv: list[str] = sys.argv) -> list[str]:
@@ -146,9 +206,7 @@ def _patch_constructor_args(argv: list[str] = sys.argv) -> list[str]:
     if len(used_legacy_args) == 0:
         return argv
     elif len(used_legacy_args) > 1:
-        from argparse import ArgumentError
-
-        raise ArgumentError(
+        raise argparse.ArgumentError(
             None, f"The following arguments are mutually exclusive: {', '.join(used_legacy_args)}."
         )
     legacy_arg = used_legacy_args.pop()
