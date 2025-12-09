@@ -1,6 +1,9 @@
 ### Enhancements
 
 * Update `conda` version to 25.11.0. (#225)
+* Update `conda-libmamba-solver` version to 25.11.0. (#225)
+* Update `libmambapy` version to 2.3.2. (#225)
+* Update `python` version to 3.13.10. (#225)
 
 ### Bug fixes
 
