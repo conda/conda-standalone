@@ -33,8 +33,6 @@ Remember to update the hyperlinks at the bottom.
 * @jaimergp
 * @marcoesters
 * @lrandersson
-* @conda-bot
-* @pre-commit-ci[bot]
 
 
 
