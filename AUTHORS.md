@@ -12,6 +12,7 @@ Authors are sorted alphabetically.
 * Matthew R. Becker
 * Mike Sarahan
 * Nehal J Wani
+* Robin
 * SC426
 * conda-bot
 * conda-forge-admin

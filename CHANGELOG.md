@@ -13,6 +13,29 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 25.11.0 (2025-12-10)
+
+### Enhancements
+
+* Add subcommands for Windows to add prefixes to `PATH`. (#197, #215)
+* Replace `menuinst` subcommand with `conda` plug-in. (#208)
+* Add option to log `conda-standalone` and `conda` outputs into a log file
+  using the `--log-file` CLI option. (#218)
+* Update `conda` to 25.11.0, `conda-libmamba-solver` 25.11.0, `libmambapy` to 2.3.2, and  `python` to 3.13.10. (#225)
+
+### Bug fixes
+
+* Refuse to uninstall when prefix is a subdirectory of the active environment. (#211 via #212)
+* Fully remove default environments during uninstallation. (#213)
+
+### Contributors
+
+* @jaimergp
+* @marcoesters
+* @lrandersson
+
+
+
 ## 25.9.1 (2025-10-13)
 
 ### Enhancements
