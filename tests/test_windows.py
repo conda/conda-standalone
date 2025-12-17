@@ -41,7 +41,7 @@ def test_windows_add_remove_path(
             tmp_path / "Library" / "bin",
             tmp_path / "Scripts",
         ]
-        if append_or_prepend == 'prepend':
+        if append_or_prepend == "prepend":
             expected_paths.reverse()
     else:
         expected_paths = [tmp_path]
