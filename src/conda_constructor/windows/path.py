@@ -105,11 +105,14 @@ def _remove_from_path(prefixes: list[Path], user_or_system: Literal["user", "sys
     if not reg_value:
         return
     paths = reg_value.split(os.pathsep)
+    npaths = len(paths)
     for prefix in prefixes:
         p = _find_in_path(prefix, paths, value_type)
         if p == -1:
-            return
+            continue
         del paths[p]
+    if npaths == len(paths):
+        return
     registry.set(key, named_value="Path", value=os.pathsep.join(paths), value_type=value_type)
     _broadcast_environment_settings_change()
 
@@ -133,6 +136,9 @@ def add_remove_path(
             prefix / "Library" / "bin",
             prefix / "Scripts",
         ]
+        # Reverse the prefixes when prepending or they will be added in reverse order
+        if not append:
+            prefixes.reverse()
     else:
         prefixes = [prefix]
     if add is not None:
