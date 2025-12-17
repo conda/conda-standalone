@@ -4,7 +4,7 @@
 
 ### Bug fixes
 
-* Resolve an issue where entries would in some cases be added to `PATH` in the wrong order. (#229)
+* Paths are now prepended to the environment variable `PATH` in the correct order when `conda` is initialized in classic mode (`--classic`). (#229)
 
 ### Deprecations
 
