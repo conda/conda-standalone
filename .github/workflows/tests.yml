@@ -59,7 +59,8 @@ jobs:
         shell: bash -el {0}
 
 
-      - name: Shorten PATH
+      # Remove unneeded PATHs for Windows or varsall.bat will fail
+      - name: Shorten PATH (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
           $paths = $env:PATH -split ';'
@@ -89,7 +90,6 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
-          CONDA_VERBOSE: 3
           ANACONDA_ORG_TOKEN: ${{ secrets.ANACONDA_ORG_CONDA_CANARY_TOKEN }}
           ANACONDA_ORG_CHANNEL: conda-canary
           ANACONDA_ORG_LABEL: dev
