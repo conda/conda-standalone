@@ -42,6 +42,7 @@ build:
   script_env:
     - PYINSTALLER_CONDARC_DIR={{ RECIPE_DIR }}
     - PYINSTALLER_BUILD_VARIANT={{ variant }}
+    - VSCMD_DEBUG=3
 
 requirements:
   build:
