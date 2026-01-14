@@ -61,7 +61,7 @@ jobs:
 
       - name: Shorten PATH
         if: ${{ matrix.os == 'windows-latest' }}
-        run:
+        run: |
           $paths = $env:PATH -split ';'
           $filtered = $paths | Where-Object {
               $_ -notlike '*Microsoft SQL Server*'
