@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+import platform
 import site
 import sys
 
@@ -8,6 +9,23 @@ from menuinst.platforms.base import SCHEMA_VERSION
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
 
 from PyInstaller.utils.hooks import collect_submodules, copy_metadata
+
+
+def get_menuinst_datas() -> list[tuple[str, str]]:
+    """Get sparse set of data files for menuinst to remove unneeded schemas and launchers."""
+    datas = [
+        (os.path.join(sitepackages, 'menuinst', 'data', f'menuinst-{SCHEMA_VERSION}.default.json'), 'menuinst/data'),
+        (os.path.join(sitepackages, 'menuinst', 'data', f'menuinst-{SCHEMA_VERSION}.schema.json'), 'menuinst/data'),
+    ]
+    if sys.platform == "darwin":
+        macos_arch = os.environ.get("OSX_ARCH", platform.machine())
+        datas += [
+            (os.path.join(sitepackages, 'menuinst', 'data', f'osx_launcher_{macos_arch}'), 'menuinst/data'),
+            (os.path.join(sitepackages, 'menuinst', 'data', f'appkit_launcher_{macos_arch}'), 'menuinst/data'),
+        ]
+        extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
+    return datas
+
 
 # __file__ is not defined in the pyinstaller context,
 # so we will get it from sys.argv instead
@@ -76,14 +94,6 @@ if sys.platform == "win32":
         (os.path.join(sitepackages, 'conda', 'shell', 'Library', 'bin', 'conda.bat'), 'conda/shell/Library/bin'),
         (os.path.join(sitepackages, 'conda', 'shell', 'Scripts', 'activate.bat'), 'conda/shell/Scripts'),
     ]
-elif sys.platform == "darwin":
-    datas += [
-        (os.path.join(sitepackages, 'menuinst', 'data', 'osx_launcher_arm64'), 'menuinst/data'),
-        (os.path.join(sitepackages, 'menuinst', 'data', 'osx_launcher_x86_64'), 'menuinst/data'),
-        (os.path.join(sitepackages, 'menuinst', 'data', 'appkit_launcher_arm64'), 'menuinst/data'),
-        (os.path.join(sitepackages, 'menuinst', 'data', 'appkit_launcher_x86_64'), 'menuinst/data'),
-    ]
-    extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
 
 hiddenimports = []
 packages = [
@@ -119,7 +129,10 @@ for name, module in conda_plugin_manager.list_name_plugin():
     hiddenimports.extend(collect_submodules(package_name))
     # collect_submodules does not look at __init__
     hiddenimports.append(f"{package_name}.__init__")
-    datas.extend(collect_data_files(package_name))
+    if package_name == "menuinst":
+        datas.extend(get_menuinst_datas())
+    else:
+        datas.extend(collect_data_files(package_name))
     # metadata is needed for conda to find the plug-in
     datas.extend(copy_metadata(package_name))
 
