@@ -11,20 +11,20 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy
 from PyInstaller.utils.hooks import collect_submodules, copy_metadata
 
 
-def get_menuinst_datas() -> list[tuple[str, str]]:
+def get_menuinst_data_files() -> list[tuple[str, str]]:
     """Get sparse set of data files for menuinst to remove unneeded schemas and launchers."""
-    datas = [
+    data_files = [
         (os.path.join(sitepackages, 'menuinst', 'data', f'menuinst-{SCHEMA_VERSION}.default.json'), 'menuinst/data'),
         (os.path.join(sitepackages, 'menuinst', 'data', f'menuinst-{SCHEMA_VERSION}.schema.json'), 'menuinst/data'),
     ]
     if sys.platform == "darwin":
         macos_arch = os.environ.get("OSX_ARCH", platform.machine())
-        datas += [
+        data_files += [
             (os.path.join(sitepackages, 'menuinst', 'data', f'osx_launcher_{macos_arch}'), 'menuinst/data'),
             (os.path.join(sitepackages, 'menuinst', 'data', f'appkit_launcher_{macos_arch}'), 'menuinst/data'),
         ]
         extra_exe_kwargs["entitlements_file"] = os.path.join(HERE, "entitlements.plist")
-    return datas
+    return data_files
 
 
 # __file__ is not defined in the pyinstaller context,
@@ -130,7 +130,7 @@ for name, module in conda_plugin_manager.list_name_plugin():
     # collect_submodules does not look at __init__
     hiddenimports.append(f"{package_name}.__init__")
     if package_name == "menuinst":
-        datas.extend(get_menuinst_datas())
+        datas.extend(get_menuinst_data_files())
     else:
         datas.extend(collect_data_files(package_name))
     # metadata is needed for conda to find the plug-in
