@@ -1,0 +1,20 @@
+### Enhancements
+
+* Add subcommand `prune` for Windows to remove Registry values matching a user supplied `--prefix`, from `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\Folders`.
+  This subcommand also supports a `--dry-run` argument to run without making any changes. (#240)
+
+### Bug fixes
+
+* <news item>
+
+### Deprecations
+
+* <news item>
+
+### Docs
+
+* <news item>
+
+### Other
+
+* <news item>
