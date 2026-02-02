@@ -22,6 +22,12 @@ def _add_prefix(parser: ArgumentParser) -> None:
     )
 
 
+def _add_dry_run(parser: ArgumentParser) -> None:
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Enable a dry run of the specified action."
+    )
+
+
 def _add_extract(parser: ArgumentParser) -> None:
     extract_group = parser.add_mutually_exclusive_group(required=True)
     extract_group.add_argument(
@@ -161,8 +167,15 @@ def configure_parser(parser: ArgumentParser) -> None:
     windows_path_parser = windows_subparsers.add_parser(
         "path", description="Adds or removes a prefix to `PATH`."
     )
+
     _add_prefix(windows_path_parser)
     _add_windows_path(windows_path_parser)
+
+    windows_prune_parser = windows_subparsers.add_parser(
+        "prune", description="Prunes values matching --prefix from the Registry."
+    )
+    _add_prefix(windows_prune_parser)
+    _add_dry_run(windows_prune_parser)
 
 
 def execute(args: Namespace) -> None | int:
@@ -201,6 +214,19 @@ def execute(args: Namespace) -> None | int:
                     "classic": args.classic,
                     "append": args.append is not None,
                     "remove": args.remove,
+                }
+            )
+        elif args.windows_cmd == "prune":
+            import winreg
+
+            from .windows.registry import WinRegistry
+
+            wr = WinRegistry(winreg.HKEY_LOCAL_MACHINE)
+            action = wr.prune_prefix
+            kwargs.update(
+                {
+                    "key": r"SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\Folders",
+                    "dry_run": args.dry_run,
                 }
             )
         else:
