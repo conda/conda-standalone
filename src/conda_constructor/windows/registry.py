@@ -70,7 +70,6 @@ class WinRegistry:
                     if name.startswith(prefix_as_str):
                         to_delete.append(name)
                     index += 1
-                    # TODO; raise exception if index > 1000000 to prevent potential infinite loop?
                 except OSError:
                     break
 
