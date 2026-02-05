@@ -112,7 +112,7 @@ def test_uninstallation(
     tmp_env: TmpEnvFixture,
 ):
     environments_txt = mock_system_paths["home"] / ".conda" / "environments.txt"
-    with tmp_env() as base_env, tmp_env() as second_env:
+    with tmp_env(shallow=False) as base_env, tmp_env(shallow=False) as second_env:
         assert environments_txt.exists()
         environments = environments_txt.read_text().splitlines()
         assert str(base_env) in environments and str(second_env) in environments
@@ -399,7 +399,7 @@ def test_uninstallation_remove_user_data(
     mock_system_paths: dict[str, Path],
     tmp_env: TmpEnvFixture,
 ):
-    with tmp_env() as base_env:
+    with tmp_env(shallow=False) as base_env:
         dot_conda_dir = mock_system_paths["home"] / ".conda"
         assert dot_conda_dir.exists()
         run_uninstaller(base_env, remove_user_data=True)
@@ -519,7 +519,7 @@ def test_uninstallation_default_environment(
 ):
     environments_txt = mock_system_paths["home"] / ".conda" / "environments.txt"
     yaml = YAML()
-    with tmp_env() as base_env:
+    with tmp_env(shallow=False) as base_env:
         environments = environments_txt.read_text().splitlines()
         assert str(base_env) in environments
 

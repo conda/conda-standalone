@@ -1,9 +1,9 @@
-{% set conda_version = "25.11.1" %}
+{% set conda_version = "26.1.0" %}
 {% set conda_libmamba_solver_version = "25.11.0" %}
-{% set libmambapy_version = "2.4.0" %}
+{% set libmambapy_version = "2.5.0" %}
 {% set constructor_lower_bound = "3.12.1" %}
 {% set menuinst_lower_bound = "2.4.1" %}
-{% set python_version = "3.13.11" %}
+{% set python_version = "3.13.12" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
 package:
@@ -14,13 +14,12 @@ source:
   - path: ../
 
   - url: https://github.com/conda/conda/releases/download/{{ conda_version }}/conda-{{ conda_version }}.tar.gz
-    sha256: 280bee40bfa3dc64a294a3501ae3150fe112e0f51cf94f7a346e5cfb4b370efb
+    sha256: ebb5573ff611f82377dd283401fbd823172c4d0573d798228a48e85f9acf7a8e
     folder: conda_src
     # NOTE: All files affected by a patch need to be manually copied
     # from src to PREFIX in build.sh and bld.bat
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
-      - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
       - ../src/conda_patches/0003-Restrict-search-paths.patch
       - ../src/conda_patches/0004-Fix-conda-run.patch
 

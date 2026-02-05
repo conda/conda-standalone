@@ -1,46 +1,49 @@
-From 16646a6e08867b48d9f98a7aa0082333fbc0f118 Mon Sep 17 00:00:00 2001
+From c994290b4d2c1d596c52ba4cd693d3f94d7f9cf9 Mon Sep 17 00:00:00 2001
 From: jaimergp <jaimergp@users.noreply.github.com>
 Date: Wed, 27 Aug 2025 15:45:55 +0200
-Subject: [PATCH] Fix conda run
+Subject: [PATCH 4/4] Fix conda run
 
 Co-authored-by: Jaida Rice <jaidarice@gmail.com>
-
 ---
+ conda/__init__.py     |  5 ++++-
+ conda/activate.py     |  4 ++++
+ conda/base/context.py | 11 ++++-------
+ conda/cli/main_run.py |  7 +++++++
+ conda/utils.py        |  3 +--
+ 5 files changed, 20 insertions(+), 10 deletions(-)
 
 diff --git a/conda/__init__.py b/conda/__init__.py
-index 3abf5c0da7241d6267b6dd2609fa7f28d4813be5..3805975b1afa0afc528b3d628895836f9905534a 100644
+index 8b3b3c9b4..1d30d613a 100644
 --- a/conda/__init__.py
 +++ b/conda/__init__.py
-@@ -59,8 +59,11 @@ if os.getenv("CONDA_ROOT") is None:
+@@ -58,7 +58,10 @@ __url__ = "https://github.com/conda/conda"
+ if os.getenv("CONDA_ROOT") is None:
      os.environ["CONDA_ROOT"] = sys.prefix
-
- #: The conda package directory.
+ 
 -CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
--#: The path within which to find the conda package.
 +if getattr(sys, "_MEIPASS", None):
 +    CONDA_PACKAGE_ROOT = os.path.join(sys.prefix, "conda")
 +else:
 +    CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
-+ #: The path within which to find the conda package.#: The path within which to find the conda package.
- #:
- #: If `conda` is statically installed this is the site-packages. If `conda` is an editable install
- #: or otherwise uninstalled this is the git repo.
+ """The conda package directory."""
+ 
+ CONDA_SOURCE_ROOT = dirname(CONDA_PACKAGE_ROOT)
 diff --git a/conda/activate.py b/conda/activate.py
-index 8b9f17e06d3b2cef8a8804a1c292d3447a4cbcd1..03656c460ec8002097feba19465729a80593cbb9 100644
+index 0fcb5c59e..3830ab60d 100644
 --- a/conda/activate.py
 +++ b/conda/activate.py
-@@ -772,6 +772,8 @@ class _Activator(metaclass=abc.ABCMeta):
+@@ -756,6 +756,8 @@ class _Activator(metaclass=abc.ABCMeta):
              return ""
-
+ 
      def _get_activate_scripts(self, prefix):
 +        if prefix is None:
 +            return ()
          _script_extension = self.script_extension
          se_len = -len(_script_extension)
          try:
-@@ -786,6 +788,8 @@ class _Activator(metaclass=abc.ABCMeta):
+@@ -770,6 +772,8 @@ class _Activator(metaclass=abc.ABCMeta):
          )
-
+ 
      def _get_deactivate_scripts(self, prefix):
 +        if prefix is None:
 +            return ()
@@ -48,10 +51,10 @@ index 8b9f17e06d3b2cef8a8804a1c292d3447a4cbcd1..03656c460ec8002097feba19465729a8
          se_len = -len(_script_extension)
          try:
 diff --git a/conda/base/context.py b/conda/base/context.py
-index a8f56f30680d79decfb0e85a9e1ae94257c1c02d..4801003fe35e13209f2a4c27c490efb269c8a592 100644
+index df6b0b97e..e101c89ef 100644
 --- a/conda/base/context.py
 +++ b/conda/base/context.py
-@@ -846,6 +846,8 @@ class Context(Configuration):
+@@ -867,6 +867,8 @@ class Context(Configuration):
          addendum="Please use `conda.base.context.context.conda_exe_vars_dict` instead",
      )
      def conda_exe(self) -> PathType:
@@ -59,8 +62,8 @@ index a8f56f30680d79decfb0e85a9e1ae94257c1c02d..4801003fe35e13209f2a4c27c490efb2
 +            return sys.executable
          exe = "conda.exe" if on_win else "conda"
          return join(self.conda_prefix, BIN_DIRECTORY, exe)
-
-@@ -885,14 +887,9 @@ class Context(Configuration):
+ 
+@@ -906,14 +908,9 @@ class Context(Configuration):
                  "_CONDA_ROOT": self.conda_prefix,
              }
          else:
@@ -78,20 +81,20 @@ index a8f56f30680d79decfb0e85a9e1ae94257c1c02d..4801003fe35e13209f2a4c27c490efb2
                  "_CE_CONDA": None,
                  "CONDA_PYTHON_EXE": sys.executable,
 diff --git a/conda/cli/main_run.py b/conda/cli/main_run.py
-index dc74646620234e206519c26b1e798f96a11a6bd7..767fed20d7f6ccd1032a60caca7ee332c1d0a454 100644
+index 2450d1401..8194fe89e 100644
 --- a/conda/cli/main_run.py
 +++ b/conda/cli/main_run.py
-@@ -88,11 +88,19 @@ def configure_parser(sub_parsers: _SubParsersAction, **kwargs) -> ArgumentParser
+@@ -94,12 +94,19 @@ def configure_parser(sub_parsers: _SubParsersAction, **kwargs) -> ArgumentParser
  def execute(args: Namespace, parser: ArgumentParser) -> int:
      from ..base.context import context
      from ..common.compat import encode_environment
 +    from ..common.path import paths_equal
      from ..core.prefix_data import PrefixData
-+    from ..exceptions import ArgumentError
+     from ..exceptions import ArgumentError
      from ..gateways.disk.delete import rm_rf
      from ..gateways.subprocess import subprocess_call
      from ..utils import wrap_subprocess_call
-
+ 
 +    if paths_equal(context.target_prefix, sys.prefix):
 +        raise ArgumentError(
 +            "Cannot use 'conda run' on conda-standalone's base environment; "
@@ -100,33 +103,29 @@ index dc74646620234e206519c26b1e798f96a11a6bd7..767fed20d7f6ccd1032a60caca7ee332
 +
      prefix_data = PrefixData.from_context()
      prefix_data.assert_environment()
-     # create run script
+ 
 diff --git a/conda/utils.py b/conda/utils.py
-index b9a3cc5cce027cf38a92efaf6bc81bfaf6d1bd15..515622286f946b4f780da5ecac8812bbb8a87739 100644
+index 38648f99a..8a120b24a 100644
 --- a/conda/utils.py
 +++ b/conda/utils.py
-@@ -13,7 +13,7 @@ from os.path import abspath, basename, dirname, isfile, join
- from pathlib import Path
+@@ -14,8 +14,8 @@ from pathlib import Path
  from shutil import which
-
+ from typing import TYPE_CHECKING
+ 
 -from . import CondaError
-+from . import CONDA_PACKAGE_ROOT, CondaError
+ from .activate import _build_activator_cls
++from . import CondaError
  from .auxlib.compat import Utf8NamedTemporaryFile, shlex_split_unicode
  from .common.compat import isiterable, on_win
- from .common.path import path_identity as _path_identity
-@@ -401,14 +401,7 @@ def wrap_subprocess_call(
+ from .common.url import path_to_url
+@@ -222,7 +222,6 @@ def wrap_subprocess_call(
          multiline = True
      if on_win:
          comspec = get_comspec()  # fail early with KeyError if undefined
--        if dev_mode:
--            from . import CONDA_PACKAGE_ROOT
 -
--            conda_bat = join(CONDA_PACKAGE_ROOT, "shell", "condabin", "conda.bat")
--        else:
--            conda_bat = environ.get(
--                "CONDA_BAT", abspath(join(root_prefix, "condabin", "conda.bat"))
--            )
-+        conda_bat = join(CONDA_PACKAGE_ROOT, "shell", "condabin", "conda.bat")
-         with Utf8NamedTemporaryFile(
-             mode="w", prefix=tmp_prefix, suffix=".bat", delete=False
-         ) as fh:
+         with Utf8NamedTemporaryFile(mode="w", suffix=".bat", delete=False) as fh:
+             silencer = "" if debug_wrapper_scripts else "@"
+             fh.write(f"{silencer}ECHO OFF\n")
+-- 
+2.51.1.windows.1
+
