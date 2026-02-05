@@ -20,7 +20,6 @@ source:
     # from src to PREFIX in build.sh and bld.bat
     patches:
       - ../src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch
-      - ../src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch
       - ../src/conda_patches/0003-Restrict-search-paths.patch
       - ../src/conda_patches/0004-Fix-conda-run.patch
 
