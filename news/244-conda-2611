@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Update `conda` to 26.1.1. (#244)
+* Update `conda` to 26.1.1, `libmambapy` to 2.5.0, and  `python` to 3.13.12. (#241, #244)
 
 ### Bug fixes
 
