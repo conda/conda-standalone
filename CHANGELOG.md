@@ -13,6 +13,18 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 26.1.0 (2026-02-17)
+
+### Contributors
+
+* @marcoesters
+* @lrandersson
+* @conda-bot
+* @dependabot[bot]
+* @pre-commit-ci[bot]
+
+
+
 ## 25.11.0 (2025-12-10)
 
 ### Enhancements
