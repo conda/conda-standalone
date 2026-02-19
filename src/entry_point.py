@@ -197,8 +197,8 @@ def _conda_main():
 
 def _patch_constructor_args(argv: list[str] = sys.argv) -> list[str]:
     legacy_args = {
-        "--extract-conda-pkgs": ["constructor", "extract", "--conda"],
-        "--extract-tarball": ["constructor", "extract", "--tar"],
+        "--extract-conda-pkgs": ["constructor", "extract", "--conda-pkgs"],
+        "--extract-tarball": ["constructor", "extract", "--tar-from-stdin"],
         "--make-menus": ["menuinst", "--install"],
         "--rm-menus": ["menuinst", "--remove"],
     }
