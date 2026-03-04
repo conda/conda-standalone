@@ -13,6 +13,25 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 26.1.1 (2026-03-04)
+
+### Enhancements
+
+* Only include `conda` and `menuinst` data files for the native platform. (#237)
+* Update `conda` to 26.1.1, `libmambapy` to 2.5.0, and  `python` to 3.13.12. (#230, #241, #244)
+
+### Bug fixes
+
+* Paths are now prepended to the environment variable `PATH` in the correct order when `conda` is initialized in classic mode (`--classic`). (#229)
+* Resolve an issue when calling subcommand `constructor extract` would incorrectly adjust legacy arguments. (#245)
+
+### Contributors
+
+* @marcoesters
+* @lrandersson
+
+
+
 ## 25.11.0 (2025-12-10)
 
 ### Enhancements
