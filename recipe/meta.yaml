@@ -1,4 +1,4 @@
-{% set conda_version = "26.1.0" %}
+{% set conda_version = "26.1.1" %}
 {% set conda_libmamba_solver_version = "25.11.0" %}
 {% set libmambapy_version = "2.5.0" %}
 {% set constructor_lower_bound = "3.12.1" %}
@@ -14,7 +14,7 @@ source:
   - path: ../
 
   - url: https://github.com/conda/conda/releases/download/{{ conda_version }}/conda-{{ conda_version }}.tar.gz
-    sha256: ebb5573ff611f82377dd283401fbd823172c4d0573d798228a48e85f9acf7a8e
+    sha256: 4a3ca594c61b1ec316b6401ebc8515d0184a0eb7f61488da0628c44f0fea0764
     folder: conda_src
     # NOTE: All files affected by a patch need to be manually copied
     # from src to PREFIX in build.sh and bld.bat
