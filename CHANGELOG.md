@@ -17,9 +17,8 @@ Remember to update the hyperlinks at the bottom.
 
 ### Enhancements
 
-* Update `conda` to 25.11.1, `libmambapy` to 2.4.0, and  `python` to 3.13.11. (#230)
 * Only include `conda` and `menuinst` data files for the native platform. (#237)
-* Update `conda` to 26.1.1, `libmambapy` to 2.5.0, and  `python` to 3.13.12. (#241, #244)
+* Update `conda` to 26.1.1, `libmambapy` to 2.5.0, and  `python` to 3.13.12. (#230, #241, #244)
 
 ### Bug fixes
 
