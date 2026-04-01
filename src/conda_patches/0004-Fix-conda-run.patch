@@ -3,14 +3,16 @@ From: jaimergp <jaimergp@users.noreply.github.com>
 Date: Wed, 27 Aug 2025 15:45:55 +0200
 Subject: [PATCH 4/4] Fix conda run
 
+Updated for conda 26.3.0 which removed the deprecated conda_exe property.
+
 Co-authored-by: Jaida Rice <jaidarice@gmail.com>
 ---
  conda/__init__.py     |  5 ++++-
  conda/activate.py     |  4 ++++
- conda/base/context.py | 11 ++++-------
+ conda/base/context.py |  7 +------
  conda/cli/main_run.py |  7 +++++++
  conda/utils.py        |  3 +--
- 5 files changed, 20 insertions(+), 10 deletions(-)
+ 5 files changed, 17 insertions(+), 9 deletions(-)
 
 diff --git a/conda/__init__.py b/conda/__init__.py
 index 8b3b3c9b4..1d30d613a 100644
@@ -19,14 +21,14 @@ index 8b3b3c9b4..1d30d613a 100644
 @@ -58,7 +58,10 @@ __url__ = "https://github.com/conda/conda"
  if os.getenv("CONDA_ROOT") is None:
      os.environ["CONDA_ROOT"] = sys.prefix
- 
+
 -CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
 +if getattr(sys, "_MEIPASS", None):
 +    CONDA_PACKAGE_ROOT = os.path.join(sys.prefix, "conda")
 +else:
 +    CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
  """The conda package directory."""
- 
+
  CONDA_SOURCE_ROOT = dirname(CONDA_PACKAGE_ROOT)
 diff --git a/conda/activate.py b/conda/activate.py
 index 0fcb5c59e..3830ab60d 100644
@@ -34,7 +36,7 @@ index 0fcb5c59e..3830ab60d 100644
 +++ b/conda/activate.py
 @@ -756,6 +756,8 @@ class _Activator(metaclass=abc.ABCMeta):
              return ""
- 
+
      def _get_activate_scripts(self, prefix):
 +        if prefix is None:
 +            return ()
@@ -43,7 +45,7 @@ index 0fcb5c59e..3830ab60d 100644
          try:
 @@ -770,6 +772,8 @@ class _Activator(metaclass=abc.ABCMeta):
          )
- 
+
      def _get_deactivate_scripts(self, prefix):
 +        if prefix is None:
 +            return ()
@@ -54,16 +56,7 @@ diff --git a/conda/base/context.py b/conda/base/context.py
 index df6b0b97e..e101c89ef 100644
 --- a/conda/base/context.py
 +++ b/conda/base/context.py
-@@ -867,6 +867,8 @@ class Context(Configuration):
-         addendum="Please use `conda.base.context.context.conda_exe_vars_dict` instead",
-     )
-     def conda_exe(self) -> PathType:
-+        if getattr(sys, "_MEIPASS", None):
-+            return sys.executable
-         exe = "conda.exe" if on_win else "conda"
-         return join(self.conda_prefix, BIN_DIRECTORY, exe)
- 
-@@ -906,14 +908,9 @@ class Context(Configuration):
+@@ -891,14 +891,9 @@ class Context(Configuration):
                  "_CONDA_ROOT": self.conda_prefix,
              }
          else:
@@ -94,7 +87,7 @@ index 2450d1401..8194fe89e 100644
      from ..gateways.disk.delete import rm_rf
      from ..gateways.subprocess import subprocess_call
      from ..utils import wrap_subprocess_call
- 
+
 +    if paths_equal(context.target_prefix, sys.prefix):
 +        raise ArgumentError(
 +            "Cannot use 'conda run' on conda-standalone's base environment; "
@@ -103,7 +96,7 @@ index 2450d1401..8194fe89e 100644
 +
      prefix_data = PrefixData.from_context()
      prefix_data.assert_environment()
- 
+
 diff --git a/conda/utils.py b/conda/utils.py
 index 38648f99a..8a120b24a 100644
 --- a/conda/utils.py
@@ -111,7 +104,7 @@ index 38648f99a..8a120b24a 100644
 @@ -14,8 +14,8 @@ from pathlib import Path
  from shutil import which
  from typing import TYPE_CHECKING
- 
+
 -from . import CondaError
  from .activate import _build_activator_cls
 +from . import CondaError
@@ -126,6 +119,6 @@ index 38648f99a..8a120b24a 100644
          with Utf8NamedTemporaryFile(mode="w", suffix=".bat", delete=False) as fh:
              silencer = "" if debug_wrapper_scripts else "@"
              fh.write(f"{silencer}ECHO OFF\n")
--- 
+--
 2.51.1.windows.1
 
