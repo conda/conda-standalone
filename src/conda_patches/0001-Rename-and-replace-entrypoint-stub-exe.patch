@@ -3,7 +3,7 @@ From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Tue, 13 Aug 2019 07:43:35 -0400
 Subject: [PATCH 1/4] Rename and replace entrypoint stub exe
 
-Updated for conda 26.3.0 which refactored Windows launcher stub handling
+Updated for conda 26.3.1 which refactored Windows launcher stub handling
 to use WINDOWS_LAUNCHER_STUB_PATH and CONDA_PACKAGE_ROOT.
 
 ---

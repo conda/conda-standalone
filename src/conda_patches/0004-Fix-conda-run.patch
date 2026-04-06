@@ -3,7 +3,7 @@ From: jaimergp <jaimergp@users.noreply.github.com>
 Date: Wed, 27 Aug 2025 15:45:55 +0200
 Subject: [PATCH 4/4] Fix conda run
 
-Updated for conda 26.3.0 which removed the deprecated conda_exe property.
+Updated for conda 26.3.1 which removed the deprecated conda_exe property.
 
 Co-authored-by: Jaida Rice <jaidarice@gmail.com>
 ---
