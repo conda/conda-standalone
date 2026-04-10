@@ -22,8 +22,6 @@ Remember to update the hyperlinks at the bottom.
 ### Contributors
 
 * @lrandersson
-* @conda-bot
-* @pre-commit-ci[bot]
 
 
 
