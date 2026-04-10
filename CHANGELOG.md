@@ -13,6 +13,20 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 26.3.1 (2026-04-10)
+
+### Enhancements
+
+* Update `conda` to `26.3.1`, `conda-libmamba-solver` to `26.3.0`, `python` to `3.13.13` and minimum version of `constructor` to `3.15.2`. (#257)
+
+### Contributors
+
+* @lrandersson
+* @conda-bot
+* @pre-commit-ci[bot]
+
+
+
 ## 26.1.1 (2026-03-04)
 
 ### Enhancements
