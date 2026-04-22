@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Update `conda` to `26.3.2`. (#261)
+* Update `conda` to `26.3.2` and `conda-libmamba-solver` to `26.4.0`. (#261)
 
 ### Bug fixes
 
