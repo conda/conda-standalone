@@ -17,14 +17,11 @@ Remember to update the hyperlinks at the bottom.
 
 ### Enhancements
 
-* Update `conda` to `26.3.1`, `conda-libmamba-solver` to `26.3.0`, `python` to `3.13.13` and minimum version of `constructor` to `3.15.2`. (#257)
-* Update `conda` to `26.3.2` and `conda-libmamba-solver` to `26.4.0`. (#261)
+* Update `conda` to `26.3.2`, `conda-libmamba-solver` to `26.4.0`, `python` to `3.13.13` and minimum version of `constructor` to `3.15.2`. (#257, #261)
 
 ### Contributors
 
 * @lrandersson
-* @conda-bot
-* @pre-commit-ci[bot]
 
 
 
