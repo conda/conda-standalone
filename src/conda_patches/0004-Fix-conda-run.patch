@@ -3,7 +3,9 @@ From: jaimergp <jaimergp@users.noreply.github.com>
 Date: Wed, 27 Aug 2025 15:45:55 +0200
 Subject: [PATCH 4/4] Fix conda run
 
-Updated for conda 26.3.1 which removed the deprecated conda_exe property.
+Updated for conda 26.3.2 which reverted the inline activation optimization.
+This patch restores the utils.py changes needed for conda.bat lookup in
+conda-standalone, since CONDA_PACKAGE_ROOT is patched to work with PyInstaller.
 
 Co-authored-by: Jaida Rice <jaidarice@gmail.com>
 ---
@@ -11,8 +13,8 @@ Co-authored-by: Jaida Rice <jaidarice@gmail.com>
  conda/activate.py     |  4 ++++
  conda/base/context.py |  7 +------
  conda/cli/main_run.py |  7 +++++++
- conda/utils.py        |  3 +--
- 5 files changed, 17 insertions(+), 9 deletions(-)
+ conda/utils.py        | 11 +++--------
+ 5 files changed, 19 insertions(+), 15 deletions(-)
 
 diff --git a/conda/__init__.py b/conda/__init__.py
 index 8b3b3c9b4..1d30d613a 100644
@@ -98,24 +100,33 @@ index 2450d1401..8194fe89e 100644
      prefix_data.assert_environment()
 
 diff --git a/conda/utils.py b/conda/utils.py
-index 38648f99a..8a120b24a 100644
+index 38648f99a..515622286 100644
 --- a/conda/utils.py
 +++ b/conda/utils.py
-@@ -14,8 +14,8 @@ from pathlib import Path
+@@ -14,7 +14,7 @@ from pathlib import Path
  from shutil import which
  from typing import TYPE_CHECKING
 
 -from . import CondaError
- from .activate import _build_activator_cls
-+from . import CondaError
++from . import CONDA_PACKAGE_ROOT, CondaError
  from .auxlib.compat import Utf8NamedTemporaryFile, shlex_split_unicode
  from .common.compat import isiterable, on_win
  from .common.url import path_to_url
-@@ -222,7 +222,6 @@ def wrap_subprocess_call(
+@@ -188,16 +188,9 @@ def wrap_subprocess_call(
+     multiline = False
+     if len(arguments) == 1 and "\n" in arguments[0]:
          multiline = True
      if on_win:
          comspec = get_comspec()  # fail early with KeyError if undefined
+-        if dev_mode:
+-            from . import CONDA_PACKAGE_ROOT
 -
+-            conda_bat = join(CONDA_PACKAGE_ROOT, "shell", "condabin", "conda.bat")
+-        else:
+-            conda_bat = environ.get(
+-                "CONDA_BAT", abspath(join(root_prefix, "condabin", "conda.bat"))
+-            )
++        conda_bat = join(CONDA_PACKAGE_ROOT, "shell", "condabin", "conda.bat")
          with Utf8NamedTemporaryFile(mode="w", suffix=".bat", delete=False) as fh:
              silencer = "" if debug_wrapper_scripts else "@"
              fh.write(f"{silencer}ECHO OFF\n")
