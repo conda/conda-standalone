@@ -15,19 +15,30 @@ HERE = Path(__file__).parent
 @pytest.mark.parametrize("solver", ["classic", "libmamba"])
 def test_new_environment(tmp_path, solver):
     env = os.environ.copy()
+    env_location = tmp_path / "env"
     env["CONDA_SOLVER"] = solver
+    env["CONDA_ROOT_PREFIX"] = str(env_location)
     run_conda(
         "create",
         "-p",
-        tmp_path / "env",
+        env_location,
         "-y",
         "-c",
         "conda-forge",
-        "libzlib",
+        "spyder",
         env=env,
         check=True,
     )
-    assert list((tmp_path / "env" / "conda-meta").glob("libzlib-*.json"))
+    assert next((env_location / "conda-meta").glob("spyder-*.json"), None)
+    run_conda(
+        "remove",
+        "-p",
+        tmp_path / "env",
+        "--all",
+        env=env,
+        check=True,
+    )
+    assert not next((env_location / "conda-meta").glob("spyder-*.json"), None)
 
 
 def test_install_conda(tmp_path):
