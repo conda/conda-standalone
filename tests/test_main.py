@@ -15,9 +15,9 @@ HERE = Path(__file__).parent
 @pytest.mark.parametrize("solver", ["classic", "libmamba"])
 def test_new_environment(tmp_path, solver):
     env = os.environ.copy()
-    env_location = tmp_path / "env"
+    env_location = tmp_path / "env" / "envs" / "spyder"
     env["CONDA_SOLVER"] = solver
-    env["CONDA_ROOT_PREFIX"] = str(env_location)
+    env["CONDA_ROOT_PREFIX"] = str(env_location.parent.parent)
     run_conda(
         "create",
         "-p",
