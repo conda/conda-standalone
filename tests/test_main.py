@@ -29,7 +29,7 @@ def test_new_environment(tmp_path, solver):
         env=env,
         check=True,
     )
-    assert next((env_location / "conda-meta").glob("spyder-*.json"), None)
+    assert next((env_location / "conda-meta").glob("gdk-pixbuf-*.json"), None)
     run_conda(
         "remove",
         "-p",
@@ -38,7 +38,7 @@ def test_new_environment(tmp_path, solver):
         env=env,
         check=True,
     )
-    assert not next((env_location / "conda-meta").glob("spyder-*.json"), None)
+    assert not next((env_location / "conda-meta").glob("gdk-pixbuf-*.json"), None)
 
 
 def test_install_conda(tmp_path):
