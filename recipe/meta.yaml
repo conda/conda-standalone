@@ -61,6 +61,7 @@ requirements:
 test:
   requires:
     - conda
+    - conda-build
     - menuinst >={{ menuinst_lower_bound }}
     - pytest
     - ruamel.yaml

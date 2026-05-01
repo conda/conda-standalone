@@ -1,11 +1,14 @@
 import itertools
 import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 from utils import _get_shortcut_dirs
+
+TEST_PACKAGE_DIR = Path(__file__).parent / "test_package"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -61,3 +64,22 @@ def clean_shortcuts(tmp_path: Path, menuinst_pkg_specs: list[tuple[str, dict[str
     _clean_macos_apps(shortcuts)
     yield shortcuts
     _clean_macos_apps(shortcuts)
+
+
+@pytest.fixture
+def test_package(tmp_path: Path) -> Path:
+    # This should technically be a session-scoped fixture,
+    # but then we can't use tmp_path. Since the package is
+    # tiny and only used in one test, we can get away with it
+    subprocess.run(
+        [
+            "conda-build",
+            TEST_PACKAGE_DIR,
+            "--output-folder",
+            tmp_path,
+            "--croot",
+            tmp_path,
+        ]
+    )
+    package_file = Path(next((tmp_path / "noarch").glob("test_package-*.conda")))
+    return package_file

@@ -14,31 +14,20 @@ HERE = Path(__file__).parent
 
 @pytest.mark.parametrize("solver", ["classic", "libmamba"])
 def test_new_environment(tmp_path, solver):
-    # Use a package that contains post-link scripts
     env = os.environ.copy()
-    env_location = tmp_path / "env"
     env["CONDA_SOLVER"] = solver
     run_conda(
         "create",
         "-p",
-        env_location,
+        tmp_path / "env",
         "-y",
         "-c",
         "conda-forge",
-        "gdk-pixbuf",
+        "libzlib",
         env=env,
         check=True,
     )
-    assert next((env_location / "conda-meta").glob("gdk-pixbuf-*.json"), None)
-    run_conda(
-        "remove",
-        "-p",
-        tmp_path / "env",
-        "--all",
-        env=env,
-        check=True,
-    )
-    assert not next((env_location / "conda-meta").glob("gdk-pixbuf-*.json"), None)
+    assert list((tmp_path / "env" / "conda-meta").glob("libzlib-*.json"))
 
 
 def test_install_conda(tmp_path):
@@ -57,6 +46,32 @@ def test_install_conda(tmp_path):
         conda_json_regex.search(str(file))
         for file in (tmp_path / "env" / "conda-meta").glob("conda-*.json")
     )
+
+
+def test_install_link_scripts(tmp_path: Path, test_package: Path):
+    env_location = tmp_path / "env"
+    run_conda(
+        "create",
+        "-p",
+        env_location,
+        test_package,
+        "-y",
+        check=True,
+    )
+    assert next((env_location / "conda-meta").glob("test_package-*.json"), None)
+    script_output = env_location / "script_output.txt"
+    assert script_output.exists()
+    assert script_output.read_text().splitlines() == ["pre-link", "post-link"]
+    run_conda(
+        "remove",
+        "-p",
+        env_location,
+        "--all",
+        "-y",
+        check=True,
+    )
+    assert next((env_location / "conda-meta").glob("test_package-*.json"), None) is None
+    assert not (env_location / "uninstall_output.txt").exists()
 
 
 def test_constructor():
