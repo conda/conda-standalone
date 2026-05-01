@@ -1,4 +1,4 @@
 @ECHO OFF
 
-ECHO pre-link >> %PREFIX%\script_output.txt
+ECHO pre-link>> %PREFIX%\script_output.txt
 EXIT /B %ERRORLEVEL%
