@@ -13,6 +13,18 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 26.3.2.post1 (2026-05-01)
+
+### Bug fixes
+
+* Restore old `PATH` manipulation patch version to avoid calling `activate.bat` during post-link step. (#268)
+
+### Contributors
+
+* @marcoesters
+
+
+
 ## 26.3.2 (2026-04-23)
 
 ### Enhancements
