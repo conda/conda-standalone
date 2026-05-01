@@ -14,6 +14,7 @@ HERE = Path(__file__).parent
 
 @pytest.mark.parametrize("solver", ["classic", "libmamba"])
 def test_new_environment(tmp_path, solver):
+    # Use a package that contains post-link scripts
     env = os.environ.copy()
     env_location = tmp_path / "env"
     env["CONDA_SOLVER"] = solver
@@ -24,7 +25,7 @@ def test_new_environment(tmp_path, solver):
         "-y",
         "-c",
         "conda-forge",
-        "spyder",
+        "gdk-pixbuf",
         env=env,
         check=True,
     )
