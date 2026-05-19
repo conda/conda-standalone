@@ -55,6 +55,7 @@ requirements:
     - conda-libmamba-solver ={{ conda_libmamba_solver_version }}
     - libmambapy ={{ libmambapy_version }}
     - archspec >=0.2.3
+    - conda-pypi
   run_constrained:
     - constructor >={{ constructor_lower_bound }}
 
