@@ -5,6 +5,7 @@ import site
 import sys
 
 import conda.plugins.manager
+from conda import __version__ as conda_version
 from menuinst.platforms.base import SCHEMA_VERSION
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
 
@@ -135,6 +136,13 @@ for name, module in conda_plugin_manager.list_name_plugin():
         datas.extend(collect_data_files(package_name))
     # metadata is needed for conda to find the plug-in
     datas.extend(copy_metadata(package_name))
+
+# Write version file to capture the package version since
+# conda-standalone may have postN releases.
+version = os.environ.get("PKG_VERSION", conda_version)
+with open(os.path.join(HERE, "_version.py"), "w") as f:
+    f.write(f'__version__ = "{version}"\n')
+datas.append((os.path.join(HERE, "_version.py"), "conda_constructor"))
 
 a = Analysis(['entry_point.py'],
              pathex=['.'],
