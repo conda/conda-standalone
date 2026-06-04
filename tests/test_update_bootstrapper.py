@@ -24,7 +24,6 @@ from utils import run_conda
 if TYPE_CHECKING:
     from pathlib import Path
 
-ON_WIN = sys.platform == "win32"
 if os.environ.get("PYINSTALLER_BUILD_VARIANT") == "onedir":
     pytest.skip("Not implemented for onedir builds.", allow_module_level=True)
 
