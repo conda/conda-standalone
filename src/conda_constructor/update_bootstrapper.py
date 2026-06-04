@@ -28,6 +28,7 @@ class UpdateError(RuntimeError):
 
 
 def _find_update(min_version: str) -> PackageRecord | None:
+    """Find the latest conda-standalone version if older than the current binary."""
     version = f">{min_version}"
     spec = MatchSpec(name="conda-standalone", version=version)
     matches = sorted(
