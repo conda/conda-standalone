@@ -150,13 +150,8 @@ def configure_parser(parser: ArgumentParser) -> None:
 
     # Not implemented for onedir builds
     if Path(sys.prefix).name != "_internal":
-        update_subparser = subparsers.add_parser(
+        subparsers.add_parser(
             "update-bootstrapper", description="Updates the conda-standalone binary."
-        )
-        update_subparser.add_argument(
-            "--force",
-            action="store_true",
-            help="Update even if already at the latest version.",
         )
 
     if sys.platform != "win32":
