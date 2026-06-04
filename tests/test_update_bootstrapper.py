@@ -1,3 +1,15 @@
+"""Test update-bootstrapper subcommand for the constructor plug-in.
+
+A true integration test would require an updated conda-standalone to be
+available in a channel. If a later version is built and tested, however,
+there is nothing to update to.
+
+Some individual pieces can be tested as unit tests using the built-in
+Python interpreter in conda-standalone, which allows mocking some components.
+Python commands/scripts are written as functions to allow for type checking
+and linting.
+"""
+
 from __future__ import annotations
 
 import inspect
