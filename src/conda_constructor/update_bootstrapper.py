@@ -15,7 +15,7 @@ from conda.models.match_spec import MatchSpec
 from conda.models.version import VersionOrder
 from conda_package_handling import api as cph_api
 
-from conda_constructor._version import __version__
+from conda_constructor._version import __buildnum__, __version__
 
 if TYPE_CHECKING:
     from conda.models.records import PackageRecord
@@ -27,18 +27,28 @@ class UpdateError(RuntimeError):
     pass
 
 
-def _find_update(min_version: str) -> PackageRecord | None:
-    """Find the latest conda-standalone version if older than the current binary."""
-    version = f">={min_version}"
-    spec = MatchSpec(name="conda-standalone", version=version)
-    matches = sorted(
-        SubdirData.query_all(spec, context.channels, context.subdirs),
-        key=lambda rec: (VersionOrder(rec.version), rec.build_number),
-        reverse=True,
+def _find_update(min_version: str, min_buildnum: int) -> PackageRecord | None:
+    """Find the latest conda-standalone version if newer than the current binary."""
+    spec = MatchSpec(name="conda-standalone", version=f">={min_version}")
+    matches = tuple(
+        filter(
+            lambda rec: "_onedir_" not in rec.build,
+            SubdirData.query_all(spec, context.channels, context.subdirs),
+        )
     )
     if not matches:
         return None
-    return matches[0]
+    latest = sorted(
+        matches,
+        key=lambda rec: (VersionOrder(rec.version), rec.build_number),
+        reverse=True,
+    )[0]
+    if (
+        VersionOrder(min_version) == VersionOrder(latest.version)
+        and min_buildnum == latest.build_number
+    ):
+        return None
+    return latest
 
 
 _CLEANUP_SCRIPT = """\
@@ -112,7 +122,7 @@ def update_bootstrapper() -> None:
     os.environ["CONDA_RESTRICT_SEARCH_PATH"] = "1"
     reset_context()
 
-    match = _find_update(__version__)
+    match = _find_update(min_version=__version__, min_buildnum=__buildnum__)
     if match is None:
         print("Already up-to-date.")
         return

@@ -56,7 +56,7 @@ def _script_find_update():
     os.environ["CONDA_RESTRICT_SEARCH_PATH"] = "1"
     reset_context()
 
-    match = _find_update("1.0.0")
+    match = _find_update("1.0.0", 0)
     assert match is not None
     assert match.name == "conda-standalone"
     print("PASS")
@@ -70,7 +70,115 @@ def _script_find_update_already_up_to_date():
     os.environ["CONDA_RESTRICT_SEARCH_PATH"] = "1"
     reset_context()
 
-    match = _find_update("999.999.999")
+    match = _find_update("999.999.999", 0)
+    assert match is None
+    print("PASS")
+
+
+def _script_find_update_filters_onedir():
+    from unittest.mock import patch
+
+    from conda.models.records import PackageRecord
+
+    from conda_constructor.update_bootstrapper import _find_update
+
+    mock_records = [
+        PackageRecord(
+            name="conda-standalone",
+            version="26.3.2",
+            build="py313_onedir_0",
+            build_number=0,
+        ),
+        PackageRecord(
+            name="conda-standalone",
+            version="26.3.2",
+            build="py313_single_0",
+            build_number=0,
+        ),
+    ]
+
+    with patch("conda.core.subdir_data.SubdirData.query_all", return_value=mock_records):
+        match = _find_update("25.11.1", 0)
+
+    assert match is not None
+    assert "_onedir_" not in match.build
+    assert match.build == "py313_single_0"
+    print("PASS")
+
+
+def _script_find_update_prefers_higher_build_number():
+    from unittest.mock import patch
+
+    from conda.models.records import PackageRecord
+
+    from conda_constructor.update_bootstrapper import _find_update
+
+    mock_records = [
+        PackageRecord(
+            name="conda-standalone",
+            version="26.3.2",
+            build="py313_single_0",
+            build_number=0,
+        ),
+        PackageRecord(
+            name="conda-standalone",
+            version="26.3.2",
+            build="py313_single_1",
+            build_number=1,
+        ),
+    ]
+
+    with patch("conda.core.subdir_data.SubdirData.query_all", return_value=mock_records):
+        match = _find_update("25.11.1", 0)
+
+    assert match is not None
+    assert match.build_number == 1
+    print("PASS")
+
+
+def _script_find_update_same_version_higher_build():
+    from unittest.mock import patch
+
+    from conda.models.records import PackageRecord
+
+    from conda_constructor.update_bootstrapper import _find_update
+
+    mock_records = [
+        PackageRecord(
+            name="conda-standalone",
+            version="26.3.2",
+            build="py313_single_1",
+            build_number=1,
+        ),
+    ]
+
+    with patch("conda.core.subdir_data.SubdirData.query_all", return_value=mock_records):
+        match = _find_update("26.3.2", 0)
+
+    assert match is not None
+    assert match.build_number == 1
+    print("PASS")
+
+
+def _script_find_update_same_version_same_build():
+    from unittest.mock import patch
+
+    from conda.models.records import PackageRecord
+
+    from conda_constructor.update_bootstrapper import _find_update
+
+    mock_records = [
+        PackageRecord(
+            name="conda-standalone",
+            version="26.3.2",
+            build="py313_single_0",
+            build_number=0,
+        ),
+    ]
+
+    with patch("conda.core.subdir_data.SubdirData.query_all", return_value=mock_records):
+        match = _find_update("26.3.2", 0)
+
     assert match is None
     print("PASS")
 
@@ -208,6 +316,34 @@ def test_find_update():
 def test_find_update_already_up_to_date():
     """Test _find_update returns None when already at the latest version."""
     process = _run_script(_script_find_update_already_up_to_date)
+    assert process.returncode == 0
+    assert "PASS" in process.stdout
+
+
+def test_find_update_filters_onedir():
+    """Test _find_update excludes onedir builds."""
+    process = _run_script(_script_find_update_filters_onedir)
+    assert process.returncode == 0
+    assert "PASS" in process.stdout
+
+
+def test_find_update_prefers_higher_build_number():
+    """Test _find_update prefers higher build numbers for same version."""
+    process = _run_script(_script_find_update_prefers_higher_build_number)
+    assert process.returncode == 0
+    assert "PASS" in process.stdout
+
+
+def test_find_update_same_version_higher_build():
+    """Test _find_update returns match when same version but higher build number."""
+    process = _run_script(_script_find_update_same_version_higher_build)
+    assert process.returncode == 0
+    assert "PASS" in process.stdout
+
+
+def test_find_update_same_version_same_build():
+    """Test _find_update returns None when same version and build number."""
+    process = _run_script(_script_find_update_same_version_same_build)
     assert process.returncode == 0
     assert "PASS" in process.stdout
 

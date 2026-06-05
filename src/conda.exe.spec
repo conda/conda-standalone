@@ -140,8 +140,10 @@ for name, module in conda_plugin_manager.list_name_plugin():
 # Write version file to capture the package version since
 # conda-standalone may have postN releases.
 version = os.environ.get("PKG_VERSION", conda_version)
+build_number = int(os.environ.get("PKG_BUILDNUM", 0))
 with open(os.path.join(HERE, "_version.py"), "w") as f:
     f.write(f'__version__ = "{version}"\n')
+    f.write(f"__buildnum__ = {build_number}\n")
 datas.append((os.path.join(HERE, "_version.py"), "conda_constructor"))
 
 a = Analysis(['entry_point.py'],
