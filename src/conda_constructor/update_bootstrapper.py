@@ -29,11 +29,11 @@ class UpdateError(RuntimeError):
 
 def _find_update(min_version: str) -> PackageRecord | None:
     """Find the latest conda-standalone version if older than the current binary."""
-    version = f">{min_version}"
+    version = f">={min_version}"
     spec = MatchSpec(name="conda-standalone", version=version)
     matches = sorted(
         SubdirData.query_all(spec, context.channels, context.subdirs),
-        key=lambda rec: (VersionOrder(rec.version), rec.build),
+        key=lambda rec: (VersionOrder(rec.version), rec.build_number),
         reverse=True,
     )
     if not matches:
@@ -120,8 +120,8 @@ def update_bootstrapper() -> None:
     with TemporaryDirectory() as tmp_path:
         tmp = Path(tmp_path)
         package = tmp / match.fn
-        if package.suffix not in (".conda", ".bz2"):
-            raise UpdateError(f"Cannot extract package of format {package.suffix}.")
+        if not package.name.lower().endswith((".conda", ".tar.bz2")):
+            raise UpdateError(f"Can't extract unknown package type: '{package.name}'.")
 
         download(match.url, package, sha256=match.sha256)
         cph_api.extract(str(package), dest_dir=str(tmp))
