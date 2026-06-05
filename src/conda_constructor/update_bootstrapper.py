@@ -120,8 +120,9 @@ def update_bootstrapper() -> None:
     with TemporaryDirectory() as tmp_path:
         tmp = Path(tmp_path)
         package = tmp / match.fn
-        if not package.name.lower().endswith((".conda", ".tar.bz2")):
-            raise UpdateError(f"Can't extract unknown package type: '{package.name}'.")
+        valid_suffixes = tuple(context.plugin_manager.get_package_extractors().keys())
+        if not package.name.lower().endswith(valid_suffixes):
+            raise UpdateError(f"Cannot extract unknown package type: '{package.name}'.")
 
         download(match.url, package, sha256=match.sha256)
         cph_api.extract(str(package), dest_dir=str(tmp))
