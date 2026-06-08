@@ -148,6 +148,12 @@ def configure_parser(parser: ArgumentParser) -> None:
     _add_prefix(uninstall_parser)
     _add_uninstall(uninstall_parser)
 
+    # Not implemented for onedir builds
+    if Path(sys.prefix).name != "_internal":
+        subparsers.add_parser(
+            "update-bootstrapper", description="Updates the conda-standalone binary."
+        )
+
     if sys.platform != "win32":
         return
     windows_parser = subparsers.add_parser(
@@ -189,6 +195,10 @@ def execute(args: Namespace) -> None | int:
                 "remove_user_data": args.remove_user_data,
             }
         )
+    elif args.cmd == "update-bootstrapper":
+        from .update_bootstrapper import update_bootstrapper
+
+        action = update_bootstrapper
     elif args.cmd == "windows" and sys.platform == "win32":
         if args.windows_cmd == "path":
             from .windows.path import add_remove_path
@@ -209,7 +219,6 @@ def execute(args: Namespace) -> None | int:
             )
     else:
         raise NotImplementedError(f"No action available for subcommand '{args.cmd}'.")
-    return action(
-        prefix=Path(args.prefix).expanduser().resolve(),
-        **kwargs,
-    )
+    if args.cmd != "update-bootstrapper":
+        kwargs["prefix"] = Path(args.prefix).expanduser().resolve()
+    return action(**kwargs)

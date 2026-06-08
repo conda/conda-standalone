@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 
 from conda.auxlib.type_coercion import boolify
-from conda.base.constants import CONDA_PACKAGE_EXTENSIONS
+from conda.base.context import context
 from conda_package_handling import api
 from conda_package_streaming.package_streaming import TarfileNoSameOwner
 from tqdm.auto import tqdm
@@ -71,7 +71,7 @@ def _extract_conda_pkgs(prefix: Path, max_workers=None) -> None:
     current_location = Path.cwd()
     os.chdir(prefix / "pkgs")
     flist = []
-    for ext in CONDA_PACKAGE_EXTENSIONS:
+    for ext in context.plugin_manager.get_package_extractors():
         for pkg in Path.cwd().iterdir():
             if pkg.name.endswith(ext):
                 flist.append(str(pkg))
