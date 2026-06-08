@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Add self-updater for single-binary builds. (#279)
+* Add self-updater command (`conda constructor update-boostrapper`) for single-binary builds. (#279)
 
 ### Bug fixes
 
