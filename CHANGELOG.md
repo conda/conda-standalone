@@ -13,6 +13,22 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 26.5.2 (2026-06-09)
+
+### Enhancements
+
+* Add `conda-pypi` as a build dependency to enable support for wheel packages. (#273)
+* Add self-updater command (`conda constructor update-boostrapper`) for single-binary builds. (#279)
+* Update `conda` to `26.5.2`, `conda-libmamba-solver` to `26.4.2`, `libmambapy` to `2.8.0`, and minimum version of `menuinst` to `2.5.0`. (#281)
+
+### Contributors
+
+* @jaimergp
+* @marcoesters
+* @lrandersson
+
+
+
 ## 26.3.2.post1 (2026-05-01)
 
 ### Bug fixes
