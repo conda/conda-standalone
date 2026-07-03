@@ -77,3 +77,34 @@ def test_menuinst_conda_standalone(
         if any(shortcut.exists() for shortcut in shortcuts)
     ]
     assert shortcuts_found == []
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS only")
+def test_macos_launchers_shipped_unmodified(tmp_path: Path):
+    """
+    The frozen menuinst launcher templates must keep their original load
+    commands. PyInstaller's binary processing used to rewrite their rpaths,
+    stripping /usr/lib/swift from appkit_launcher_*, which broke Swift
+    runtime resolution on x86_64 (conda/menuinst#507).
+    """
+    script = (
+        "import glob, os, shutil, sys, menuinst; "
+        "data_dir = os.path.join(os.path.dirname(menuinst.__file__), 'data'); "
+        "[shutil.copy(path, sys.argv[1]) "
+        "for path in glob.glob(os.path.join(data_dir, 'appkit_launcher_*'))]"
+    )
+    run_conda(
+        "python",
+        "-c",
+        script,
+        str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    launchers = list(tmp_path.glob("appkit_launcher_*"))
+    assert launchers, "no appkit launcher templates found in frozen menuinst"
+    for launcher in launchers:
+        assert b"/usr/lib/swift" in launcher.read_bytes(), (
+            f"{launcher.name} lost its /usr/lib/swift rpath"
+        )

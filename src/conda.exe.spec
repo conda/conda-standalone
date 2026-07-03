@@ -158,6 +158,32 @@ a = Analysis(['entry_point.py'],
              win_private_assemblies=False,
              cipher=block_cipher,
              noarchive=False)
+
+if sys.platform == "darwin":
+    # PyInstaller >= 6 re-classifies the menuinst launcher templates collected
+    # above (via get_menuinst_data_files()) from DATA to BINARY, because they
+    # are Mach-O executables. Binary processing then rewrites their load
+    # commands: all existing rpaths are removed and a bundle-relative rpath
+    # (@loader_path/../..) is added. This strips /usr/lib/swift from
+    # appkit_launcher_*, which links the Swift runtime via @rpath, so shortcuts
+    # deployed from the frozen menuinst fail to launch on x86_64 with
+    # "Library not loaded: @rpath/libswiftCore.dylib" (arm64 is unaffected
+    # because dyld resolves the Swift runtime from the shared cache).
+    # See conda/menuinst#507 and napari/packaging#401.
+    #
+    # These launchers are never loaded by conda.exe itself: they are templates
+    # that menuinst copies into shortcut .app bundles and re-signs afterwards.
+    # Move them back to DATA so they are shipped byte-for-byte. Analysis trusts
+    # typecodes modified after it ran, so they undergo no further processing.
+    launchers = [
+        (dest_name, src_name, "DATA")
+        for dest_name, src_name, typecode in a.binaries
+        if os.path.basename(dest_name).startswith(("osx_launcher_", "appkit_launcher_"))
+    ]
+    launcher_dests = {dest_name for dest_name, _, _ in launchers}
+    a.binaries = [entry for entry in a.binaries if entry[0] not in launcher_dests]
+    a.datas.extend(launchers)
+
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 
