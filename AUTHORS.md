@@ -17,5 +17,6 @@ Authors are sorted alphabetically.
 * conda-bot
 * conda-forge-admin
 * dependabot[bot]
+* hiroalchem
 * pre-commit-ci[bot]
 * regro-cf-autotick-bot
