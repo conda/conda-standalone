@@ -3,7 +3,8 @@ From: jaimergp <jaimergp@users.noreply.github.com>
 Date: Wed, 27 Aug 2025 15:45:55 +0200
 Subject: [PATCH 4/4] Fix conda run
 
-Updated for conda 26.3.2 which reverted the inline activation optimization.
+Updated for conda 26.9.0, which dedented the non-dev branch of
+_set_env_vars and added comments inside the returned mapping.
 This patch restores the utils.py changes needed for conda.bat lookup in
 conda-standalone, since CONDA_PACKAGE_ROOT is patched to work with PyInstaller.
 
@@ -11,7 +12,7 @@ Co-authored-by: Jaida Rice <jaidarice@gmail.com>
 ---
  conda/__init__.py     |  5 ++++-
  conda/activate.py     |  4 ++++
- conda/base/context.py |  7 +------
+conda/base/context.py | 7 ++-----
  conda/cli/main_run.py |  7 +++++++
  conda/utils.py        | 11 +++--------
  5 files changed, 19 insertions(+), 15 deletions(-)
@@ -55,26 +56,25 @@ index 0fcb5c59e..3830ab60d 100644
          se_len = -len(_script_extension)
          try:
 diff --git a/conda/base/context.py b/conda/base/context.py
-index df6b0b97e..e101c89ef 100644
 --- a/conda/base/context.py
 +++ b/conda/base/context.py
-@@ -891,14 +891,9 @@ class Context(Configuration):
+@@ -948,14 +948,9 @@
                  "_CONDA_ROOT": self.conda_prefix,
              }
-         else:
--            exe = os.path.join(
--                self.conda_prefix,
--                BIN_DIRECTORY,
--                "conda.exe" if on_win else "conda",
--            )
-             return {
--                "CONDA_EXE": exe,
--                "_CONDA_EXE": exe,
-+                "CONDA_EXE": sys.executable,
-+                "_CONDA_EXE": sys.executable,
-                 "_CE_M": None,
-                 "_CE_CONDA": None,
-                 "CONDA_PYTHON_EXE": sys.executable,
+ 
+-        exe = os.path.join(
+-            self.conda_prefix,
+-            BIN_DIRECTORY,
+-            "conda.exe" if on_win else "conda",
+-        )
+         return {
+-            "CONDA_EXE": exe,
+-            "_CONDA_EXE": exe,
++            "CONDA_EXE": sys.executable,
++            "_CONDA_EXE": sys.executable,
+             # Shell wrappers expand `"$CONDA_EXE" $_CE_M $_CE_CONDA` (`python -m conda`
+             # when set). None unsets leftovers; keep the keys while wrappers expand them.
+             # https://github.com/conda/conda/issues/14142
 diff --git a/conda/cli/main_run.py b/conda/cli/main_run.py
 index 2450d1401..8194fe89e 100644
 --- a/conda/cli/main_run.py
@@ -132,4 +132,3 @@ index 38648f99a..515622286 100644
              fh.write(f"{silencer}ECHO OFF\n")
 --
 2.51.1.windows.1
-
