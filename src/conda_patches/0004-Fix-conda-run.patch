@@ -1,4 +1,4 @@
-From c994290b4d2c1d596c52ba4cd693d3f94d7f9cf9 Mon Sep 17 00:00:00 2001
+From 3fcb9c1acbefaed00b62362b95e7e456eb4c137d Mon Sep 17 00:00:00 2001
 From: jaimergp <jaimergp@users.noreply.github.com>
 Date: Wed, 27 Aug 2025 15:45:55 +0200
 Subject: [PATCH 4/4] Fix conda run
@@ -12,43 +12,43 @@ Co-authored-by: Jaida Rice <jaidarice@gmail.com>
 ---
  conda/__init__.py     |  5 ++++-
  conda/activate.py     |  4 ++++
-conda/base/context.py | 7 ++-----
+ conda/base/context.py |  9 ++-------
  conda/cli/main_run.py |  7 +++++++
- conda/utils.py        | 11 +++--------
- 5 files changed, 19 insertions(+), 15 deletions(-)
+ conda/utils.py        | 11 ++---------
+ 5 files changed, 19 insertions(+), 17 deletions(-)
 
 diff --git a/conda/__init__.py b/conda/__init__.py
-index 8b3b3c9b4..1d30d613a 100644
+index a76f25152..26390b8b3 100644
 --- a/conda/__init__.py
 +++ b/conda/__init__.py
-@@ -58,7 +58,10 @@ __url__ = "https://github.com/conda/conda"
+@@ -59,7 +59,10 @@ __url__ = "https://github.com/conda/conda"
  if os.getenv("CONDA_ROOT") is None:
      os.environ["CONDA_ROOT"] = sys.prefix
-
+ 
 -CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
 +if getattr(sys, "_MEIPASS", None):
 +    CONDA_PACKAGE_ROOT = os.path.join(sys.prefix, "conda")
 +else:
 +    CONDA_PACKAGE_ROOT = abspath(dirname(__file__))
  """The conda package directory."""
-
+ 
  CONDA_SOURCE_ROOT = dirname(CONDA_PACKAGE_ROOT)
 diff --git a/conda/activate.py b/conda/activate.py
-index 0fcb5c59e..3830ab60d 100644
+index 143f273cd..914a39f20 100644
 --- a/conda/activate.py
 +++ b/conda/activate.py
-@@ -756,6 +756,8 @@ class _Activator(metaclass=abc.ABCMeta):
+@@ -798,6 +798,8 @@ class _Activator(metaclass=abc.ABCMeta):
              return ""
-
+ 
      def _get_activate_scripts(self, prefix):
 +        if prefix is None:
 +            return ()
          _script_extension = self.script_extension
          se_len = -len(_script_extension)
          try:
-@@ -770,6 +772,8 @@ class _Activator(metaclass=abc.ABCMeta):
+@@ -812,6 +814,8 @@ class _Activator(metaclass=abc.ABCMeta):
          )
-
+ 
      def _get_deactivate_scripts(self, prefix):
 +        if prefix is None:
 +            return ()
@@ -56,9 +56,10 @@ index 0fcb5c59e..3830ab60d 100644
          se_len = -len(_script_extension)
          try:
 diff --git a/conda/base/context.py b/conda/base/context.py
+index 8965bf97e..7d6c27a63 100644
 --- a/conda/base/context.py
 +++ b/conda/base/context.py
-@@ -948,14 +948,9 @@
+@@ -948,14 +948,9 @@ class Context(Configuration):
                  "_CONDA_ROOT": self.conda_prefix,
              }
  
@@ -76,10 +77,10 @@ diff --git a/conda/base/context.py b/conda/base/context.py
              # when set). None unsets leftovers; keep the keys while wrappers expand them.
              # https://github.com/conda/conda/issues/14142
 diff --git a/conda/cli/main_run.py b/conda/cli/main_run.py
-index 2450d1401..8194fe89e 100644
+index afb5152f5..ea90839a6 100644
 --- a/conda/cli/main_run.py
 +++ b/conda/cli/main_run.py
-@@ -94,12 +94,19 @@ def configure_parser(sub_parsers: _SubParsersAction, **kwargs) -> ArgumentParser
+@@ -101,12 +101,19 @@ def configure_parser(sub_parsers: _SubParsersAction, **kwargs) -> ArgumentParser
  def execute(args: Namespace, parser: ArgumentParser) -> int:
      from ..base.context import context
      from ..common.compat import encode_environment
@@ -89,7 +90,7 @@ index 2450d1401..8194fe89e 100644
      from ..gateways.disk.delete import rm_rf
      from ..gateways.subprocess import subprocess_call
      from ..utils import wrap_subprocess_call
-
+ 
 +    if paths_equal(context.target_prefix, sys.prefix):
 +        raise ArgumentError(
 +            "Cannot use 'conda run' on conda-standalone's base environment; "
@@ -98,23 +99,21 @@ index 2450d1401..8194fe89e 100644
 +
      prefix_data = PrefixData.from_context()
      prefix_data.assert_environment()
-
+ 
 diff --git a/conda/utils.py b/conda/utils.py
-index 38648f99a..515622286 100644
+index 9e9bfa550..a2ad70b2a 100644
 --- a/conda/utils.py
 +++ b/conda/utils.py
 @@ -14,7 +14,7 @@ from pathlib import Path
  from shutil import which
  from typing import TYPE_CHECKING
-
+ 
 -from . import CondaError
 +from . import CONDA_PACKAGE_ROOT, CondaError
  from .auxlib.compat import Utf8NamedTemporaryFile, shlex_split_unicode
  from .common.compat import isiterable, on_win
  from .common.url import path_to_url
-@@ -188,16 +188,9 @@ def wrap_subprocess_call(
-     multiline = False
-     if len(arguments) == 1 and "\n" in arguments[0]:
+@@ -199,14 +199,7 @@ def wrap_subprocess_call(
          multiline = True
      if on_win:
          comspec = get_comspec()  # fail early with KeyError if undefined
@@ -130,5 +129,6 @@ index 38648f99a..515622286 100644
          with Utf8NamedTemporaryFile(mode="w", suffix=".bat", delete=False) as fh:
              silencer = "" if debug_wrapper_scripts else "@"
              fh.write(f"{silencer}ECHO OFF\n")
---
-2.51.1.windows.1
+-- 
+2.55.0
+

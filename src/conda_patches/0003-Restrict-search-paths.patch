@@ -1,14 +1,15 @@
-From bea609d2efd84f27690fa3796b77e9817c2e0e0e Mon Sep 17 00:00:00 2001
+From a72bc36cf5935bd34fc0b2c20721f87d2798a279 Mon Sep 17 00:00:00 2001
 From: Marco Esters <mesters@anaconda.com>
 Date: Thu, 31 Jul 2025 06:18:47 -0700
 Subject: [PATCH 3/4] Restrict search paths
 
+Co-authored-by: Jaida Rice <jrice@anaconda.com>
 ---
  conda/base/constants.py | 68 ++++++++++++++++++++++-------------------
  1 file changed, 37 insertions(+), 31 deletions(-)
 
 diff --git a/conda/base/constants.py b/conda/base/constants.py
-index 7ca908d37..df9309240 100644
+index fe7f9be18..f1310de8c 100644
 --- a/conda/base/constants.py
 +++ b/conda/base/constants.py
 @@ -12,6 +12,7 @@ from __future__ import annotations
@@ -99,5 +100,5 @@ index 7ca908d37..df9309240 100644
  CONDA_HOMEPAGE_URL: Final = "https://conda.io"
  
 -- 
-2.51.1.windows.1
+2.55.0
 
