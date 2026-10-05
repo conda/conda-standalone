@@ -4,7 +4,7 @@
 {% set constructor_lower_bound = "3.17.0" %}
 {% set menuinst_lower_bound = "2.5.2" %}
 {% set pyinstaller_upper_bound = "6.22.1" %}
-{% set python_version = "3.14.8" %}
+{% set python_version = "3.14.7" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
 package:
