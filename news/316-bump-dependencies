@@ -1,6 +1,6 @@
 ### Enhancements
 
-* Update `conda` to `26.9.0`, `libmambapy` to `2.9.0`, `Python` to `3.14.7`, and `constructor` to `3.17.3`. (#316)
+* Update `conda` to `26.9.1`, `libmambapy` to `2.9.0`, `Python` to `3.14.8`, and `constructor` to `3.17.3`. (#316)
 
 ### Bug fixes
 
