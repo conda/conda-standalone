@@ -39,7 +39,7 @@
   github: nehaljwani
 - name: conda-bot
   email: 18747875+conda-bot@users.noreply.github.com
-  num_commits: 52
+  num_commits: 56
   first_commit: 2023-02-08 16:08:24
   github: conda-bot
 - name: Hadrien Mary
@@ -51,7 +51,7 @@
   github: hadim
 - name: pre-commit-ci[bot]
   email: 66853113+pre-commit-ci[bot]@users.noreply.github.com
-  num_commits: 70
+  num_commits: 77
   first_commit: 2023-02-06 23:27:05
   github: pre-commit-ci[bot]
 - name: Isuru Fernando
@@ -75,7 +75,7 @@
   github: SC426
 - name: dependabot[bot]
   email: 49699333+dependabot[bot]@users.noreply.github.com
-  num_commits: 21
+  num_commits: 22
   first_commit: 2024-06-12 18:31:22
   github: dependabot[bot]
 - name: Marco Esters
@@ -89,17 +89,17 @@
   num_commits: 1
   first_commit: 2025-07-09 00:38:19
 - name: Jaida Rice
-  email: jaidarice@gmail.com
+  email: jrice@anaconda.com
   alternate_emails:
-  - 100002667+Jrice1317@users.noreply.github.com
+  - jaidarice@gmail.com
   github: Jrice1317
-  num_commits: 13
+  num_commits: 14
   first_commit: 2025-07-02 13:31:37
 - name: Robin
   email: randersson@anaconda.com
   alternate_emails:
   - 34315751+lrandersson@users.noreply.github.com
-  num_commits: 17
+  num_commits: 19
   first_commit: 2025-12-09 19:22:49
   github: lrandersson
 - name: hiroalchem
