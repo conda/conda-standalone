@@ -13,6 +13,23 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 26.9.1 (2026-10-06)
+
+### Enhancements
+
+* Update `conda` to `26.9.1`, `libmambapy` to `2.9.0`, `Python` to `3.14.7`, and `constructor` to `3.17.0`. (#316)
+
+### Other
+
+* Pin `pyinstaller <6.22.1` at build time. (#307)
+* Update patches for refactors in `conda` 26.9.0 (#316)
+
+### Contributors
+
+* @Jrice1317
+* @lrandersson
+
+
 ## 26.7.0 (2026-08-04)
 
 ### Enhancements
