@@ -6,7 +6,7 @@
   --conda-source conda_src || goto :error
 
 :: we need these for noarch packages with entry points to work on windows
-COPY "conda_src\conda\shell\cli-%ARCH%.exe" entry_point_base.exe || goto :error
+COPY /Y /B "%PREFIX%\share\conda-launchers\cli-%ARCH%.exe" entry_point_base.exe || goto :error
 
 pyinstaller --clean --log-level=DEBUG src\conda.exe.spec || goto :error
 set "variant=%variant%"
