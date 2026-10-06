@@ -17,7 +17,7 @@ Remember to update the hyperlinks at the bottom.
 
 ### Enhancements
 
-* Update `conda` to `26.9.1`, `libmambapy` to `2.9.0`, `Python` to `3.14.8`, and `constructor` to `3.17.0`. (#316)
+* Update `conda` to `26.9.1`, `libmambapy` to `2.9.0`, `Python` to `3.14.7`, and `constructor` to `3.17.0`. (#316)
 
 ### Other
 
@@ -28,10 +28,6 @@ Remember to update the hyperlinks at the bottom.
 
 * @Jrice1317
 * @lrandersson
-* @conda-bot
-* @dependabot[bot]
-* @pre-commit-ci[bot]
-
 
 
 ## 26.7.0 (2026-08-04)
