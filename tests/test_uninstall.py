@@ -513,6 +513,56 @@ def test_delete_self(
             assert unexpected_files == []
 
 
+@pytest.mark.skipif(not ON_CI, reason="CI only - may remove shared caches")
+@pytest.mark.skipif(ON_WIN, reason="conda-standalone cannot delete itself on Windows")
+def test_delete_self_remove_caches_and_user_files(
+    mock_system_paths: dict[str, Path],
+    monkeypatch: MonkeyPatch,
+    tmp_env: TmpEnvFixture,
+):
+    """Test that the cleanup steps still work after conda-standalone has deleted itself."""
+    # This test will fail if CONDA_PKGS_DIRS is set because it overrides the mocked location
+    monkeypatch.delenv("CONDA_PKGS_DIRS", raising=False)
+    pkgs_dir = mock_system_paths["home"] / "pkgs"
+    user_condarc = mock_system_paths["home"] / ".condarc"
+    yaml = YAML()
+    with user_condarc.open("w") as crc:
+        yaml.dump({"channels": [CONDA_CHANNEL], "pkgs_dirs": [str(pkgs_dir)]}, crc)
+
+    with tmp_env("constructor") as instdir:
+        conda_exe_target = instdir / "conda.exe"
+        shutil.copy(CONDA_EXE, conda_exe_target)
+        internal_dir = Path(CONDA_EXE).parent / "_internal"
+        if internal_dir.exists():
+            shutil.copytree(internal_dir, instdir / internal_dir.name)
+        dot_conda_dir = mock_system_paths["home"] / ".conda"
+        assert list(pkgs_dir.glob("constructor*")) != []
+        assert dot_conda_dir.exists()
+
+        process = subprocess.run(
+            [
+                str(conda_exe_target),
+                "constructor",
+                "uninstall",
+                "--prefix",
+                str(instdir),
+                "--remove-caches",
+                "--remove-config-files",
+                "user",
+                "--remove-user-data",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        assert not instdir.exists()
+        assert "Failed to remove all cache files" not in process.stderr
+        assert not pkgs_dir.exists()
+        assert not user_condarc.exists()
+        assert not dot_conda_dir.exists()
+
+
 def test_uninstallation_default_environment(
     mock_system_paths: dict[str, Path],
     tmp_env: TmpEnvFixture,
