@@ -13,6 +13,19 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 29.6.2.post1 (2026-10-13)
+
+### Bug fixes
+
+* Fix an issue during uninstall when removing the package cache fail with "Failed to remove all cache files". (#324)
+
+### Contributors
+
+* @lrandersson
+* @pre-commit-ci[bot]
+
+
+
 ## 26.9.2 (2026-10-12)
 
 ### Enhancements
