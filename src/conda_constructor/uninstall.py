@@ -2,13 +2,11 @@ import logging
 import os
 import re
 import sys
-from importlib import import_module
 from pathlib import Path
 from shutil import rmtree
 
 from conda.base.constants import COMPATIBLE_SHELLS, PREFIX_FROZEN_FILE, PREFIX_MAGIC_FILE
 from conda.base.context import context, reset_context
-from conda.cli.conda_argparse import BUILTIN_SUBCOMMANDS
 from conda.cli.main import main as conda_main
 from conda.common.compat import on_win
 from conda.common.path import win_path_to_unix
@@ -364,11 +362,6 @@ def uninstall(
                 f"The currently activated environment is a subdirectory of {prefix}. "
                 "Please deactivate the current environment and re-run the uninstallation."
             )
-
-    # The uninstallation deletes the running executable, and PyInstaller cannot load
-    # modules from it afterwards. Load all conda subcommand modules up front.
-    for subcommand in BUILTIN_SUBCOMMANDS.values():
-        import_module(subcommand["module"])
 
     print(f"Uninstalling conda installation in {prefix}...")
     prefixes = [file.parent.parent.resolve() for file in prefix.glob(f"**/{PREFIX_MAGIC_FILE}")]
