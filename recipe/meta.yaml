@@ -1,4 +1,4 @@
-{% set conda_version = "26.9.2" %}
+{% set conda_version = "26.9.3" %}
 {% set conda_libmamba_solver_version = "26.7.0" %}
 {% set libmambapy_version = "2.9.0" %}
 {% set constructor_lower_bound = "3.17.0" %}
