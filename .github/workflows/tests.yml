@@ -43,14 +43,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: conda-incubator/setup-miniconda@be893c923ea9cf1cf7cd510fbdde27c7e18cbdcb # v4.1.0
         with:
-          auto-activate-base: true
-          activate-environment: "test"
+          auto-activate: true
+          activate-environment: ""
           run-post: false
           miniforge-version: latest
 
       - name: Install dependencies
         shell: bash -el {0}
-        run: conda install -y "conda-build!=3.28.0,!=3.28.1" anaconda-client
+        run: conda self install conda-build anaconda-client
 
       - name: Debugging information
         run: |
@@ -78,7 +78,7 @@ jobs:
         shell: bash -el {0}
         env:
           CONDA_BLD_PATH: ${{ runner.temp }}/bld
-        run: conda-build recipe --override-channels -c conda-forge
+        run: conda build recipe --override-channels -c conda-forge
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: github.event_name == 'pull_request'
