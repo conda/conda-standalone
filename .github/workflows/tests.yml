@@ -46,10 +46,11 @@ jobs:
           auto-activate: true
           activate-environment: ""
           run-post: false
+          miniforge-version: latest
 
       - name: Install dependencies
         shell: bash -el {0}
-        run: conda self install conda-build anaconda-client
+        run: conda install -n base conda-build anaconda-client
 
       - name: Debugging information
         run: |
