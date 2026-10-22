@@ -1,4 +1,5 @@
 import io
+import os
 import shutil
 import stat
 import subprocess
@@ -35,6 +36,30 @@ def test_extract_conda_pkgs(tmp_path: Path, extract_command: tuple[str]):
         if not (pkgs_dir / expected_dir).exists():
             missing_directories.append(expected_dir)
     assert missing_directories == []
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="AF_UNIX socket path limit applies to Linux")
+def test_extract_conda_pkgs_long_tmpdir(tmp_path: Path):
+    """Extraction must work when TMPDIR is 76-79 characters long.
+
+    Python 3.14 can fail with "AF_UNIX path too long" for these lengths.
+    See https://github.com/python/cpython/issues/149527
+    """
+    shutil.copytree(HERE / "data", tmp_path / "pkgs")
+    tmpdir = Path("/tmp/" + "x" * 74)  # 79 characters
+    tmpdir.mkdir(exist_ok=True)
+    try:
+        run_conda(
+            "constructor",
+            "extract",
+            "--conda-pkgs",
+            "--prefix",
+            tmp_path,
+            check=True,
+            env={**os.environ, "TMPDIR": str(tmpdir)},
+        )
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 @pytest.mark.parametrize("extract_command", TAR_EXTRACT_COMMANDS)
