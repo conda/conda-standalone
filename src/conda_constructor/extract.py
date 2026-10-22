@@ -1,4 +1,5 @@
 import argparse
+import multiprocessing
 import os
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -76,7 +77,11 @@ def _extract_conda_pkgs(prefix: Path, max_workers=None) -> None:
             if pkg.name.endswith(ext):
                 flist.append(str(pkg))
     disabled = True if boolify(os.environ.get("CONDA_QUIET")) else None  # None only for non-tty
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+    # Workaround: Python 3.14 uses "forkserver" on Linux, which fails with
+    # "AF_UNIX path too long" for some TMPDIR lengths (python/cpython#149527).
+    # TODO: Remove mp_context once the Python version used here includes the fix.
+    mp_context = multiprocessing.get_context("fork") if sys.platform == "linux" else None
+    with ProcessPoolExecutor(max_workers=max_workers, mp_context=mp_context) as executor:
         futures = {executor.submit(api.extract, fn): fn for fn in flist}
         with tqdm(total=len(flist), leave=False, disable=disabled) as pbar:
             for future in as_completed(futures):
