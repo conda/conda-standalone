@@ -13,6 +13,20 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 26.9.4.post1 (2026-10-22)
+
+### Bug fixes
+
+* Fix `AF_UNIX path too long` error when extracting packages on Linux with some temporary directory paths. (#332)
+
+### Contributors
+
+* @marcoesters
+* @lrandersson
+* @pre-commit-ci[bot]
+
+
+
 ## 26.9.4 (2026-10-21)
 
 ### Enhancements
