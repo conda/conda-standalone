@@ -23,7 +23,6 @@ Remember to update the hyperlinks at the bottom.
 
 * @marcoesters
 * @lrandersson
-* @pre-commit-ci[bot]
 
 
 
