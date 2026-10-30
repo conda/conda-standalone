@@ -31,6 +31,8 @@ jobs:
         include:
           - os: ubuntu-latest
             subdir: linux-64
+          - os: ubuntu-26.04-arm
+            subdir: linux-aarch64
           - os: macos-15-intel  # FUTURE: Deprecated in Fall 2027
             subdir: osx-64
           - os: macos-latest
@@ -109,3 +111,16 @@ jobs:
 
           echo "Use this command to try out the build:"
           echo "  conda install -c ${ANACONDA_ORG_CHANNEL}/label/${ANACONDA_ORG_LABEL} conda-standalone"
+
+  analyze:
+    needs: [build_recipe]
+    if: '!cancelled()'
+    runs-on: ubuntu-slim
+    steps:
+      - name: Determine Success
+        uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        id: alls-green
+        with:
+          # permit jobs to be skipped if there are no code changes (see changes job)
+          allowed-skips: ${{ toJSON(needs) }}
+          jobs: ${{ toJSON(needs) }}
