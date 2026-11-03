@@ -1,0 +1,19 @@
+### Enhancements
+
+* <news item>
+
+### Bug fixes
+
+* Add `ssl/cacert.pem` from `ca-certificates` to the bundle. The conda-forge `certifi` package does not include its own CA bundle. (#340)
+
+### Deprecations
+
+* <news item>
+
+### Docs
+
+* <news item>
+
+### Other
+
+* <news item>

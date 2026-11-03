@@ -96,6 +96,26 @@ if sys.platform == "win32":
         (os.path.join(sitepackages, 'conda', 'shell', 'Scripts', 'activate.bat'), 'conda/shell/Scripts'),
     ]
 
+# The conda-forge certifi package has no cacert.pem. It reads the file
+# from <sys.prefix>/ssl (Library/ssl on Windows). Add it to the bundle.
+# Note: certifi packages that include cacert.pem do not need this file.
+prefix = os.environ.get("PREFIX", sys.prefix)  # conda-build host env
+cacert = next(
+    (
+        path
+        for path in (
+            os.path.join(prefix, "Library", "ssl", "cacert.pem"),
+            os.path.join(prefix, "ssl", "cacert.pem"),
+        )
+        if os.path.isfile(path)
+    ),
+    None,
+)
+if cacert is not None:
+    datas.append((cacert, "ssl"))
+else:
+    print(f"WARNING: ssl/cacert.pem not found in {prefix}.", file=sys.stderr)
+
 hiddenimports = []
 packages = [
     "conda",
