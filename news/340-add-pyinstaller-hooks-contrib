@@ -4,7 +4,7 @@
 
 ### Bug fixes
 
-* Add explicit build time dependency on `pyinstaller-hooks-contrib >=2026.9` to ensure CA certificates are bundled with `conda-standalone` for `conda-standalone` packages. (#340 via #343)
+* Require `pyinstaller-hooks-contrib` to be at least version `2026.9` to ensure that CA certificates are bundled with `conda-standalone` for `conda-forge` packages. (#340 via #343)
 
 ### Deprecations
 
