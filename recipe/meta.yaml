@@ -48,6 +48,7 @@ requirements:
   build:
     - {{ stdlib('c') }}
     - pyinstaller <{{ pyinstaller_upper_bound }}
+    - pyinstaller-hooks-contrib >=2026.9
     - python ={{ python_version }}
     - conda ={{ conda_version }}
     - conda-launchers >=24.7.1
