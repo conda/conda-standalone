@@ -66,12 +66,14 @@ test:
     - conda
     - conda-build
     - menuinst >={{ menuinst_lower_bound }}
+    - pyelftools  # [linux]
     - pytest
     - ruamel.yaml
   source_files:
     - tests
   commands:
-    - pytest -vv
+    - CONDA_STDLIB_VERSION={{ c_stdlib_version }} pytest -vv  # [linux]
+    - pytest -vv  # [not linux]
     - test ! -e {{ PREFIX }}/bin/codesign  # [osx]
 
 about:
