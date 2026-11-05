@@ -58,7 +58,7 @@ def _required_glibc_versions(path: Path) -> set[tuple[int, int]]:
     return versions
 
 
-@pytest.skipif(sys.platform != "linux", reason="GLIBC symbol versions are Linux-specific")
+@pytest.mark.skipif(sys.platform != "linux", reason="GLIBC symbol versions are Linux-specific")
 def test_bundled_shared_libraries_meet_glibc_floor(
     tmp_path: Path,
     glibc_floor: tuple[int, int] | None,
