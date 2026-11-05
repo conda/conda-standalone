@@ -13,7 +13,7 @@ from utils import run_conda
 if TYPE_CHECKING:
     from pathlib import Path
 
-_GLIBC_VERSION = re.compile(r"GLIBC_(\d+)\.(\d+)")
+_GLIBC_VERSION = re.compile(r"GLIBC_(\d+)\.(\d+)(?:\.(\d+))?")
 
 _COPY_SHARED_LIBRARIES = """
 import pathlib
@@ -32,17 +32,17 @@ for path in source.rglob("*"):
 
 
 @pytest.fixture
-def glibc_floor() -> tuple[int, int] | None:
+def glibc_floor() -> tuple[int, ...] | None:
     value = os.environ.get("CONDA_STDLIB_VERSION")
     if value is None:
         return None
-    components = value.split(".")
-    if len(components) != 2:
+    components = tuple(int(component) for component in value.split("."))
+    if len(components) not in (2, 3):
         return None
-    return int(components[0]), int(components[1])
+    return components
 
 
-def _required_glibc_versions(path: Path) -> set[tuple[int, int]]:
+def _required_glibc_versions(path: Path) -> set[tuple[int, ...]]:
     from elftools.elf.elffile import ELFFile
 
     versions = set()
@@ -52,16 +52,15 @@ def _required_glibc_versions(path: Path) -> set[tuple[int, int]]:
             return versions
         for _, auxiliaries in section.iter_versions():
             for auxiliary in auxiliaries:
-                match = _GLIBC_VERSION.fullmatch(auxiliary.name)
-                if match:
-                    versions.add((int(match[1]), int(match[2])))
+                if match := _GLIBC_VERSION.fullmatch(auxiliary.name):
+                    versions.add(tuple(int(part) for part in match.groups() if part is not None))
     return versions
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="GLIBC symbol versions are Linux-specific")
 def test_bundled_shared_libraries_meet_glibc_floor(
     tmp_path: Path,
-    glibc_floor: tuple[int, int] | None,
+    glibc_floor: tuple[int, ...] | None,
 ):
     if glibc_floor is None:
         pytest.skip(
