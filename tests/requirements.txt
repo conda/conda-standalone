@@ -1,5 +1,6 @@
 conda
 conda-build
 menuinst>=2
+pyelftools
 pytest
 ruamel.yaml

@@ -15,6 +15,14 @@ fi
 # -F is to create a single file
 # -s strips executables and libraries
 export variant="$variant"
+
+# For packages with incorrect RPATHS, resolve shared libraries from BUILD_PREFIX
+# first so that PyInstaller's ldd analysis bundles the environment copies instead
+# of using the the build's host. See: https://github.com/conda/conda-standalone/issues/344
+if [[ $target_platform == linux-* ]]; then
+  export LD_LIBRARY_PATH="${BUILD_PREFIX}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+fi
+
 pyinstaller --clean --log-level=DEBUG src/conda.exe.spec
 if [[ "$variant" == "onedir" ]]; then
   mkdir -p "$PREFIX"
