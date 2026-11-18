@@ -1,10 +1,10 @@
-{% set conda_version = "26.9.4" %}
-{% set conda_libmamba_solver_version = "26.7.0" %}
-{% set libmambapy_version = "2.9.0" %}
+{% set conda_version = "26.10.0" %}
+{% set conda_libmamba_solver_version = "26.10.1" %}
+{% set libmambapy_version = "2.10.0" %}
 {% set constructor_lower_bound = "3.17.0" %}
 {% set menuinst_lower_bound = "2.5.2" %}
 {% set pyinstaller_upper_bound = "6.22.1" %}
-{% set python_version = "3.14.8" %}
+{% set python_version = "3.14.10" %}
 {% set pyver = "".join(python_version.split(".")[:2]) %}
 
 package:
