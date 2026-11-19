@@ -15,7 +15,7 @@ source:
   - path: ../
 
   - url: https://github.com/conda/conda/releases/download/{{ conda_version }}/conda-{{ conda_version }}.tar.gz
-    sha256: 1028ac365f93604b34b30f9fbf24269e0643e415994f3172d63c58d5a5bb7ad2
+    sha256: cdadec8b466b3441d16a13ef219cbe9b50a3dec9f7d02f8e63b3d1dacd290800
     folder: conda_src
     # NOTE: All files affected by a patch need to be manually copied
     # from src to PREFIX in build.sh and bld.bat
