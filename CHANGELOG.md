@@ -13,6 +13,32 @@ Remember to update the hyperlinks at the bottom.
 
 [//]: # (current developments)
 
+## 26.10.0 (2026-11-19)
+
+### Enhancements
+
+* Update `conda` to `26.10.0`, `conda-libmamba-solver` to `26.10.1`, `libmambapy` to `2.10.0`, and `Python` to `3.14.10`. (#349)
+
+### Bug fixes
+
+* Prefer build prefix for `LD_LIBRARY_PATH` over system libraries. (#344 via #345)
+* Require `pyinstaller-hooks-contrib` to be at least version `2026.9` to ensure that CA certificates are bundled with `conda-standalone` for `conda-forge` packages. (#340 via #343)
+
+### Other
+
+* Test on Linux AARCH64. (#336)
+
+### Contributors
+
+* @marcoesters
+* @lrandersson
+* @psteyer
+* @conda-bot
+* @dependabot[bot]
+* @pre-commit-ci[bot]
+
+
+
 ## 26.9.4.post1 (2026-10-22)
 
 ### Bug fixes
