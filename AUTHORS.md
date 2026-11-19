@@ -14,6 +14,7 @@ Authors are sorted alphabetically.
 * Nehal J Wani
 * Robin
 * SC426
+* Udo-Peter Steyer
 * conda-bot
 * conda-forge-admin
 * dependabot[bot]
