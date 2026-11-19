@@ -33,9 +33,6 @@ Remember to update the hyperlinks at the bottom.
 * @marcoesters
 * @lrandersson
 * @psteyer
-* @conda-bot
-* @dependabot[bot]
-* @pre-commit-ci[bot]
 
 
 
